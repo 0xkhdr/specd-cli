@@ -1,6 +1,6 @@
 # The `.specd` layout
 
-What specd writes to disk, who owns each file, and what you may edit.
+This page shows what specd writes, who owns each file, and what you may edit.
 
 The short version: **Markdown is yours, everything else is the harness's.**
 
@@ -147,7 +147,9 @@ nothing does not complete a task.
 - `sync` writes `specs/` and the change state as one transaction: every file or
   none.
 - `archive` moves the change directory and refuses a target collision.
-- `report` and `review` read. They authorize nothing.
+- `report` and `review` without `--verdict` only project existing facts.
+  `review --verdict` records a separate review; neither form authorizes a human
+  gate or changes accepted behavior.
 
 ## Version control
 
@@ -156,6 +158,12 @@ and the accepted specs are meant to be reviewable in the same diff as the
 implementation — that is most of the value of keeping them in Markdown and JSON
 Lines instead of a database.
 
+Commit after each completed task before starting another. A clean baseline
+keeps each task's declared scope and evidence attributable to that task alone.
+
 Merge conflicts in `history.jsonl` or `evidence.jsonl` mean two branches
 recorded history against the same root. Resolve by keeping both sides' lines;
 they are append-only and each line stands alone.
+
+Next: use [Troubleshooting](troubleshooting.md) when a managed path, state file,
+or record refuses to load.

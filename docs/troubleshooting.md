@@ -1,9 +1,8 @@
 # Troubleshooting
 
-Every specd refusal has the same shape: a **code**, the offending **path**, a
-**reason**, and exactly **one legal next action**. The next action is printed —
-in the `next:` line and in the `fix:` clause. Do that. This page exists to
-explain *why* it is the only one.
+Start with the `next:` line. Every refusal provides a code, reason, owner, and
+one legal next action. This page explains the refusal families and their safe
+recovery.
 
 ```text
 error <code>: <reason>; fix: <next action>
@@ -25,6 +24,7 @@ it).
 | `human_approval_required` | `approve` from anything but a real terminal | hand off to a human; there is no bypass |
 | `human_operation_required` | same, for `sync` | same |
 | `approval_identity` | `--approver` doesn't match git `user.email` / `SPECD_APPROVER` | drop the flag, or match it exactly |
+| `approval_intent` | approval reason is empty, or terminal confirmation was declined | supply a reason and confirm in the human terminal |
 | `scope_outside` | your diff touched a file the task didn't declare | revert the extra file, or amend the plan and re-approve |
 | `attempt_dirty` | the Git worktree isn't clean at `start` | commit or clean, then retry |
 | `stale_revision` | you passed a `--revision` the change has moved past | run `status`, retry with the revision it reports |
@@ -86,7 +86,7 @@ and `start` and dies at `verify` as `scope_outside`.
 | --- | --- | --- |
 | `human_approval_required` | not a human route | hand off to a human terminal |
 | `approval_identity` | claimed approver ≠ trusted identity, or sources disagree | drop `--approver`, or make git `user.email` and `SPECD_APPROVER` agree |
-| `approval_intent` | terminal confirmation not given | confirm in the human terminal |
+| `approval_intent` | reason missing, or terminal confirmation not given | supply `--reason`, then confirm in the human terminal |
 | `approval_gates` | blocking gate findings still open | repair findings, rerun `check` |
 | `approval_drift` | artifacts changed between `check` and `approve` | rerun `check`, approve fresh content |
 | `approval_stale` | the approval no longer covers current bytes | rerun `check`, obtain fresh approval |
@@ -249,3 +249,7 @@ was genuinely stopped. You cannot pre-argue for a feature.
 If the refusal is genuinely wrong — the state is fine and specd disagrees —
 that's a bug worth reporting with the full output, the change's `state.json`,
 and the tail of `history.jsonl`.
+
+For exact operation syntax and exits, use generated
+[Operations](operations.md). For security-sensitive failures, follow the
+[security reporting policy](../SECURITY.md).

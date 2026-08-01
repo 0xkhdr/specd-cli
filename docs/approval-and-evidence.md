@@ -1,11 +1,8 @@
 # Approval and evidence
 
-The two things people expect specd to be lenient about, and the two things it
-never is.
-
-If you read one page before wiring an agent up to specd, read this one. Every
-claim here cites the code that enforces it or the release journey that replays
-it (`internal/integration/release_journeys_test.go`, subtests `01`–`14`).
+Approval, evidence, and completion answer different questions. Keeping them
+separate is the core safety property of specd. Release journeys `01`–`14` in
+`internal/integration/release_journeys_test.go` replay these boundaries.
 
 ## Verification is not completion
 
@@ -116,16 +113,16 @@ is a host you already trusted with your source tree.
 
 ### Identity is derived, not claimed
 
-The trusted approver identity is git `user.email`, or `SPECD_APPROVER`
-(`internal/cmd/approve.go:27`). If both are set they must agree. Claim something
-else with `--approver` and you get:
+The trusted approver identity is Git `user.email`, or `SPECD_APPROVER`. If both
+are set they must agree. Claim something else with `--approver` and you get:
 
 ```text
 error approval_identity: claimed approver differs from trusted identity
 ```
 
-Omitting `--approver` is fine and usually right — it is derived either way. The
-flag exists so the claim can be *checked*, not so it can be *chosen*.
+Omitting `--approver` is usually right because identity is derived. The flag
+checks a claim; it does not choose an identity. Approval and sync still require
+a non-empty `--reason`.
 
 ## Approval goes stale
 
@@ -162,15 +159,15 @@ identity equals the recording actor: *"review evidence requires a separate
 reviewer identity"* (`internal/core/evidence/production.go:246`). An agent
 cannot review itself any more than it can approve itself.
 
-Review is part of the opt-in production profile. It is not required by the
-default loop, and it does not substitute for either human gate.
+Review is part of the opt-in production profile. That profile is experimental
+and carries no production assurance in the current release decision. Review is
+not required by the default loop and does not substitute for either human gate.
 
 ## Reports authorize nothing
 
-`report` and `review --verdict` projections are read-only. They restate what
-history and evidence already say. No report has ever moved a lifecycle, and if
-one appears to, that is the bug — reports are derived from state, never the
-reverse.
+`report` and `review` without `--verdict` are read-only projections. Recording a
+review verdict writes review evidence, but it still authorizes nothing. Reports
+derive from state and evidence; they never move a lifecycle.
 
 ## The short version for agent authors
 
@@ -182,3 +179,6 @@ reverse.
 4. Pass the `--revision` you actually observed. It is a guard, not a formality.
 5. Read the `next:` line. After a refusal there is exactly one legal action, and
    it is printed.
+
+Next: agent integrations should read [Driving specd from an agent](agent-setup.md);
+operators can use [Troubleshooting](troubleshooting.md) for refusal recovery.

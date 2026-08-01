@@ -1,7 +1,7 @@
 # The execution loop
 
-What happens between an approved plan and a completed task, and why each step
-refuses what it refuses.
+Use this loop for exactly one approved task at a time. Each operation narrows
+what may happen next and refuses stale or undeclared work.
 
 ```text
 next → context → start → edit declared files → verify → complete
@@ -29,10 +29,11 @@ Each task gets one readiness value (`internal/core/readiness.go`):
 | `terminal` | completed |
 | `blocked` | explicitly blocked |
 
-The **frontier** is every `ready` task, not one task. Two tasks with no
-dependency between them are both on the frontier, and you may work them
-concurrently — the harness serializes managed writes with a per-change lock, so
-concurrency is a real option rather than a race.
+The **frontier** is every `ready` task, not one task. Two independent tasks may
+appear together. The harness serializes managed writes with a per-change lock,
+but the release boundary does not claim proof across concurrent callers at
+scale. Treat parallel execution as unproven until your host and workload have
+validated it.
 
 ### Waves
 
@@ -136,7 +137,7 @@ error scope_outside: … changed paths exceed exact attempt authority: …
 next: blocked owner=author; revise the plan and obtain fresh human approval
 ```
 
-Three consequences worth knowing before they surprise you:
+Three practical consequences:
 
 1. **Git-ignored files count.** Deliberately: honoring `.gitignore` would let an
    agent write anywhere by adding an ignore rule. Stray build output blocks the
@@ -199,6 +200,10 @@ Practically: kill specd at any point and re-run `status`. It will tell you where
 you actually are. There is no "resume" command because there is no
 half-transition to resume.
 
+Before starting the next task, commit the completed task's code and managed
+specd records. `start` requires a clean Git baseline so one task cannot inherit
+another task's uncommitted diff.
+
 ## When you are refused
 
 Every refusal carries a code, the offending path, a reason, and exactly one
@@ -207,3 +212,6 @@ success.
 
 Do what the `next:` line says. If it names `owner=human`, hand off — that is a
 real boundary, not a retry.
+
+Next: read [Approval and evidence](approval-and-evidence.md) for the identity
+rules behind verification and both human gates.

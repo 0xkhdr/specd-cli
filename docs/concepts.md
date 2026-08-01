@@ -1,17 +1,15 @@
 # Concepts
 
-The model specd works with, in the order you meet it. For the on-disk shape of
-all of this, read [layout.md](layout.md). For flags and exit codes, read the
-generated [operations.md](operations.md).
+This page defines specd's model in the order you encounter it. Use these terms
+consistently in plans, code, and documentation. For files on disk, read
+[Layout](layout.md). For exact command contracts, read generated
+[Operations](operations.md).
 
 ## The split
 
-An AI agent is good at reasoning and bad at remembering a process it agreed to
-twenty thousand tokens ago. specd assumes that. The agent does the thinking:
-what the change is, what the design should be, what code to write. The harness
-owns everything that must be true regardless of what the agent believes — the
-lifecycle, the validation, the approval, the file scope, the evidence, the
-completion.
+The agent reasons about the change, design, and implementation. The harness
+owns the facts that must remain deterministic: lifecycle, validation, approval,
+file scope, evidence, and completion.
 
 Nothing in the enforcement path calls an LLM or the network. It is a release
 gate that no deterministic package imports either.
@@ -102,7 +100,7 @@ harness-owned `state.json` alongside a monotonic `revision`.
 
 ## Four things that are not each other
 
-The most common way to misunderstand specd is to collapse two of these.
+Keep these four concepts separate.
 
 **Activity** is persisted, harness-owned task state: `pending`, `in_progress`,
 `completed`, `failed`, `blocked`. It only moves through legal transitions —
@@ -174,3 +172,5 @@ no config file — the entire configuration surface is the flags in
 [operations.md](operations.md). Each of these is deferred behind a recorded
 threshold, not forgotten. `friction` is how you argue for one: record what a
 missing capability actually blocked, in the moment it blocked you.
+
+Next: read [The execution loop](the-loop.md) to apply this model to one task.

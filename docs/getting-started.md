@@ -1,12 +1,15 @@
 # Getting started
 
-One change, start to archive, on a real project. Every command and every output
-below was run; the outputs are trimmed, not invented.
+This guide takes one small change from `init` through `archive`. The commands
+were run against the current binary; output is shortened only where omitted
+fields do not affect the next action.
 
-You need Go 1.26+, a Git repository with at least one commit, and the `specd`
-binary from [the README](../README.md#install).
+## Before you start
 
-You also need that repository's working tree **clean** — including files your
+You need Go 1.26 or newer, the `specd` binary from
+[Install](../README.md#install), and a Git repository with at least one commit.
+
+The repository's working tree must be **clean**, including files your
 `.gitignore` excludes. `start` refuses a dirty tree, and scope enforcement
 counts ignored files deliberately: honoring `.gitignore` would let an agent
 write anywhere by adding an ignore rule. A stray build artifact or editor
@@ -16,7 +19,7 @@ directory will block the loop for a reason no plan mentions. Run `git status
 For the model behind any of this, read [concepts.md](concepts.md). For flags and
 exit codes, read [operations.md](operations.md).
 
-## The project
+## Example project
 
 A tiny Go module with one package that can greet:
 
@@ -73,7 +76,7 @@ Omit it and the change name is used. You now have four scaffolded artifacts:
   state.json          ← harness-owned, not yours
 ```
 
-## 3. Run check before writing anything
+## 3. Inspect the scaffold
 
 ```console
 $ specd check add-farewell
@@ -86,8 +89,8 @@ next: blocked owner=author; repair the reported findings and run specd check add
 exit: 1 failure
 ```
 
-Sixteen findings, one per unfilled placeholder. The scaffold does not pass its
-own gates, deliberately: a template you forgot to fill in is not a plan.
+The scaffold intentionally fails validation until every placeholder is
+replaced. A template is not an approved plan.
 
 Every finding is `file:line`, what is wrong, and `fix:` what to do.
 
@@ -190,7 +193,7 @@ approve add-farewell in this terminal? [y/N]: y
 ok: true
 ```
 
-Two things to know.
+Approval requires a non-empty `--reason`. Two other details matter.
 
 **This must be a real terminal.** The human route is derived from a termios
 ioctl on stdin. An agent, a pipe, a CI job, or an editor shell without a tty all
@@ -397,9 +400,9 @@ init → new → author → check → [human] approve
 Read `next:` after every command. It is never wrong about what comes next, and
 when it refuses it gives you exactly one legal action — not a list of options.
 
-## What bit us first
+## Common first-run problems
 
-Real mistakes from this exact walkthrough, in order of how much time they cost:
+Common mistakes from this walkthrough:
 
 1. **Commas in `files`.** Semicolons. See step 4.
 2. **`--approver` with a name instead of the git email.** Omit the flag.
@@ -409,3 +412,6 @@ Real mistakes from this exact walkthrough, in order of how much time they cost:
    specd's own first real run: scope counts git-ignored files deliberately, so
    stray build output blocks `verify` for reasons your plan never mentions.
    Commit or clean before `start`.
+
+Next: read [The execution loop](the-loop.md) for task-level detail, or
+[Troubleshooting](troubleshooting.md) when a refusal differs from this example.
