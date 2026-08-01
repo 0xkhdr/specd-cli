@@ -1,0 +1,11 @@
+{
+  "schemaVersion": 1,
+  "change": "release-contract-gate",
+  "stage": "planning",
+  "condition": "active",
+  "revision": 1,
+  "approvals": [],
+  "tasks": {},
+  "createdBy": "f20348238c96640ba54346032b13e33c707d5392899a39ff3c56cae8c2d04d5f",
+  "lastTransition": "f20348238c96640ba54346032b13e33c707d5392899a39ff3c56cae8c2d04d5f"
+}
