@@ -160,7 +160,7 @@ func TestLoopCompletesOneTaskWithRealEvidence(t *testing.T) {
 // a Go module holding the file the task will edit plus the test that proves it.
 func loopFixture(t *testing.T) string {
 	t.Helper()
-	root := t.TempDir()
+	root := tempRoot(t)
 	for name, body := range map[string]string{
 		"go.mod":         "module sample\n\ngo 1.26\n",
 		"sample.go":      "package sample\n\nfunc Sample() string { return \"before\" }\n",

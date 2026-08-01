@@ -26,7 +26,7 @@ stands behind.
 Go 1.26 or newer:
 
 ```bash
-go install github.com/0xkhdr/specd-cli/cmd/specd@v0.1.0
+go install github.com/0xkhdr/specd-cli/cmd/specd@v0.1.1
 specd --version
 ```
 
@@ -38,18 +38,19 @@ cd specd-cli
 go build -o specd ./cmd/specd
 ```
 
-Each tagged release also publishes binaries for `linux/amd64`, `linux/arm64`,
-`darwin/amd64`, `darwin/arm64`, and `windows/amd64`, with `SHA256SUMS` and a
-build provenance attestation. Verify a download before running it:
+Each tagged release also publishes one `linux/amd64` binary, with `SHA256SUMS`
+and a build provenance attestation. Verify a download before running it:
 
 ```bash
 sha256sum -c SHA256SUMS --ignore-missing
 gh attestation verify specd_linux_amd64 --repo 0xkhdr/specd-cli
 ```
 
-The test suite runs on Linux, macOS, and Windows before any of those artifacts
-is published — see [`release/release-decision.md`](release/release-decision.md)
-for what that does and does not establish. There is no installer script and no
+The suite runs on Linux and macOS before that artifact is published. Windows is
+unsupported — it was run on 2026-08-01 and failed 254 tests on line-ending and
+path-separator assumptions, so it is a port rather than a bug list. See
+[`release/release-decision.md`](release/release-decision.md) for what each
+platform tier does and does not establish. There is no installer script and no
 package.
 
 ## The loop

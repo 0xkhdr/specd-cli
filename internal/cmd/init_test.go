@@ -8,7 +8,7 @@ import (
 )
 
 func TestInit(t *testing.T) {
-	root := t.TempDir()
+	root := tempRoot(t)
 	result, err := Init(root)
 	if err != nil {
 		t.Fatal(err)
@@ -48,7 +48,7 @@ func TestInit(t *testing.T) {
 }
 
 func TestInitPreservesAuthoredIgnore(t *testing.T) {
-	root := t.TempDir()
+	root := tempRoot(t)
 	if _, err := Init(root); err != nil {
 		t.Fatal(err)
 	}

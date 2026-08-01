@@ -12,7 +12,7 @@ import (
 )
 
 func TestSyncResolvesIdentityFromTrustedSourcesOnly(t *testing.T) {
-	root := t.TempDir()
+	root := tempRoot(t)
 	// A non-file reader stands in for a terminal; each case gets its own
 	// confirmed prompt so it fails on identity, never on confirmation.
 	options := func() SyncOptions {
@@ -50,7 +50,7 @@ func TestSyncIsNeverHandedToAnAgent(t *testing.T) {
 		t.Fatalf("sync = %+v, want a human-only operation", operation)
 	}
 	_, err := Dispatch(context.Background(), Request{
-		Args: []string{"sync", "safe-change"}, Root: t.TempDir(),
+		Args: []string{"sync", "safe-change"}, Root: tempRoot(t),
 		Actor: "agent:builder", Route: RouteAgent,
 	})
 	if ExitCode(err) != 2 || !failure.IsCode(err, "human_operation_required") {

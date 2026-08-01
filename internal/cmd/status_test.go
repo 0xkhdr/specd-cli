@@ -24,7 +24,7 @@ func mustOwner(t *testing.T, root string) *corepath.Owner {
 }
 
 func TestApprovalHandoffStatus(t *testing.T) {
-	root := t.TempDir()
+	root := tempRoot(t)
 	if _, err := Init(root); err != nil {
 		t.Fatal(err)
 	}
@@ -49,7 +49,7 @@ func TestApprovalHandoffStatus(t *testing.T) {
 }
 
 func TestStatus(t *testing.T) {
-	root := t.TempDir()
+	root := tempRoot(t)
 	if _, err := Init(root); err != nil {
 		t.Fatal(err)
 	}
@@ -140,7 +140,7 @@ func TestStatusReadinessStaleAndInvalid(t *testing.T) {
 		}
 	})
 	t.Run("invalid", func(t *testing.T) {
-		root := t.TempDir()
+		root := tempRoot(t)
 		if _, err := Init(root); err != nil {
 			t.Fatal(err)
 		}
@@ -171,7 +171,7 @@ func TestStatusReadinessEmptyComplete(t *testing.T) {
 
 func statusReadinessRoot(t *testing.T) string {
 	t.Helper()
-	root := t.TempDir()
+	root := tempRoot(t)
 	if _, err := Init(root); err != nil {
 		t.Fatal(err)
 	}

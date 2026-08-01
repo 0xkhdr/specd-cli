@@ -8,7 +8,7 @@ import (
 )
 
 func TestArchiveRequiresAnActor(t *testing.T) {
-	_, err := Archive(t.TempDir(), "safe-change", ArchiveOptions{})
+	_, err := Archive(tempRoot(t), "safe-change", ArchiveOptions{})
 	if err == nil || !strings.Contains(err.Error(), "next:") {
 		t.Fatalf("missing actor = %v", err)
 	}

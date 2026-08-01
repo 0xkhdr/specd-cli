@@ -628,7 +628,7 @@ type release struct {
 
 func newRelease(t *testing.T, project, planFiles map[string]string) release {
 	t.Helper()
-	root := t.TempDir()
+	root := tempRoot(t)
 	copyTree(t, filepath.Join("testdata", "release", "fresh-project", "project"), root)
 	releaseWrite(t, root, project)
 	git(t, root,

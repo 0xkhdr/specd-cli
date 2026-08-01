@@ -11,7 +11,7 @@ import (
 )
 
 func TestContextLanesRequiredExistingAndProspective(t *testing.T) {
-	root := t.TempDir()
+	root := tempRoot(t)
 	writeResolveFile(t, root, "docs/input.md", "required\n")
 	writeResolveFile(t, root, "internal/existing.go", "package existing\n")
 	location := plan.Location{Path: "tasks.md", Line: 5, Column: 1}
@@ -47,7 +47,7 @@ func TestContextLanesRequiredExistingAndProspective(t *testing.T) {
 }
 
 func TestResolveBoundedSelectorsDeterministically(t *testing.T) {
-	root := t.TempDir()
+	root := tempRoot(t)
 	writeResolveFile(t, root, "pkg/z.go", "z")
 	writeResolveFile(t, root, "pkg/a.go", "a")
 	writeResolveFile(t, root, "pkg/sub/m.go", "m")
@@ -71,9 +71,9 @@ func TestResolveBoundedSelectorsDeterministically(t *testing.T) {
 }
 
 func TestResolveRefusesUnsafeAndMissingWithoutPartialItems(t *testing.T) {
-	root := t.TempDir()
+	root := tempRoot(t)
 	writeResolveFile(t, root, "safe.md", "safe")
-	outside := t.TempDir()
+	outside := tempRoot(t)
 	writeResolveFile(t, outside, "secret.md", "secret")
 	if err := os.Symlink(filepath.Join(outside, "secret.md"), filepath.Join(root, "escape.md")); err != nil {
 		t.Skipf("symlink unavailable: %v", err)
@@ -106,7 +106,7 @@ func TestResolveRefusesUnsafeAndMissingWithoutPartialItems(t *testing.T) {
 }
 
 func TestResolveRefusesDigestRace(t *testing.T) {
-	root := t.TempDir()
+	root := tempRoot(t)
 	writeResolveFile(t, root, "required.md", "before")
 	resolver := &resolver{
 		root: root,
@@ -125,7 +125,7 @@ func TestResolveRefusesDigestRace(t *testing.T) {
 func TestResolveRefusesOversizedExactSources(t *testing.T) {
 	for _, lane := range []string{"required", "output"} {
 		t.Run(lane, func(t *testing.T) {
-			root := t.TempDir()
+			root := tempRoot(t)
 			target := filepath.Join(root, "large.bin")
 			if err := os.WriteFile(target, make([]byte, maxExactBytes+1), 0o600); err != nil {
 				t.Fatal(err)
@@ -145,7 +145,7 @@ func TestResolveRefusesOversizedExactSources(t *testing.T) {
 }
 
 func TestResolveRefusesSameContentReplacement(t *testing.T) {
-	root := t.TempDir()
+	root := tempRoot(t)
 	writeResolveFile(t, root, "required.md", "same")
 	resolver := &resolver{
 		root: root,
@@ -165,7 +165,7 @@ func TestResolveRefusesSameContentReplacement(t *testing.T) {
 }
 
 func TestResolveRefusesSelectorMembershipRace(t *testing.T) {
-	root := t.TempDir()
+	root := tempRoot(t)
 	writeResolveFile(t, root, "pkg/a.go", "a")
 	added := false
 	resolver := &resolver{
@@ -185,9 +185,9 @@ func TestResolveRefusesSelectorMembershipRace(t *testing.T) {
 }
 
 func TestResolveRefusesSymlinkSelectorMatch(t *testing.T) {
-	root := t.TempDir()
+	root := tempRoot(t)
 	writeResolveFile(t, root, "pkg/a.go", "a")
-	outside := t.TempDir()
+	outside := tempRoot(t)
 	writeResolveFile(t, outside, "secret.go", "secret")
 	if err := os.Symlink(filepath.Join(outside, "secret.go"), filepath.Join(root, "pkg", "escape.go")); err != nil {
 		t.Skipf("symlink unavailable: %v", err)

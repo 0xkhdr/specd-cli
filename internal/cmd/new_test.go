@@ -13,7 +13,7 @@ import (
 )
 
 func TestNew(t *testing.T) {
-	root := t.TempDir()
+	root := tempRoot(t)
 	if _, err := Init(root); err != nil {
 		t.Fatal(err)
 	}
@@ -34,7 +34,7 @@ func TestNew(t *testing.T) {
 }
 
 func TestNewScaffoldsPlanningArtifacts(t *testing.T) {
-	root := t.TempDir()
+	root := tempRoot(t)
 	if _, err := Init(root); err != nil {
 		t.Fatal(err)
 	}
@@ -57,7 +57,7 @@ func TestNewScaffoldsPlanningArtifacts(t *testing.T) {
 }
 
 func TestNewRecoversOrphanStagingDirectory(t *testing.T) {
-	root := t.TempDir()
+	root := tempRoot(t)
 	if _, err := Init(root); err != nil {
 		t.Fatal(err)
 	}
@@ -81,7 +81,7 @@ func TestNewRecoversOrphanStagingDirectory(t *testing.T) {
 }
 
 func TestNewArtifactFailureLeavesNoChange(t *testing.T) {
-	root := t.TempDir()
+	root := tempRoot(t)
 	if _, err := Init(root); err != nil {
 		t.Fatal(err)
 	}
@@ -105,7 +105,7 @@ func TestNewArtifactFailureLeavesNoChange(t *testing.T) {
 }
 
 func TestNewRecoversPublishedTransaction(t *testing.T) {
-	root := t.TempDir()
+	root := tempRoot(t)
 	if _, err := Init(root); err != nil {
 		t.Fatal(err)
 	}
@@ -127,8 +127,8 @@ func TestNewRecoversPublishedTransaction(t *testing.T) {
 }
 
 func TestNewRefusesManagedSymlink(t *testing.T) {
-	root := t.TempDir()
-	outside := t.TempDir()
+	root := tempRoot(t)
+	outside := tempRoot(t)
 	if err := os.Symlink(outside, filepath.Join(root, ".specd")); err != nil {
 		t.Fatal(err)
 	}

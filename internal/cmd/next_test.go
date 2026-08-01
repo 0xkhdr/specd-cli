@@ -84,7 +84,7 @@ func TestNextReadinessNoFrontierClasses(t *testing.T) {
 		}
 	})
 	t.Run("invalid", func(t *testing.T) {
-		root := t.TempDir()
+		root := tempRoot(t)
 		if _, err := Init(root); err != nil {
 			t.Fatal(err)
 		}

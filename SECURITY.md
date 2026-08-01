@@ -16,11 +16,11 @@ default branch and in the next tag — there are no backport branches.
 
 ## Supported versions
 
-Only the latest tag. The published binaries cover `linux/amd64`,
-`linux/arm64`, `darwin/amd64`, `darwin/arm64`, and `windows/amd64`, and the
-test suite runs on Linux, macOS, and Windows before any of them is published —
-see [`release/release-decision.md`](release/release-decision.md) for the limits
-of what that establishes.
+Only the latest tag, and only `linux/amd64`. The suite also runs on macOS and
+gates every release, but the loop has not been driven end to end there. Windows
+is unsupported: it was run on 2026-08-01 and failed. See
+[`release/release-decision.md`](release/release-decision.md) for the limits of
+what each tier establishes.
 
 ## Verifying a release
 

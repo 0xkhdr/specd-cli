@@ -15,7 +15,7 @@ import (
 // derived interactivity is non-interactive without a pseudo-terminal.
 func nonTerminal(t *testing.T) *os.File {
 	t.Helper()
-	file, err := os.Create(filepath.Join(t.TempDir(), "stdin"))
+	file, err := os.Create(filepath.Join(tempRoot(t), "stdin"))
 	if err != nil {
 		t.Fatal(err)
 	}

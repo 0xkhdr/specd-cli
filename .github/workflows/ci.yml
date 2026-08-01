@@ -43,11 +43,16 @@ jobs:
   # One leg per platform specd claims. The supported-platform claim in
   # release/release-decision.md is limited to the platforms actually run, so
   # removing a leg here narrows that claim and belongs in that file first.
+  #
+  # windows-latest is deliberately absent: it was run on 2026-08-01 and failed
+  # 254 tests across 14 packages on line-ending and path-separator assumptions.
+  # That is a port, not a fix, and claiming it here would be claiming something
+  # no run supports.
   gates:
     strategy:
       fail-fast: false
       matrix:
-        os: [ubuntu-latest, macos-latest, windows-latest]
+        os: [ubuntu-latest, macos-latest]
     runs-on: ${{ matrix.os }}
     permissions:
       contents: read

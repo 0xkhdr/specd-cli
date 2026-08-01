@@ -198,7 +198,7 @@ func TestManifestDerivesTaskAndRejectsManagedWriteScope(t *testing.T) {
 
 func manifestFixture(t *testing.T) (string, plan.Change, plan.Task) {
 	t.Helper()
-	root := t.TempDir()
+	root := tempRoot(t)
 	for relative, content := range map[string]string{
 		"docs/input.md":                                   "input\n",
 		"internal/existing.go":                            "package existing\n",

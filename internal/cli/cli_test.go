@@ -30,7 +30,7 @@ func decode(t *testing.T, raw string) map[string]any {
 }
 
 func TestStageOneOperations(t *testing.T) {
-	root := t.TempDir()
+	root := tempRoot(t)
 	for _, args := range [][]string{
 		{"init", "--root", root, "--json"},
 		{"new", "cache-ttl", "--root", root, "--json"},
@@ -58,7 +58,7 @@ func TestStageOneOperations(t *testing.T) {
 // failure both leave exactly one envelope on stdout, and stderr stays reserved
 // for failures that prevent an envelope.
 func TestRefusalIsOneDocumentOnStdout(t *testing.T) {
-	root := t.TempDir()
+	root := tempRoot(t)
 	if code, _, stderr := run(t, "init", "--root", root); code != 0 {
 		t.Fatal(stderr)
 	}
@@ -83,7 +83,7 @@ func TestRefusalIsOneDocumentOnStdout(t *testing.T) {
 
 func scaffolded(t *testing.T) string {
 	t.Helper()
-	root := t.TempDir()
+	root := tempRoot(t)
 	for _, args := range [][]string{{"init", "--root", root}, {"new", "cache-ttl", "--root", root}} {
 		if code, stdout, stderr := run(t, args...); code != 0 {
 			t.Fatalf("%v exited %d: %s%s", args, code, stdout, stderr)
@@ -161,7 +161,7 @@ func TestDerivedRouteNeedsARealTerminal(t *testing.T) {
 	}
 	defer devNull.Close()
 
-	regular, err := os.Create(filepath.Join(t.TempDir(), "stdin"))
+	regular, err := os.Create(filepath.Join(tempRoot(t), "stdin"))
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -242,7 +242,7 @@ func TestFailedCheckExitsOneOnBothSurfaces(t *testing.T) {
 }
 
 func TestMainDefaultRoot(t *testing.T) {
-	root := t.TempDir()
+	root := tempRoot(t)
 	old, _ := os.Getwd()
 	if err := os.Chdir(root); err != nil {
 		t.Fatal(err)

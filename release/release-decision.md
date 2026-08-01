@@ -71,12 +71,12 @@ request, alongside the formatting and empty-require checks. That makes the
 observation repeatable by anyone reading the run log instead of trusting the
 date above.
 
-The CI matrix runs `ubuntu-latest`, `macos-latest`, and `windows-latest`, which
-is wider than the platform row above. The row records what was observed by hand
-on 2026-08-01; the matrix is what will observe the rest. A platform claim in
-this document is earned by a green run, not by the presence of a runner, so the
-"Supported platforms" section below states the two tiers separately and neither
-is inferred from the other.
+The CI matrix runs `ubuntu-latest` and `macos-latest`. `windows-latest` was run
+once, on 2026-08-01, and failed; it was removed rather than left red, and
+"Supported platforms" below records the result so the deletion does not erase
+it. A platform claim in this document is earned by a green run, not by the
+presence of a runner, and the tiers below are stated separately so neither is
+inferred from the other.
 
 Red gates right now: none.
 
@@ -217,25 +217,39 @@ currently unreachable (limitation 1), so every deferred domain stays blocked.
 
 ## Supported platforms
 
-Two tiers, deliberately not merged.
+Three tiers, deliberately not merged. All three are now observations rather
+than inferences: the platforms below were run on 2026-08-01, and what they did
+is recorded whether or not it flattered the project.
 
-**Proven.** linux/amd64. All journeys, tests, vet, and formatting were run
-there, by hand on 2026-08-01 and by CI on every push since.
+**Supported.** linux/amd64. All journeys, tests, vet, and formatting were run
+there, by hand and by CI, and the one real-root traversal was driven there.
 
-**Gated but not yet observed at the time of writing.** darwin/arm64,
-darwin/amd64, and windows/amd64. `.github/workflows/release.yml` runs the full
-suite on `macos-latest` and `windows-latest` and refuses to publish anything if
-either fails, so a binary for one of these platforms exists only if the suite
-passed on that operating system. That is a mechanical guarantee about the
-artifact, and it is the whole of the claim: it says the tests passed there, not
-that the loop has been driven through a real change there. linux/arm64 is
-cross-compiled and its tests run on amd64 Linux; the architecture itself is
-unobserved.
+**Tests pass; the loop has not been driven there.** darwin/arm64
+(`macos-latest`). The full `-race` suite is green on macOS and gates every
+release, so no artifact ships unless it passed there. That is the whole claim:
+the tests pass. No change has been planned, approved, verified, and completed
+through the loop on macOS, so the end-to-end guarantee is not claimed for it.
 
-Stage 9 forbids inferring a platform claim from an unrun one, and nothing here
-does. The first tier is an observation. The second is a precondition enforced
-by the release workflow. When a green run exists for a platform, move it up and
-say so with a date.
+**Unsupported, because it was run and it failed.** windows/amd64. On
+2026-08-01 the suite failed 254 tests across 14 packages on `windows-latest`.
+The causes are structural rather than incidental — CRLF line endings in
+artifact parsing and digesting, and `\` path separators in scope, selector, and
+manifest handling — so this is a port, not a defect list. Windows was dropped
+from the matrix rather than left red, and it is named here so the reason
+survives the deletion.
+
+The macOS result was not free. The first run failed 19 tests across 5 packages:
+every one was a test comparing against a raw `t.TempDir()` while production
+canonicalizes the selected root through `filepath.EvalSymlinks`, which diverges
+wherever the temporary directory sits under a symlink — `/var/folders` on
+macOS. The harness was correct and the tests were wrong. This is the class of
+defect the previous decision predicted when it said one traversal would not be
+the last to find one, and it was found only because a second platform was
+actually run.
+
+Stage 9 forbids inferring a platform claim from an unrun one. Nothing here is
+inferred. When the loop is driven through a real change on macOS, move it up
+and say so with a date.
 
 ## Stage 8 status
 

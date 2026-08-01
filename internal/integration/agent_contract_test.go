@@ -94,7 +94,7 @@ func testSurfaceParity(t *testing.T) {
 		if err != nil {
 			t.Fatal(err)
 		}
-		adapter, err := host.Local(t.TempDir(), host.LocalCapabilities())
+		adapter, err := host.Local(tempRoot(t), host.LocalCapabilities())
 		if err != nil {
 			t.Fatal(err)
 		}
@@ -428,7 +428,7 @@ func editDeclaredFile(t *testing.T, root string, declared []string) {
 // the managed root, creates the change, and installs the authored plan.
 func fixture(t *testing.T) string {
 	t.Helper()
-	root := t.TempDir()
+	root := tempRoot(t)
 	copyTree(t, filepath.Join("testdata", "agent-contract", "project"), root)
 	git(t, root,
 		[]string{"init"},
@@ -486,7 +486,7 @@ func git(t *testing.T, root string, commands ...[]string) {
 // stays the non-interactive one that requires an explicit approver and reason.
 func regularStdin(t *testing.T) *os.File {
 	t.Helper()
-	file, err := os.Create(filepath.Join(t.TempDir(), "stdin"))
+	file, err := os.Create(filepath.Join(tempRoot(t), "stdin"))
 	if err != nil {
 		t.Fatal(err)
 	}

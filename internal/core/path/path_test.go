@@ -12,8 +12,8 @@ import (
 )
 
 func TestResolveRoot(t *testing.T) {
-	root := t.TempDir()
-	link := filepath.Join(t.TempDir(), "project")
+	root := tempRoot(t)
+	link := filepath.Join(tempRoot(t), "project")
 	if err := os.Symlink(root, link); err != nil {
 		t.Fatal(err)
 	}
@@ -45,7 +45,7 @@ func TestSegment(t *testing.T) {
 }
 
 func TestManagedPath(t *testing.T) {
-	root := t.TempDir()
+	root := tempRoot(t)
 	owner, err := New(root)
 	if err != nil {
 		t.Fatal(err)
@@ -56,7 +56,7 @@ func TestManagedPath(t *testing.T) {
 	if err := os.MkdirAll(owner.Changes(), 0o755); err != nil {
 		t.Fatal(err)
 	}
-	outside := t.TempDir()
+	outside := tempRoot(t)
 	if err := os.Symlink(outside, filepath.Join(owner.Changes(), "escape")); err != nil {
 		t.Fatal(err)
 	}
@@ -84,7 +84,7 @@ func TestManagedPath(t *testing.T) {
 }
 
 func TestManagedPathChangeLockRequiresExistingChange(t *testing.T) {
-	root := t.TempDir()
+	root := tempRoot(t)
 	owner, err := New(root)
 	if err != nil {
 		t.Fatal(err)
@@ -117,7 +117,7 @@ func TestManagedPathChangeLockRequiresExistingChange(t *testing.T) {
 }
 
 func TestManagedPathLockSerializes(t *testing.T) {
-	lockPath := filepath.Join(t.TempDir(), "change.lock")
+	lockPath := filepath.Join(tempRoot(t), "change.lock")
 	var wait sync.WaitGroup
 	var value int
 	for range 20 {
