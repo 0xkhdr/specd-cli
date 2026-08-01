@@ -3,7 +3,7 @@
   "change": "docs-navigation",
   "stage": "approved",
   "condition": "active",
-  "revision": 5,
+  "revision": 6,
   "approvals": [
     {
       "schema_version": 1,
@@ -44,42 +44,21 @@
   ],
   "tasks": {
     "D1": "completed",
-    "D2": "in_progress"
+    "D2": "completed"
   },
   "createdBy": "9f038189ecfb43f8cb397c905f5e4d270076b8765814f3f37db540cb74b5ee1b",
-  "lastTransition": "e776255ef707a3e2c1079c6c5328fd62392632cb83596fe0bdf465509e18d4dc",
+  "lastTransition": "8ee2a256612daa3daa4bf278b70f9b73cdbda22b1cd4a23fce6399ca7451b376",
   "extensions": {
-    "attempts": {
-      "D2": {
-        "schema_version": 1,
-        "id": "7f70bec87f7627a2a431e9f220bf9acdcadbacc5d8fac3daf641dc252b9f4ad9",
-        "change": "docs-navigation",
-        "task": "D2",
-        "baseline_head": "f967c921c629c2a5a75fcbfd50671392329e284c",
-        "revision_before": 4,
-        "revision_after": 5,
-        "contract_hash": "4b60bfee8a875c1b90a2c30087cbba9803e403b99fc5ab45df852e9d6837e07a",
-        "approval_hash": "8c5c4af779d9fdcf4bc09ea8703b0040c9995e51b8b0136a0ad0dce1497a71cd",
-        "state_guard_hash": "f1c8469988e80609b96dab9def7948017a508c6daa193f6bb9500df0028eba21",
-        "declared_files": [
-          "docs/approval-and-evidence.md",
-          "docs/concepts.md",
-          "docs/getting-started.md",
-          "docs/layout.md",
-          "docs/the-loop.md",
-          "docs/troubleshooting.md"
-        ],
-        "actor": "xkhdr",
-        "assurance": "advisory",
-        "activity_from": "pending",
-        "activity_to": "in_progress"
-      }
-    },
     "completions": {
       "D1": {
         "attempt": "3a324acd27a7dff0ad3ed8771031437224a1a8d450102a253082798cd222cd98",
         "evidence": "2d6b55e36df18b15d78e1aa56cf2b1348b138322712867bd4cc4009a1bdbcac4",
         "history": "b77017e21b1d06d358e271a45d207bb9079469e8d5a1cac06b73b7a233cec46b"
+      },
+      "D2": {
+        "attempt": "7f70bec87f7627a2a431e9f220bf9acdcadbacc5d8fac3daf641dc252b9f4ad9",
+        "evidence": "3684e633da48da50112e47c3c5b2a6af3117465608a14f90a9655086a718df90",
+        "history": "8ee2a256612daa3daa4bf278b70f9b73cdbda22b1cd4a23fce6399ca7451b376"
       }
     }
   }
