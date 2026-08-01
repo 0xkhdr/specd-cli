@@ -173,10 +173,10 @@ checkout instead of weighing testimony.
    amendments those observations were recorded in are not in the published
    repository; the three of them are restated under "Recorded frictions" below,
    which is now their only surviving record.
-2. **Two traversals are two traversals.** The base loop is proven end to end by
-   a two-task change on 2026-07-31 and a three-task change on 2026-08-01, both
-   in one root on one platform. It is not proven at scale, over long-lived
-   changes, or across concurrent callers.
+2. **Three traversals are three traversals.** The base loop is proven end to end
+   by a two-task change on 2026-07-31 and three-task changes on 2026-08-01 and
+   2026-08-02, all in one root on one platform. It is not proven at scale, over
+   long-lived changes, or across concurrent callers.
 3. **Registration is not visibility.** `report` and `review` were registered,
    documented, and unreachable until the envelope projection was fixed. The
    class of defect is now covered by reachability tests, not by assumption.
@@ -196,12 +196,34 @@ checkout instead of weighing testimony.
    of trusting its operator. What it does not establish is duration or
    contention: it ran on linux/amd64, in one root, across a few hours, with no
    second caller.
-6. **The release machinery is still not driven through the loop.** The Windows
-   and linux/arm64 port, the workflows, and this release were done as ordinary
-   edits, not as a change under `.specd/`. `docs-navigation` was deliberately
-   not that — it was documentation, which is why it counts as the re-proof
-   limitation 5 asked for — but the machinery itself remains the part of this
-   repository that has never gone through its own harness.
+6. **The release machinery has been driven through the loop once; the release
+   itself still has not.** `release-contract-gate` traversed the whole loop in
+   this root on 2026-08-02 and changed the release workflow: three tasks, each
+   started, verified against real evidence, and completed, with the plan and
+   every task in the published Git history. That answers the part of this
+   limitation that said the machinery had never gone through its own harness.
+   What it does not answer is the release: cutting a tag, publishing binaries,
+   and writing this record are still ordinary edits, not a change under
+   `.specd/`, and the loop has never driven one.
+7. **An attempt is bound to one commit and only `complete` releases it.**
+   `release-contract-gate` was planned three times before it ran. `start` binds
+   an attempt to the commit HEAD was at, and the scope check counts uncommitted
+   planning artifacts as paths outside that attempt's authority — both correct
+   on their own. Together they mean a plan that is still uncommitted when its
+   first task starts cannot be committed afterwards: committing moves HEAD,
+   `verify` then refuses on a moved baseline and directs the caller to
+   regenerate context, `context` refuses because an in-progress task is not in
+   the frontier, and `start` refuses because an attempt is already bound. No
+   operation rebinds or discards an attempt, so the only exit is to rebuild the
+   change and spend a second human approval. The refusal names a next action the
+   tool cannot perform, which is the one thing a fail-closed refusal must not
+   do.
+8. **A declared file list separated by commas is accepted at plan time.** The
+   `files` column splits on `;`. Commas parse as a single path whose name
+   contains commas, which `check` accepts, and which surfaces only when that
+   task starts and its scope refuses every real file it needs. Combined with
+   limitation 7, the defect cost a full rebuild of the change. The plan gate
+   sees the declared paths and could refuse one that cannot exist.
 
 ## Recorded frictions
 

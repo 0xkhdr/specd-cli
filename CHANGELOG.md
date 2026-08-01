@@ -10,6 +10,31 @@ This file records what changed; that one records what has been proven.
 
 ## [Unreleased]
 
+### Added
+
+- A tagged build now decides whether the tag is allowed to consume a release
+  before it spends one. `release/tag-contract.sh` checks the two clauses
+  `CONTRIBUTING.md` states — the tag is annotated, and `CHANGELOG.md` has a
+  section for the version it names — and a `contract` job runs it ahead of the
+  gates. A lightweight tag was previously refused nowhere, and a missing
+  changelog section was refused only in the final publish step, after four
+  platforms had run the suite, five binaries had been built, and a provenance
+  attestation had been recorded.
+
+### Changed
+
+- The release workflow was changed as `release-contract-gate`, a change planned,
+  approved, executed, verified, and archived through specd's own loop. The
+  machinery was previously the one part of this repository that had never been
+  through its own harness. Cutting a release is still not: see limitation 6 of
+  [`release/release-decision.md`](release/release-decision.md).
+- Two harness defects were found by doing that and are recorded as limitations 7
+  and 8: an attempt is bound to one commit and only `complete` releases it, so a
+  plan left uncommitted when its first task starts strands that task on a
+  refusal naming an action no operation can perform; and a declared file list
+  written with commas instead of semicolons is accepted at plan time and fails
+  only when the task starts.
+
 ## [0.2.0] — 2026-08-01
 
 Three operating systems and two architectures, all observed rather than
