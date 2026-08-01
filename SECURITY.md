@@ -16,9 +16,10 @@ default branch and in the next tag — there are no backport branches.
 
 ## Supported versions
 
-Only the latest tag, and only `linux/amd64`. The suite also runs on macOS and
-gates every release, but the loop has not been driven end to end there. Windows
-is unsupported: it was run on 2026-08-01 and failed. See
+Only the latest tag, and only `linux/amd64`. The suite and the fourteen release
+journeys also run on `linux/arm64`, macOS, and Windows, and all four gate every
+release, but no change has been driven through the loop by hand on anything but
+`linux/amd64`. See
 [`release/release-decision.md`](release/release-decision.md) for the limits of
 what each tier establishes.
 

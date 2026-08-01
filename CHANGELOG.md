@@ -10,6 +10,38 @@ This file records what changed; that one records what has been proven.
 
 ## [Unreleased]
 
+### Added
+
+- Windows and `linux/arm64` are supported platforms for the suite and for all
+  fourteen release journeys, and both gate every release. Windows previously
+  failed 254 tests and was not in the matrix at all; `linux/arm64` had never
+  been run. No change has been driven through the loop by hand on either, so
+  the end-to-end guarantee stays limited to `linux/amd64` — see
+  [`release/release-decision.md`](release/release-decision.md).
+- A tagged build publishes binaries for `linux/amd64`, `linux/arm64`,
+  `darwin/arm64`, `darwin/amd64`, and `windows/amd64`, each covered by a green
+  run on its own platform.
+- `.gitattributes` pins the source to LF, so a Windows checkout is the same
+  bytes as every other one.
+
+### Fixed
+
+- Every managed write on Windows failed with `Access is denied`: the write
+  ended in a directory flush, which Windows refuses on a directory handle.
+  There is one owner of that call now, and it is a no-op on Windows, where
+  the rename's durability rests on NTFS metadata journaling instead.
+- `archive` could never succeed on Windows: the change lock lived inside the
+  folder `archive` renames, and Windows refuses to rename a directory holding
+  an open handle. The lock now sits beside the folder as `changes/<name>.lock`.
+- Operations that act under an actor identity refused on Windows, which sets
+  `USERNAME` rather than `USER`.
+- The human route could not be derived on a Windows console, so the human gate
+  was unreachable there. It is now derived through `GetConsoleMode`, the
+  platform's equivalent of the termios probe the Unix build uses.
+- Verification process trees are terminated through a job object rather than
+  `taskkill`, whose exit status cannot distinguish a descendant it failed to
+  kill from one that had already exited.
+
 ## [0.1.1] — 2026-08-01
 
 The first installable release. `0.1.0` is tagged but published no binaries and

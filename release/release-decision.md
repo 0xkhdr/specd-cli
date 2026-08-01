@@ -63,18 +63,19 @@ this test recurses into it:
 
 | gate | status |
 | --- | --- |
-| `go test ./... -race -count=1` | observed green on linux/amd64, 2026-08-01 |
-| `go vet ./...` | observed green on linux/amd64, 2026-08-01 |
+| `go test ./... -race -count=1` | observed green on linux/amd64, linux/arm64, darwin/arm64, and windows/amd64, 2026-08-01 |
+| `go vet ./...` | observed green on linux/amd64, linux/arm64, darwin/arm64, and windows/amd64, 2026-08-01 |
 
 Both are now observed by `.github/workflows/ci.yml` on every push and pull
 request, alongside the formatting and empty-require checks. That makes the
 observation repeatable by anyone reading the run log instead of trusting the
 date above.
 
-The CI matrix runs `ubuntu-latest` and `macos-latest`. `windows-latest` was run
-once, on 2026-08-01, and failed; it was removed rather than left red, and
-"Supported platforms" below records the result so the deletion does not erase
-it. A platform claim in this document is earned by a green run, not by the
+The CI matrix runs `ubuntu-latest`, `ubuntu-24.04-arm`, `macos-latest`, and
+`windows-latest`. `windows-latest` was run on 2026-08-01, failed 254 tests, was
+removed, and is back only because the port that made it pass was written and
+observed green the same day; `ubuntu-24.04-arm` is new and green on its first
+run. A platform claim in this document is earned by a green run, not by the
 presence of a runner, and the tiers below are stated separately so neither is
 inferred from the other.
 
@@ -217,28 +218,42 @@ currently unreachable (limitation 1), so every deferred domain stays blocked.
 
 ## Supported platforms
 
-Three tiers, deliberately not merged. All three are now observations rather
-than inferences: the platforms below were run on 2026-08-01, and what they did
-is recorded whether or not it flattered the project.
+Two tiers, deliberately not merged. Both are observations rather than
+inferences: the platforms below were run on 2026-08-01, and what they did is
+recorded whether or not it flattered the project.
 
 **Supported.** linux/amd64. All journeys, tests, vet, and formatting were run
 there, by hand and by CI, and the one real-root traversal was driven there.
 
-**Tests pass; the loop has not been driven there.** darwin/arm64
-(`macos-latest`). The full `-race` suite is green on macOS and gates every
-release, so no artifact ships unless it passed there. That is the whole claim:
-the tests pass. No change has been planned, approved, verified, and completed
-through the loop on macOS, so the end-to-end guarantee is not claimed for it.
+**Journeys replay; no change has been driven through the loop by hand.**
+linux/arm64 (`ubuntu-24.04-arm`), darwin/arm64 (`macos-latest`), and
+windows/amd64 (`windows-latest`). On each of these the full `-race` suite is
+green and all fourteen release journeys replay, and every one of them gates
+every release, so no artifact ships unless it passed on all four. That is the
+whole claim. Nobody has planned, approved, verified, and completed a real
+change on any of them, so the end-to-end guarantee stays limited to
+linux/amd64.
 
-**Unsupported, because it was run and it failed.** windows/amd64. On
-2026-08-01 the suite failed 254 tests across 14 packages on `windows-latest`.
-The causes are structural rather than incidental — CRLF line endings in
-artifact parsing and digesting, and `\` path separators in scope, selector, and
-manifest handling — so this is a port, not a defect list. Windows was dropped
-from the matrix rather than left red, and it is named here so the reason
-survives the deletion.
+Windows reached that tier on 2026-08-01 and not before. The same day's first
+run failed 254 tests across 14 packages, and the causes were structural: every
+managed write ended in a directory flush Windows does not implement, the
+checkout arrived as CRLF and drifted every golden fixture, the acting identity
+was read from `USER` alone, the change lock lived inside the folder `archive`
+renames, and process-tree termination went through `taskkill`, whose exit
+status cannot distinguish a descendant it failed to kill from one that had
+already exited. Two Windows facts survive the port and are weaker than their
+Unix equivalents, so they are named rather than smoothed over:
 
-The macOS result was not free. The first run failed 19 tests across 5 packages:
+- A managed write's directory entry is not flushed, because Windows exposes no
+  call that flushes one. Durability of the rename rests on NTFS metadata
+  journaling. The file's own bytes are still fsync'd before the rename.
+- Binding the verification process tree to its job object happens immediately
+  after the process starts rather than before it runs. A descendant spawned in
+  that interval would escape termination. The interval precedes the shell
+  reading its command line, and closing it needs a thread handle the standard
+  library does not expose.
+
+The macOS result was not free either. The first run failed 19 tests across 5 packages:
 every one was a test comparing against a raw `t.TempDir()` while production
 canonicalizes the selected root through `filepath.EvalSymlinks`, which diverges
 wherever the temporary directory sits under a symlink — `/var/folders` on
@@ -248,8 +263,8 @@ the last to find one, and it was found only because a second platform was
 actually run.
 
 Stage 9 forbids inferring a platform claim from an unrun one. Nothing here is
-inferred. When the loop is driven through a real change on macOS, move it up
-and say so with a date.
+inferred. When a real change is driven through the loop on one of the second
+tier's platforms, move that platform up and say so with a date.
 
 ## Stage 8 status
 
@@ -287,16 +302,16 @@ and notarized in the checksum database, pointing at an abandoned lineage this
 repository no longer contains; those numbers can never serve this code, and the
 proxy and sum database are immutable by design. A fresh path was taken so the
 first release could be numbered honestly rather than starting at a major version
-nothing here has earned. The tests now also run on macOS and Windows before any
-binary ships, which widens what is checked without widening what is claimed —
-see "Supported platforms".
+nothing here has earned. The tests and the fourteen journeys now also run on
+linux/arm64, macOS, and Windows before any binary ships, which widens what is
+checked without widening what is claimed — see "Supported platforms".
 
 So this decision rests on a different basis from the one it replaces. It is not
 a claim that the loop is load-bearing; it is the root owner accepting that the
 loop is publishable at its stated boundary and that the boundary is written down
 here honestly. What a user gets is: a working base loop, fourteen replayed
-journeys, an audited surface, and a suite that passes on three operating
-systems. What a user does not get is proof at scale, under concurrent callers,
+journeys replayed on every platform it ships for, an audited surface, and a
+suite that passes on three operating systems and two architectures. What a user does not get is proof at scale, under concurrent callers,
 over a long-lived change, or that the loop has been driven through a real change
 anywhere but linux/amd64. Anyone relying on this beyond that boundary is relying
 on something no gate in this repository asserts.

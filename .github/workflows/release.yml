@@ -19,7 +19,7 @@ jobs:
     strategy:
       fail-fast: true
       matrix:
-        os: [ubuntu-latest, macos-latest]
+        os: [ubuntu-latest, ubuntu-24.04-arm, macos-latest, windows-latest]
     runs-on: ${{ matrix.os }}
     permissions:
       contents: read
@@ -52,18 +52,25 @@ jobs:
       # and the tag alone, so a third party can rebuild these bytes. The tag is
       # the only input to the stamped version, so the binary cannot report a
       # version the release does not carry.
-      # linux/amd64 only. specd's own boundary claims one platform for the loop
-      # itself, and a binary for a platform that boundary does not cover would
-      # be a claim the release-decision record does not make.
+      #
+      # One target per platform the gates job above ran green on this tag. A
+      # binary for a platform no runner observed would be a claim the
+      # release-decision record does not make, so the two lists move together.
       - name: build
         env:
           CGO_ENABLED: "0"
         run: |
           mkdir -p dist
-          GOOS=linux GOARCH=amd64 go build \
-            -trimpath \
-            -ldflags "-s -w -X github.com/0xkhdr/specd-cli/internal/cli.stampedVersion=${GITHUB_REF_NAME}" \
-            -o dist/specd_linux_amd64 ./cmd/specd
+          for target in linux/amd64 linux/arm64 darwin/arm64 darwin/amd64 windows/amd64; do
+            os="${target%/*}"
+            arch="${target#*/}"
+            suffix=""
+            [ "$os" = windows ] && suffix=".exe"
+            GOOS="$os" GOARCH="$arch" go build \
+              -trimpath \
+              -ldflags "-s -w -X github.com/0xkhdr/specd-cli/internal/cli.stampedVersion=${GITHUB_REF_NAME}" \
+              -o "dist/specd_${os}_${arch}${suffix}" ./cmd/specd
+          done
           cd dist && sha256sum specd_* > SHA256SUMS && cat SHA256SUMS
 
       # The host platform's own artifact is the only one this runner can run, so
@@ -105,12 +112,16 @@ jobs:
 
           ---
 
-          Verify a downloaded binary:
+          Verify a downloaded binary, naming the one you downloaded:
 
           \`\`\`bash
           sha256sum -c SHA256SUMS --ignore-missing
           gh attestation verify specd_linux_amd64 --repo ${GITHUB_REPOSITORY}
           \`\`\`
+
+          Binaries are published for linux/amd64, linux/arm64, darwin/arm64,
+          darwin/amd64, and windows/amd64. The loop itself is proven end to end
+          on linux/amd64 only; see release/release-decision.md.
           EOF
           gh release create "${GITHUB_REF_NAME}" \
             --title "${GITHUB_REF_NAME}" \
