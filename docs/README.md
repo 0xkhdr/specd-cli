@@ -1,108 +1,76 @@
-# specd documentation
+# Documentation
 
-specd is a spec-driven coding harness. You plan a change in Markdown, a human
-approves it, and then an agent executes it one task at a time against recorded
-evidence — with the process enforced by a local binary instead of by the agent's
-memory.
+specd plans a change in Markdown, requires human approval, and then gives an
+agent one bounded task at a time. Use this page to choose the shortest reading
+path for your goal.
 
-> The agent reasons. The harness enforces.
+## Evaluate specd
 
-New here? Read [Getting started](getting-started.md) — one change from `init` to
-`archive`, every command run for real. Then read
-[Approval and evidence](approval-and-evidence.md), because it covers the one
-thing everybody gets wrong at first.
+Start with:
 
-## What trips people up
+1. [Getting started](getting-started.md) — run one change from `init` through
+   `archive`.
+2. [Concepts](concepts.md) — understand root, spec, change, approval, evidence,
+   and completion.
+3. [Release decision](../release/release-decision.md) and
+   [Security](../SECURITY.md) — decide whether the current platform and
+   assurance boundary fit your use.
 
-**A passing `verify` does not complete a task.** Verification records an
-observation; `complete` is a separate transition that decides whether the
-evidence applies. Nearly every "why won't it let me…" question is a version of
-this one. [Approval and evidence](approval-and-evidence.md) explains it and the
-second half of the same rule: an agent cannot approve its own plan.
+Current boundary: the base loop is released and proven end to end on
+linux/amd64. The production profile remains experimental. Host scope assurance
+is advisory unless the host supplies containment.
 
-## Pick your path
+## Use specd day to day
 
-**I want to see it work.** [Getting started](getting-started.md). Bring a Git
-repository with one commit; you'll have an archived change in twenty minutes.
+1. [The execution loop](the-loop.md) — `next`, `context`, `start`, `verify`,
+   and `complete`.
+2. [Approval and evidence](approval-and-evidence.md) — the two human gates and
+   why passing evidence is not completion.
+3. [Troubleshooting](troubleshooting.md) — refusal codes and legal recovery.
+4. [Layout](layout.md) — what lives under `.specd/` and who may edit it.
 
-**I want to understand the model before I commit to it.**
-[Concepts](concepts.md) — root, spec, change, the four artifacts, the lifecycle,
-and why activity, readiness, evidence, and approval are four separate things.
+For exact syntax, use the generated [operation reference](operations.md).
 
-**I'm implementing tasks day to day.** [The loop](the-loop.md) — the frontier
-and waves, bounded context, declared scope, the attempt, what each refusal is
-protecting.
+## Integrate an agent
 
-**I'm wiring up an AI agent.** [Driving specd from an agent](agent-setup.md) —
-the JSON envelope, `next.kind` as control flow, the generated `AGENTS.md`, and
-what `advisory` assurance honestly means.
+Read [Driving specd from an agent](agent-setup.md). It defines the JSON
+envelope, `next.kind` control flow, generated `AGENTS.md`, operation palette,
+and host-assurance boundary.
 
-**Something refused me.** [Troubleshooting](troubleshooting.md) — refusal codes
-by family, what each means, and the one legal next action.
+An integration must stop at `human_handoff`, preserve revision guards, edit
+only declared files, and treat `verify` as an observation rather than task
+completion.
 
-**I'm changing specd itself.** [Contributing](contributing.md) — the checks, the
-non-negotiable rules, and the recipe for adding an operation without creating
-drift.
+## Contribute to specd
 
-**I need a flag or an exit code.** [Operations](operations.md), generated from
-the operation registry and byte-checked against it.
+Read the repository [agent guide](../AGENTS.md), then
+[Contributing](contributing.md). They cover the binding design rules, narrow and
+full checks, generated files, operation registry, release gates, and surface
+ownership.
 
-**I want to know what's on disk.** [Layout](layout.md) — the `.specd/` tree,
-who owns each file, and what never to hand-edit.
+Repository policy and history:
 
-## Every page
+- [Security policy](../SECURITY.md)
+- [Changelog](../CHANGELOG.md)
+- [Release decision](../release/release-decision.md)
+- [Surface inventory](../release/surface-inventory.md)
 
-| page | what it gives you |
+## Documentation ownership
+
+| subject | owner |
 | --- | --- |
-| [Getting started](getting-started.md) | one change end to end, with real output |
-| [Concepts](concepts.md) | the model and its vocabulary |
-| [The loop](the-loop.md) | `next` → `context` → `start` → `verify` → `complete`, in depth |
-| [Approval and evidence](approval-and-evidence.md) | the two guarantees with no bypass |
-| [Driving specd from an agent](agent-setup.md) | JSON envelope, palette, guidance file, host assurance |
-| [Layout](layout.md) | the `.specd/` on-disk format |
-| [Troubleshooting](troubleshooting.md) | refusal codes and recoveries |
-| [Operations](operations.md) | generated command reference |
-| [Contributing](contributing.md) | build, test, the release gates, how to add an operation |
+| Product orientation and installation | [root README](../README.md) |
+| Reading paths | this page |
+| First complete workflow | [Getting started](getting-started.md) |
+| Model and vocabulary | [Concepts](concepts.md) |
+| Task execution | [The execution loop](the-loop.md) |
+| Approval and evidence rules | [Approval and evidence](approval-and-evidence.md) |
+| Agent contract | [Driving specd from an agent](agent-setup.md) |
+| Managed files | [Layout](layout.md) |
+| Refusal recovery | [Troubleshooting](troubleshooting.md) |
+| Commands and flags | generated [Operations](operations.md) |
+| Codebase changes | [Contributing](contributing.md) |
 
-## The thirty-second version
-
-```bash
-specd init                              # adopt the project
-specd new add-dark-mode                 # scaffold the change
-#   author proposal.md, design.md, tasks.md, specs/<capability>/spec.md
-specd check add-dark-mode               # gates must be green
-specd approve add-dark-mode             # ← human, real terminal
-specd next add-dark-mode                # what's ready
-specd context add-dark-mode T1          # bounded read input
-specd start add-dark-mode T1 --revision 2
-#   edit only the files the task declared
-specd verify add-dark-mode T1 <attempt> # record evidence
-specd complete add-dark-mode T1 --revision 3
-specd sync add-dark-mode                # ← human, accepts the behavior
-specd archive add-dark-mode
-```
-
-Two of those steps are human and cannot be run by an agent. That is the design,
-not a limitation to work around.
-
-## Outside these docs
-
-- [`../README.md`](../README.md) — what specd is, how to build it, project status
-- [`../AGENTS.md`](../AGENTS.md) — the contributor and agent guide for this repo
-- [`../release/release-decision.md`](../release/release-decision.md) — what has
-  been proven, what has not, and the current release call
-- [`../release/surface-inventory.md`](../release/surface-inventory.md) — every
-  surface mapped to the journey or invariant that owns it
-
-## A note on status
-
-specd is released and young — `0.x` means the surface may break on any minor
-bump. The loop is proven end to end by fourteen replayed journeys, and by one
-real change in one root on linux/amd64.
-[`release-decision.md`](../release/release-decision.md) states exactly what that
-does and does not support. These docs describe what the code does today, not a
-roadmap.
-
-Found something here that's wrong, stale, or confusing? That's a bug. The
-generated pages are checked mechanically; the hand-written ones are only as
-accurate as the last person who read them carefully.
+If documentation disagrees with source, source wins and the documentation is a
+bug. Do not hand-edit `operations.md`; regenerate it from the operation
+registry.

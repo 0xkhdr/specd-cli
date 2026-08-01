@@ -3,7 +3,7 @@
   "change": "docs-navigation",
   "stage": "approved",
   "condition": "active",
-  "revision": 2,
+  "revision": 4,
   "approvals": [
     {
       "schema_version": 1,
@@ -42,7 +42,18 @@
       "assurance": "advisory"
     }
   ],
-  "tasks": {},
+  "tasks": {
+    "D1": "completed"
+  },
   "createdBy": "9f038189ecfb43f8cb397c905f5e4d270076b8765814f3f37db540cb74b5ee1b",
-  "lastTransition": "48fd188488ac1d83473997be3bb8bea8bff97fa745b0bdf68cd10187525ac644"
+  "lastTransition": "b77017e21b1d06d358e271a45d207bb9079469e8d5a1cac06b73b7a233cec46b",
+  "extensions": {
+    "completions": {
+      "D1": {
+        "attempt": "3a324acd27a7dff0ad3ed8771031437224a1a8d450102a253082798cd222cd98",
+        "evidence": "2d6b55e36df18b15d78e1aa56cf2b1348b138322712867bd4cc4009a1bdbcac4",
+        "history": "b77017e21b1d06d358e271a45d207bb9079469e8d5a1cac06b73b7a233cec46b"
+      }
+    }
+  }
 }
