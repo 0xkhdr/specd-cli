@@ -48,8 +48,16 @@ func secureOpen(path string) (*os.File, error) {
 	if err != nil {
 		return nil, err
 	}
+	// FILE_SHARE_DELETE is what lets the change folder be renamed into the
+	// archive while its own lock is held. Windows refuses to move a directory
+	// that contains an open handle unless that handle shares delete access, and
+	// the archive transaction necessarily holds the change lock across the move.
+	// Sharing delete does not weaken the lock: exclusion is the LockFileEx byte
+	// range, not the directory entry, and POSIX has always allowed the lock file
+	// to be renamed or unlinked underneath a holder.
 	handle, err := syscall.CreateFile(name, syscall.GENERIC_READ|syscall.GENERIC_WRITE,
-		syscall.FILE_SHARE_READ|syscall.FILE_SHARE_WRITE, nil, syscall.OPEN_ALWAYS,
+		syscall.FILE_SHARE_READ|syscall.FILE_SHARE_WRITE|syscall.FILE_SHARE_DELETE,
+		nil, syscall.OPEN_ALWAYS,
 		syscall.FILE_ATTRIBUTE_NORMAL|fileFlagOpenReparsePoint, 0)
 	if err != nil {
 		return nil, err

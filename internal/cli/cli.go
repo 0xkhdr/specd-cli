@@ -38,7 +38,7 @@ func Run(args []string, stdout, stderr io.Writer) int {
 	}
 	working, _ := os.Getwd()
 	result, dispatchErr := cmd.Dispatch(context.Background(), cmd.Request{
-		Args: args, Root: working, Actor: strings.TrimSpace(os.Getenv("USER")), Route: route,
+		Args: args, Root: working, Actor: actorIdentity(), Route: route,
 	})
 	outcome := cmd.Outcome{
 		Operation: operationID(args), Root: hintedRoot(args, working),
@@ -65,6 +65,18 @@ func Run(args []string, stdout, stderr io.Writer) int {
 		return transportFailure(stderr, err)
 	}
 	return envelope.Exit.Code
+}
+
+// actorIdentity reads the acting identity the host published. USER is the Unix
+// spelling and USERNAME is the Windows one; neither is authenticated, which is
+// why every operation that acts on this identity carries an advisory assurance
+// rather than an enforced one. An empty answer is left empty: an operation that
+// needs an actor refuses rather than inventing one.
+func actorIdentity() string {
+	if user := strings.TrimSpace(os.Getenv("USER")); user != "" {
+		return user
+	}
+	return strings.TrimSpace(os.Getenv("USERNAME"))
 }
 
 // selectRoute reads the declared route, or derives it from stdin. An

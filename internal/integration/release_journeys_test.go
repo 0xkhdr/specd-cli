@@ -44,10 +44,12 @@ func TestReleaseJourneyFreshProject(t *testing.T) {
 // journey that cannot run fails rather than narrowing the release claim.
 func TestReleaseJourneys(t *testing.T) {
 	releaseStdin(t)
-	if runtime.GOOS != "linux" && runtime.GOOS != "darwin" {
+	switch runtime.GOOS {
+	case "linux", "darwin", "windows":
+	default:
 		// Platform facts are observed, never inferred, and an unrun platform is
 		// reported as unsupported rather than assumed to pass.
-		t.Fatalf("release journeys are qualified on linux and darwin only; this run is %s", runtime.GOOS)
+		t.Fatalf("release journeys are qualified on linux, darwin, and windows only; this run is %s", runtime.GOOS)
 	}
 	t.Logf("release journeys platform: %s/%s", runtime.GOOS, runtime.GOARCH)
 
