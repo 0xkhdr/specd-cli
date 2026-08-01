@@ -24,10 +24,14 @@ base loop, fourteen replayed journeys, an audited surface" and not more.
       archived, and every step is in the published Git history.
 - [x] **Do it with a change that is not release machinery.** Done. It was
       documentation, not workflows or platform claims.
-- [ ] **Put the release machinery itself through the loop.** Still limitation 6.
-      The Windows and linux/arm64 port, the workflows, and the `v0.2.0` release
-      were ordinary edits. This is now the only part of the repository that has
-      never gone through its own harness.
+- [x] **Put the release machinery itself through the loop.** Done 2026-08-02.
+      `release-contract-gate` changed `.github/workflows/release.yml` through
+      three tasks, each started, verified, and completed, and it cost two
+      abandoned plans and three human approvals to get there — the reasons are
+      limitations 7 and 8 of the release decision, both found by doing this.
+- [ ] **Drive a release itself through the loop.** What limitation 6 still says.
+      Changing the release machinery went through the harness; cutting the tag,
+      publishing the binaries, and writing the release decision did not.
 - [ ] **Exercise two concurrent callers against one root.** The root and change
       locks serialize managed writes, but nothing has proven it. The release
       decision claims no proof under concurrent callers, and `SECURITY.md` says
