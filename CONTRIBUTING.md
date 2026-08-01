@@ -44,6 +44,28 @@ guarantee, a boundary — say so in
 request. That file is the boundary this project stands behind, and it is meant
 to be edited honestly rather than kept flattering.
 
+## Versioning and releases
+
+Versions follow [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
+While the major version is `0`, the public surface may break on any minor bump.
+
+A release is one annotated tag named `vMAJOR.MINOR.PATCH`, and it is complete
+only when all of these exist:
+
+- the annotated tag, on a commit whose gating platforms are green;
+- a `CHANGELOG.md` section for it, with the `go install` line;
+- a GitHub release whose body is that section;
+- binaries for every platform the release decision claims, with `SHA256SUMS`
+  and a build provenance attestation.
+
+A published version is immutable. Tags are never deleted, moved, or reused —
+`proxy.golang.org` caches every version permanently, so deleting a tag cannot
+unpublish it; it only makes the tag and the proxy disagree. A release that
+should not be used is superseded by the next one and said to be superseded in
+its `CHANGELOG.md` entry, as `0.1.0` is. A release that is genuinely unsafe to
+build against is withdrawn with a `retract` directive in `go.mod`, which is the
+only supported way to take a version back.
+
 ## Reporting security issues
 
 Do not open a public issue. See [`SECURITY.md`](SECURITY.md).
