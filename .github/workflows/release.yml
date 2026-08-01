@@ -11,11 +11,29 @@ permissions:
   contents: read
 
 jobs:
+  # The cheapest question first: is this tag allowed to consume a release at
+  # all. A lightweight tag or a version with no changelog section is a defect in
+  # the tag, not in the code, and finding out after four gate runs, five builds,
+  # and an attestation is finding out too late.
+  contract:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          # The tag object itself has to be here, not just the commit it points
+          # at, or the annotated-tag clause has nothing to read.
+          fetch-depth: 0
+      - run: sh release/tag-contract.sh --self-check
+      - run: sh release/tag-contract.sh "${GITHUB_REF_NAME}"
+
   # A tag can point at any commit, including one CI never saw, so the suite runs
   # again here rather than trusting the branch build. It runs on every platform
   # this release ships a binary for: a published darwin artifact whose tests
   # never ran on darwin would be a platform claim nothing observed.
   gates:
+    needs: contract
     strategy:
       fail-fast: true
       matrix:

@@ -3,7 +3,7 @@
   "change": "release-contract-gate",
   "stage": "approved",
   "condition": "active",
-  "revision": 4,
+  "revision": 6,
   "approvals": [
     {
       "schema_version": 1,
@@ -43,16 +43,22 @@
     }
   ],
   "tasks": {
-    "T1": "completed"
+    "T1": "completed",
+    "T2": "completed"
   },
   "createdBy": "f20348238c96640ba54346032b13e33c707d5392899a39ff3c56cae8c2d04d5f",
-  "lastTransition": "eab7c67407d70917c697f49ab972042ba14ba864a9aad5aa69e276b23d88f523",
+  "lastTransition": "3d2f464cea896692273b5fe422241adddf546c2a0953abec77f4ed863c56c36b",
   "extensions": {
     "completions": {
       "T1": {
         "attempt": "62c09c1af4f7baa0c9bfcbe458cf5e7654a8b34be7d8facfdfd592d328696816",
         "evidence": "f54cc3ac5f9278c74d01d807b21da31c5c5ba530fda9993a0a2738c0bd26e892",
         "history": "eab7c67407d70917c697f49ab972042ba14ba864a9aad5aa69e276b23d88f523"
+      },
+      "T2": {
+        "attempt": "2dbb4981d5116beb7845060527a11ef05127ac44e7db838401fee55ae5267fa2",
+        "evidence": "f2e7b3ff02825d243f898cae0caa176831f17defde0819c55b3c12dcc73f0999",
+        "history": "3d2f464cea896692273b5fe422241adddf546c2a0953abec77f4ed863c56c36b"
       }
     }
   }
