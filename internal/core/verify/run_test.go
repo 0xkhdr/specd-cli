@@ -11,12 +11,18 @@ import (
 	"time"
 )
 
+// testTimeout is the budget for a command these tests expect to finish, not a
+// deadline any of them measure. It has to cover spawning a process on a loaded
+// CI runner under -race, which on Windows exceeded a second and failed the
+// suite. Cases that assert timeout behavior set their own short deadline.
+const testTimeout = 30 * time.Second
+
 func TestRunExactArgvAndExplicitShell(t *testing.T) {
 	root := t.TempDir()
 	marker := filepath.Join(root, "marker")
 	literal := "literal; touch " + marker
 	result, err := Run(context.Background(), Request{
-		Dir: root, Argv: []string{"printf", "%s", literal}, Timeout: time.Second,
+		Dir: root, Argv: []string{"printf", "%s", literal}, Timeout: testTimeout,
 	})
 	if err != nil || !result.Passed || result.StdoutExcerpt != "literal; touch [PATH]" {
 		t.Fatalf("argv result = %#v, %v", result, err)
@@ -25,7 +31,7 @@ func TestRunExactArgvAndExplicitShell(t *testing.T) {
 		t.Fatal("argv metacharacters executed")
 	}
 	result, err = Run(context.Background(), Request{
-		Dir: root, Shell: "touch marker", Timeout: time.Second,
+		Dir: root, Shell: "touch marker", Timeout: testTimeout,
 	})
 	if err != nil || !result.Passed {
 		t.Fatalf("shell result = %#v, %v", result, err)
@@ -54,7 +60,7 @@ func TestRunParseCommandRequiresExplicitShell(t *testing.T) {
 
 func TestRunCommandDigestMatchesPreflightIdentity(t *testing.T) {
 	request := Request{
-		Dir: t.TempDir(), Argv: []string{"printf", "%s", "ok"}, Timeout: time.Second,
+		Dir: t.TempDir(), Argv: []string{"printf", "%s", "ok"}, Timeout: testTimeout,
 	}
 	expected, err := CommandDigest(request)
 	if err != nil {
@@ -72,13 +78,13 @@ func TestRunCommandDigestMatchesPreflightIdentity(t *testing.T) {
 func TestRunPassFailTimeoutAndInterruption(t *testing.T) {
 	root := t.TempDir()
 	pass, err := Run(context.Background(), Request{
-		Dir: root, Argv: []string{"sh", "-c", "exit 0"}, Timeout: time.Second,
+		Dir: root, Argv: []string{"sh", "-c", "exit 0"}, Timeout: testTimeout,
 	})
 	if err != nil || !pass.Passed || pass.ExitCode != 0 || !pass.NonVacuous {
 		t.Fatalf("pass = %#v, %v", pass, err)
 	}
 	fail, err := Run(context.Background(), Request{
-		Dir: root, Argv: []string{"sh", "-c", "printf failed >&2; exit 7"}, Timeout: time.Second,
+		Dir: root, Argv: []string{"sh", "-c", "printf failed >&2; exit 7"}, Timeout: testTimeout,
 	})
 	if err != nil || fail.Passed || fail.ExitCode != 7 ||
 		!strings.Contains(fail.StderrExcerpt, "failed") {
@@ -94,7 +100,7 @@ func TestRunPassFailTimeoutAndInterruption(t *testing.T) {
 	ctx, cancel := context.WithCancel(context.Background())
 	cancel()
 	interrupted, err := Run(ctx, Request{
-		Dir: root, Argv: []string{"sh", "-c", "sleep 5"}, Timeout: time.Second,
+		Dir: root, Argv: []string{"sh", "-c", "sleep 5"}, Timeout: testTimeout,
 	})
 	if err != nil || interrupted.Passed || !interrupted.Interrupted ||
 		interrupted.ExitCode != InterruptedExitCode {
@@ -125,7 +131,7 @@ func TestRunBoundedCaptureAndDigest(t *testing.T) {
 	root := t.TempDir()
 	result, err := Run(context.Background(), Request{
 		Dir: root, Argv: []string{"sh", "-c", "head -c 8192 /dev/zero"},
-		Timeout: time.Second, OutputLimit: 64,
+		Timeout: testTimeout, OutputLimit: 64,
 	})
 	if err != nil || !result.Passed || !result.StdoutTruncated ||
 		len(result.StdoutExcerpt) > 3*64 || len(result.StdoutDigest) != 64 {
@@ -133,7 +139,7 @@ func TestRunBoundedCaptureAndDigest(t *testing.T) {
 	}
 	again, err := Run(context.Background(), Request{
 		Dir: root, Argv: []string{"sh", "-c", "head -c 8192 /dev/zero"},
-		Timeout: time.Second, OutputLimit: 64,
+		Timeout: testTimeout, OutputLimit: 64,
 	})
 	if err != nil || result.StdoutDigest != again.StdoutDigest ||
 		result.CommandDigest != again.CommandDigest {
@@ -145,7 +151,7 @@ func TestRunRedactsSensitiveExcerptsWithoutChangingDigest(t *testing.T) {
 	root := t.TempDir()
 	raw := "token=topsecret https://example.test/a " + filepath.Join(root, "private") + " ../escape"
 	result, err := Run(context.Background(), Request{
-		Dir: root, Argv: []string{"printf", "%s", raw}, Timeout: time.Second,
+		Dir: root, Argv: []string{"printf", "%s", raw}, Timeout: testTimeout,
 	})
 	if err != nil || !result.Passed {
 		t.Fatalf("result = %#v, %v", result, err)
@@ -161,7 +167,7 @@ func TestRunRedactsSensitiveExcerptsWithoutChangingDigest(t *testing.T) {
 	}
 	punctuationAndUNC := `failed,/home/private; C:\Users\private \\server\share\private`
 	result, err = Run(context.Background(), Request{
-		Dir: root, Argv: []string{"printf", "%s", punctuationAndUNC}, Timeout: time.Second,
+		Dir: root, Argv: []string{"printf", "%s", punctuationAndUNC}, Timeout: testTimeout,
 	})
 	if err != nil {
 		t.Fatal(err)
@@ -192,7 +198,7 @@ func TestRunMalformedCommandNeverStarts(t *testing.T) {
 	}
 	for _, dir := range []string{"", "."} {
 		if _, err := Run(context.Background(), Request{
-			Dir: dir, Argv: []string{"touch", marker}, Timeout: time.Second,
+			Dir: dir, Argv: []string{"touch", marker}, Timeout: testTimeout,
 		}); err == nil {
 			t.Fatalf("invalid project directory %q started", dir)
 		}
@@ -213,14 +219,14 @@ func TestRunGoSelectorZeroMatchCannotPass(t *testing.T) {
 	}
 	selected, err := Run(context.Background(), Request{
 		Dir: root, Argv: []string{"go", "test", "-json", ".", "-run", "^TestSelected$"},
-		Timeout: 30 * time.Second,
+		Timeout: testTimeout,
 	})
 	if err != nil || !selected.Passed || !selected.GoRunSelector || !selected.NonVacuous {
 		t.Fatalf("selected = %#v, %v", selected, err)
 	}
 	empty, err := Run(context.Background(), Request{
 		Dir: root, Argv: []string{"go", "test", "-json", ".", "-run=^TestMissing$"},
-		Timeout: 30 * time.Second,
+		Timeout: testTimeout,
 	})
 	if err != nil || empty.Passed || !empty.GoRunSelector || empty.NonVacuous ||
 		!empty.ZeroMatch || empty.ExitCode != ZeroMatchExitCode {
@@ -228,7 +234,7 @@ func TestRunGoSelectorZeroMatchCannotPass(t *testing.T) {
 	}
 	humanOutput, err := Run(context.Background(), Request{
 		Dir: root, Argv: []string{"go", "test", ".", "-run", "^TestSelected$"},
-		Timeout: 30 * time.Second,
+		Timeout: testTimeout,
 	})
 	if err != nil || !humanOutput.Passed || !humanOutput.GoRunSelector ||
 		!humanOutput.NonVacuous || humanOutput.ZeroMatch {
@@ -236,7 +242,7 @@ func TestRunGoSelectorZeroMatchCannotPass(t *testing.T) {
 	}
 	humanEmpty, err := Run(context.Background(), Request{
 		Dir: root, Argv: []string{"go", "test", ".", "-run", "^TestMissing$"},
-		Timeout: 30 * time.Second,
+		Timeout: testTimeout,
 	})
 	if err != nil || humanEmpty.Passed || !humanEmpty.GoRunSelector ||
 		humanEmpty.NonVacuous || !humanEmpty.ZeroMatch ||
@@ -252,7 +258,7 @@ func TestRunGoSelectorZeroMatchCannotPass(t *testing.T) {
 	}
 	mixed, err := Run(context.Background(), Request{
 		Dir: root, Argv: []string{"go", "test", "./...", "-run", "^TestSelected$"},
-		Timeout: 30 * time.Second,
+		Timeout: testTimeout,
 	})
 	if err != nil || !mixed.Passed || !mixed.NonVacuous || mixed.ZeroMatch {
 		t.Fatalf("mixed selector = %#v, %v", mixed, err)
@@ -263,7 +269,7 @@ func TestRunUnsupportedRunnerMakesNoZeroMatchClaim(t *testing.T) {
 	root := t.TempDir()
 	result, err := Run(context.Background(), Request{
 		Dir: root, Argv: []string{"sh", "-c", "printf 'ok pkg [no tests to run]\\n'"},
-		Timeout: time.Second,
+		Timeout: testTimeout,
 	})
 	if err != nil || !result.Passed || result.GoRunSelector ||
 		result.ZeroMatch || !result.NonVacuous {
@@ -271,7 +277,7 @@ func TestRunUnsupportedRunnerMakesNoZeroMatchClaim(t *testing.T) {
 	}
 	shell, err := Run(context.Background(), Request{
 		Dir: root, Shell: "printf 'ok pkg [no tests to run]\\n' # go test -run Missing",
-		Timeout: time.Second,
+		Timeout: testTimeout,
 	})
 	if err != nil || !shell.Passed || shell.GoRunSelector || shell.ZeroMatch {
 		t.Fatalf("explicit shell = %#v, %v", shell, err)
