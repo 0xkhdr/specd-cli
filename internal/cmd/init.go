@@ -68,7 +68,7 @@ func Init(root string) (InitResult, error) {
 // managedIgnore keeps harness locks out of Git. Planning artifacts, state,
 // history and evidence stay tracked: Git is their source of truth. Locks carry
 // no truth and are recreated on demand.
-const managedIgnore = "# Harness locks are runtime only; every other managed file is tracked truth.\n.root.lock\n.records.lock\nchanges/*/.lock\n"
+const managedIgnore = "# Harness locks are runtime only; every other managed file is tracked truth.\n.root.lock\n.records.lock\nchanges/*.lock\n"
 
 func writeManagedIgnore(owner *corepath.Owner) error {
 	target := filepath.Join(owner.Managed(), ".gitignore")

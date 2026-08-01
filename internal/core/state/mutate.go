@@ -8,6 +8,7 @@ import (
 
 	"github.com/0xkhdr/specd-cli/internal/core/failure"
 	"github.com/0xkhdr/specd-cli/internal/core/lock"
+	corepath "github.com/0xkhdr/specd-cli/internal/core/path"
 	"github.com/0xkhdr/specd-cli/internal/core/persist"
 )
 
@@ -16,11 +17,12 @@ type Mutator func(*State) error
 // Mutate takes only the change lock. Callers needing a root lock must acquire
 // it first: root before change is the global lock order.
 //
-// path is <change>/state.json, so the one change lock is <change>/.lock, the
-// same file corepath.Owner.ChangeLock names and every other state writer takes.
+// path is <change>/state.json, so the change folder is its directory and the
+// one change lock is the one corepath derives from it, the same file
+// corepath.Owner.ChangeLock names and every other state writer takes.
 func Mutate(path, expectedChange string, expectedRevision uint64, mutate Mutator) (State, error) {
 	var next State
-	err := lock.With(filepath.Join(filepath.Dir(path), ".lock"), func() error {
+	err := lock.With(corepath.ChangeLockFor(filepath.Dir(path)), func() error {
 		data, err := os.ReadFile(path)
 		if err != nil {
 			return fmt.Errorf("read state: %w", err)

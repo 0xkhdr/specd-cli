@@ -40,7 +40,7 @@ func TestInit(t *testing.T) {
 	if string(ignore) != managedIgnore {
 		t.Fatalf("managed ignore = %q", ignore)
 	}
-	for _, pattern := range []string{".root.lock", ".records.lock", "changes/*/.lock"} {
+	for _, pattern := range []string{".root.lock", ".records.lock", "changes/*.lock"} {
 		if !strings.Contains(string(ignore), pattern+"\n") {
 			t.Fatalf("managed ignore lacks %q: %q", pattern, ignore)
 		}

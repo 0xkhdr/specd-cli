@@ -72,7 +72,7 @@ func TestMutateLocksChangeLock(t *testing.T) {
 	if _, err := Mutate(path, "cache-ttl", 1, func(*State) error { return nil }); err != nil {
 		t.Fatal(err)
 	}
-	if _, err := os.Stat(filepath.Join(dir, ".lock")); err != nil {
+	if _, err := os.Stat(dir + ".lock"); err != nil {
 		t.Fatalf("change lock missing: %v", err)
 	}
 	if _, err := os.Stat(path + ".lock"); !errors.Is(err, os.ErrNotExist) {

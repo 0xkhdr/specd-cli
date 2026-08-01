@@ -110,7 +110,9 @@ func TestManagedPathChangeLockRequiresExistingChange(t *testing.T) {
 	if err := os.Mkdir(filepath.Join(owner.Changes(), "cache-ttl"), 0o755); err != nil {
 		t.Fatal(err)
 	}
-	want := filepath.Join(owner.Changes(), "cache-ttl", ".lock")
+	// The lock sits beside the change folder, never inside it: archive renames
+	// that folder while holding this lock.
+	want := filepath.Join(owner.Changes(), "cache-ttl.lock")
 	if got, err := owner.ChangeLock("cache-ttl"); err != nil || got != want {
 		t.Fatalf("ChangeLock = %q, %v; want %q", got, err, want)
 	}

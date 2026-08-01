@@ -185,7 +185,22 @@ func Run(ctx context.Context, request Request) (Result, error) {
 	}
 	process.Stdout = stdout
 	process.Stderr = stderr
-	runErr := process.Run()
+	// Start and wait separately, because the tree must be bound to the
+	// platform's termination primitive between the two. A start that fails is
+	// classified below exactly as before: an expired context is an interruption,
+	// anything else is a transport failure.
+	runErr := process.Start()
+	if runErr == nil {
+		// A tree that cannot be bounded is killed rather than run unbounded: an
+		// unterminable verification is worse than a refused one.
+		if err := afterStart(process); err != nil {
+			_ = process.Process.Kill()
+			_ = process.Wait()
+			return Result{}, fmt.Errorf("bound verification process tree: %w", err)
+		}
+		defer releaseProcess(process)
+		runErr = process.Wait()
+	}
 	if err, _ := terminationFailure.Load().(error); err != nil {
 		return Result{}, fmt.Errorf("terminate verification process tree: %w", err)
 	}
@@ -210,7 +225,7 @@ func Run(ctx context.Context, request Request) (Result, error) {
 			}
 			break
 		}
-		return Result{}, fmt.Errorf("start verification process: %w", runErr)
+		return Result{}, fmt.Errorf("await verification process: %w", runErr)
 	}
 
 	result.GoRunSelector, result.NonVacuous, result.ZeroMatch = goRunFacts(

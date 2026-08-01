@@ -4,14 +4,16 @@ import (
 	"os"
 	"path/filepath"
 	"testing"
+
+	corepath "github.com/0xkhdr/specd-cli/internal/core/path"
 )
 
 // TestHeldLockDoesNotBlockMovingItsFolder pins the platform fact archive
-// depends on. The change lock lives inside the change folder, and archive
-// renames that folder into the archive while still holding it. On Unix an open
-// file never blocks a rename; on Windows it does unless the handle shares
-// delete access, which is why secureOpen asks for FILE_SHARE_DELETE. If this
-// fails, the lock has to move out of the folder it guards.
+// depends on: archive renames the change folder into the archive while holding
+// that change's lock. Windows refuses to rename a directory that holds an open
+// handle — sharing delete access on the handle does not lift that — which is
+// why the lock sits beside the folder rather than inside it. A lock that moved
+// back inside would pass on Unix and refuse every archive on Windows.
 func TestHeldLockDoesNotBlockMovingItsFolder(t *testing.T) {
 	root := t.TempDir()
 	folder := filepath.Join(root, "change")
@@ -23,7 +25,7 @@ func TestHeldLockDoesNotBlockMovingItsFolder(t *testing.T) {
 	}
 	target := filepath.Join(root, "archived")
 
-	if err := With(filepath.Join(folder, ".lock"), func() error {
+	if err := With(corepath.ChangeLockFor(folder), func() error {
 		return os.Rename(folder, target)
 	}); err != nil {
 		t.Fatalf("move the locked folder: %v", err)

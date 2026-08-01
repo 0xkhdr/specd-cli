@@ -95,7 +95,17 @@ func (o *Owner) ChangeLock(name string) (string, error) {
 	if err := o.requireChange(change); err != nil {
 		return "", err
 	}
-	return filepath.Join(change, ".lock"), nil
+	return ChangeLockFor(change), nil
+}
+
+// ChangeLockFor names the lock guarding one change folder. The lock sits beside
+// that folder rather than inside it, because archive renames the folder while
+// holding the lock and Windows refuses to move a directory that holds an open
+// handle. This is the one derivation of that path: a state writer that has only
+// the state file's folder resolves the same lock every other caller takes.
+func ChangeLockFor(change string) string {
+	change = filepath.Clean(change)
+	return filepath.Join(filepath.Dir(change), filepath.Base(change)+".lock")
 }
 
 func (o *Owner) requireChange(change string) error {
