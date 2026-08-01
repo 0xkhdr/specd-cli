@@ -72,20 +72,17 @@ base loop, fourteen replayed journeys, an audited surface" and not more.
 
 ## Housekeeping
 
-- [ ] **Decide what happens to `github.com/0xkhdr/specd`.** The old repository
-      is empty, public, and not archived. Its module path is permanently burnt:
-      six versions are cached by the module proxy and notarized in the checksum
-      database, pointing at an abandoned lineage. Options are to archive it, or
-      to publish a final version whose `go.mod` marks the module deprecated and
-      points at this path. Doing nothing leaves a repository that resolves to
-      abandoned code for anyone who finds it first.
-- [ ] **Set the repository description and topics.** Both are empty on
-      `0xkhdr/specd-cli`. This is the only thing a search result shows.
-- [ ] **Consider branch protection on `main`.** CI is advisory right now:
-      nothing prevents a push that skips it, and the release workflow only
-      re-runs the gates because a tag can point at any commit. Requiring the
-      `repo` and `gates` checks would make the CI observation load-bearing
-      rather than customary.
+- [x] **Decide what happens to `github.com/0xkhdr/specd`.** Done 2026-08-01.
+      Its description now names `github.com/0xkhdr/specd-cli` as the live path,
+      and the repository is archived. The six proxied versions are still
+      immutable and still point at the abandoned lineage; nothing can fix that,
+      so the fix was to make the pointer obvious.
+- [x] **Set the repository description and topics.** Done 2026-08-01.
+- [x] **Consider branch protection on `main`.** Done 2026-08-01. `repo` and
+      all four `gates` legs are required and must be up to date; force pushes
+      and deletion are blocked. Admins are exempt, so the rule binds everyone
+      else and the release workflow still re-runs the gates because a tag can
+      point at any commit.
 - [ ] **Drop the `v0.1.0` retraction when it stops mattering.** It is in
       `go.mod` because that tag ships a platform claim its own CI run disproved.
       Once no one could reasonably reach for it, the directive is noise.
