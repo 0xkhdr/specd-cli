@@ -18,20 +18,18 @@ Written 2026-08-01, against `v0.1.1`.
 These are the reasons the release decision says what a user gets is "a working
 base loop, fourteen replayed journeys, an audited surface" and not more.
 
-- [ ] **Drive one real change through specd's own loop.** `.specd/` is live and
-      holds `docs-navigation` at stage `planning`, revision 1 — zero approvals,
-      zero tasks started, zero evidence. The loop is available here and has not
-      been run here since the tree was published. This is limitation 5.
+- [~] **Drive one real change through specd's own loop.** In flight as of
+      2026-08-01: `docs-navigation` is approved, task D1 is completed against
+      real evidence, and D2 is open. Not finished until the change is synced
+      and archived. This is limitation 5.
 - [ ] **Do it with a change that is not release machinery.** The v0.1.0/v0.1.1
       work — module path, workflows, platform claims — was done as ordinary
       edits rather than as a change under `.specd/`. That is limitation 6, and
       it is exactly what limitation 5 says the next change should not be.
-- [ ] **Finish or drop `docs-navigation`.** It is stranded at `planning`. Its
-      described outcome — README as a landing page, `docs/README.md` as the
-      documentation map — is already applied to the tree by hand, so either
-      drive it through the loop as the first real change or retire it. Leaving
-      a planning-stage change that describes already-shipped work is the kind
-      of stale state the harness exists to prevent.
+- [~] **Finish `docs-navigation`.** No longer stranded: it is approved and D1 is
+      complete. Two tasks remain, and the platform tiers changed underneath it,
+      so its "Honest production boundary" requirement now has a different truth
+      to state than it did when the plan was approved.
 - [ ] **Exercise two concurrent callers against one root.** The root and change
       locks serialize managed writes, but nothing has proven it. The release
       decision claims no proof under concurrent callers, and `SECURITY.md` says
@@ -49,22 +47,32 @@ base loop, fourteen replayed journeys, an audited surface" and not more.
 
 ## Platforms
 
-- [ ] **Windows is a port, not a bug list.** Run on 2026-08-01 and failed 254
-      tests across 14 packages. Two structural causes: CRLF line endings in
-      artifact parsing and digesting, and `\` path separators in scope,
-      selector, and manifest handling. There is also a third assumption to
-      settle — the human route is derived from a termios ioctl, which has no
-      direct Windows equivalent, so "how does a Windows console prove a human"
-      is a design question before it is a code question. Do not re-add
-      `windows-latest` to the matrix until that is answered; a red runner
-      claims nothing.
-- [ ] **Drive the loop end to end on macOS.** The `-race` suite is green there
-      and gates every release, but no change has been planned, approved,
-      verified, and completed on macOS. Until that happens macOS stays in the
-      middle tier: tests pass, the end-to-end guarantee is not claimed.
-- [ ] **linux/arm64 is unobserved.** No runner, no binary, no claim. If a binary
-      is ever published for it, the architecture needs a real test run first
-      rather than a cross-compile and an assumption.
+- [x] **Windows is a port, not a bug list.** Done 2026-08-01. The suite and all
+      fourteen journeys are green on `windows-latest`. The real causes were not
+      the ones guessed here: the directory flush every managed write ended in
+      does not exist on Windows, the checkout arrived as CRLF and drifted every
+      golden fixture, the actor came from `USER` alone, the change lock lived
+      inside the folder `archive` renames, and `taskkill` cannot report whether
+      a tree died. The human-route question is answered by `GetConsoleMode`,
+      which is the same kind of fact the termios probe reads.
+- [x] **linux/arm64 is unobserved.** Done 2026-08-01. `ubuntu-24.04-arm` is in
+      the matrix and green on its first run, and a binary is published for it.
+- [ ] **Drive the loop end to end on macOS, Windows, or linux/arm64.** All three
+      run the suite and replay the journeys, and all gate every release, but no
+      change has been planned, approved, verified, and completed by hand on any
+      of them. Until that happens they stay in the second tier: tests and
+      journeys pass, the end-to-end guarantee is not claimed.
+- [ ] **Two Windows guarantees are weaker than their Unix equivalents.** A
+      managed write's directory entry is not flushed, because Windows exposes
+      no call that flushes one; durability there rests on NTFS metadata
+      journaling. And the verification process tree is bound to its job object
+      immediately after the process starts rather than before it runs, so a
+      descendant spawned in that interval would escape termination. Both are
+      recorded in `release/release-decision.md`.
+- [ ] **README and `docs/` still say Windows is unsupported.** They were true
+      when written and are not now. They are the declared scope of the
+      in-flight `docs-navigation` change, so the correction belongs in that
+      change rather than beside it.
 
 ## Housekeeping
 
