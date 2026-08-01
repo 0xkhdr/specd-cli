@@ -10,6 +10,8 @@ This file records what changed; that one records what has been proven.
 
 ## [Unreleased]
 
+## [0.3.0] — 2026-08-02
+
 ### Added
 
 - A tagged build now decides whether the tag is allowed to consume a release
@@ -34,6 +36,12 @@ This file records what changed; that one records what has been proven.
   refusal naming an action no operation can perform; and a declared file list
   written with commas instead of semicolons is accepted at plan time and fails
   only when the task starts.
+
+### Install
+
+```bash
+go install github.com/0xkhdr/specd-cli/cmd/specd@v0.3.0
+```
 
 ## [0.2.0] — 2026-08-01
 
@@ -177,7 +185,8 @@ at scale, across concurrent callers, or over long-lived changes.
 go install github.com/0xkhdr/specd-cli/cmd/specd@v0.1.0
 ```
 
-[Unreleased]: https://github.com/0xkhdr/specd-cli/compare/v0.2.0...HEAD
+[Unreleased]: https://github.com/0xkhdr/specd-cli/compare/v0.3.0...HEAD
+[0.3.0]: https://github.com/0xkhdr/specd-cli/releases/tag/v0.3.0
 [0.2.0]: https://github.com/0xkhdr/specd-cli/releases/tag/v0.2.0
 [0.1.1]: https://github.com/0xkhdr/specd-cli/releases/tag/v0.1.1
 [0.1.0]: https://github.com/0xkhdr/specd-cli/releases/tag/v0.1.0
