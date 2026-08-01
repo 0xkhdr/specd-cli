@@ -60,11 +60,16 @@ only when all of these exist:
 
 A published version is immutable. Tags are never deleted, moved, or reused —
 `proxy.golang.org` caches every version permanently, so deleting a tag cannot
-unpublish it; it only makes the tag and the proxy disagree. A release that
-should not be used is superseded by the next one and said to be superseded in
-its `CHANGELOG.md` entry, as `0.1.0` is. A release that is genuinely unsafe to
-build against is withdrawn with a `retract` directive in `go.mod`, which is the
-only supported way to take a version back.
+unpublish it; it only makes the tag and the proxy disagree.
+
+A release that is merely improved on is superseded: the next release says so in
+its `CHANGELOG.md` entry and nothing else happens. A release that should not be
+selected at all is retracted with a `retract` directive in `go.mod`, which is
+the only supported way to take a version back — the tag stays, the version stays
+resolvable, and `go get` stops choosing it. `v0.1.0` is retracted, and the
+directive above it says why: it ships a platform claim its own release run had
+already disproved. Retraction is for a version that misleads or breaks, not for
+one that is simply old.
 
 ## Reporting security issues
 
