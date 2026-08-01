@@ -1,0 +1,8 @@
+blank_issues_enabled: true
+contact_links:
+  - name: Report a security vulnerability
+    url: https://github.com/0xkhdr/specd-cli/security/advisories/new
+    about: Anything you believe is exploitable — privately, not as a public issue.
+  - name: What is and is not proven
+    url: https://github.com/0xkhdr/specd-cli/blob/main/release/release-decision.md
+    about: The boundary this project stands behind. Check here before filing a gap.

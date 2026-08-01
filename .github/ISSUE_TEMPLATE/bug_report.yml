@@ -1,0 +1,60 @@
+name: Bug report
+description: Something the harness did that it should not have, or refused when it should not have
+labels: [bug]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        If you believe the issue is exploitable — an agent passing a human gate,
+        a write escaping declared scope, evidence being reused — do not file it
+        here. Report it privately: see [SECURITY.md](../blob/main/SECURITY.md).
+
+  - type: input
+    id: version
+    attributes:
+      label: Version
+      description: Output of `specd --version`.
+      placeholder: specd v0.1.0 go1.26.4
+    validations:
+      required: true
+
+  - type: input
+    id: platform
+    attributes:
+      label: OS and architecture
+      placeholder: linux/amd64
+    validations:
+      required: true
+
+  - type: textarea
+    id: ran
+    attributes:
+      label: What you ran
+      description: The exact commands, in order. Include `--json` output if you have it.
+      render: shell
+    validations:
+      required: true
+
+  - type: textarea
+    id: expected
+    attributes:
+      label: What you expected
+      description: If you expected a refusal, name the one legal next action you expected it to carry.
+    validations:
+      required: true
+
+  - type: textarea
+    id: actual
+    attributes:
+      label: What happened instead
+    validations:
+      required: true
+
+  - type: textarea
+    id: extra
+    attributes:
+      label: Anything else
+      description: >
+        A reproduction against a scratch root is worth more than a description.
+        Do not paste `.specd/` state, history, or evidence files if they contain
+        anything you would not publish.

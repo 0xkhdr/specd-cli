@@ -1,0 +1,11 @@
+{
+  "schemaVersion": 1,
+  "change": "docs-navigation",
+  "stage": "planning",
+  "condition": "active",
+  "revision": 1,
+  "approvals": [],
+  "tasks": {},
+  "createdBy": "9f038189ecfb43f8cb397c905f5e4d270076b8765814f3f37db540cb74b5ee1b",
+  "lastTransition": "9f038189ecfb43f8cb397c905f5e4d270076b8765814f3f37db540cb74b5ee1b"
+}

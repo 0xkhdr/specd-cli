@@ -1,0 +1,9 @@
+# The binary built by the README's build-from-source line.
+/specd
+
+# Release workflow build output. The tag is what produces these; nothing here
+# is committed.
+/dist/
+/release-notes.md
+/SHA256SUMS
+/specd_*

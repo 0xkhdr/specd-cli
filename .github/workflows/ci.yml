@@ -1,0 +1,71 @@
+name: ci
+
+# The release gates that cannot run from inside the release test without
+# recursing into it. release/release-decision.md records them as observed CI
+# facts; this workflow is what does the observing.
+on:
+  push:
+    branches: ["**"]
+  pull_request:
+
+# Least privilege at the workflow level; no job here widens it.
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  # Repository-wide facts. They are platform-independent, so running them on
+  # every matrix leg would assert the same thing three times.
+  repo:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - uses: actions/setup-go@b7ad1dad31e06c5925ef5d2fc7ad053ef454303e # v7.0.0
+        with:
+          go-version: "1.26"
+          check-latest: true
+
+      - name: go.mod has an empty require set
+        run: |
+          test -z "$(go list -m all | tail -n +2)" \
+            || { echo "specd is standard library only; a dependency was added"; exit 1; }
+
+      - name: gofmt
+        run: |
+          unformatted="$(gofmt -l .)"
+          test -z "$unformatted" || { echo "$unformatted"; exit 1; }
+
+  # One leg per platform specd claims. The supported-platform claim in
+  # release/release-decision.md is limited to the platforms actually run, so
+  # removing a leg here narrows that claim and belongs in that file first.
+  gates:
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, macos-latest, windows-latest]
+    runs-on: ${{ matrix.os }}
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - uses: actions/setup-go@b7ad1dad31e06c5925ef5d2fc7ad053ef454303e # v7.0.0
+        with:
+          go-version: "1.26"
+          check-latest: true
+
+      - name: go vet ./...
+        run: go vet ./...
+
+      - name: go test ./... -race -count=1
+        run: go test ./... -race -count=1
+
+      - name: binary builds and reports itself
+        run: |
+          go build -o specd ./cmd/specd
+          go run ./cmd/specd --version
+          go run ./cmd/specd --help

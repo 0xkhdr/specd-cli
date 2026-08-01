@@ -1,0 +1,17 @@
+version: 2
+
+# GitHub Actions only. specd has no Go dependencies to update — an empty
+# require set in go.mod is a release gate — so the gomod ecosystem is
+# deliberately absent rather than merely unconfigured.
+updates:
+  - package-ecosystem: github-actions
+    directory: "/"
+    schedule:
+      interval: weekly
+    commit-message:
+      prefix: ci
+    labels:
+      - dependencies
+    groups:
+      actions:
+        patterns: ["*"]

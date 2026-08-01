@@ -1,0 +1,1 @@
+{"schema":"specd.agent/v1","ok":false,"operation":"context","diagnostics":[{"code":"flag_unknown","severity":"error","message":"unknown flag \"--all\" for context","fix":"run specd context <change> <task>"}],"next":{"kind":"blocked","owner":"author","instruction":"run specd context <change> <task>"},"exit":{"code":2,"class":"refusal"}}

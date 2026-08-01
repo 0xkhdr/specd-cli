@@ -1,0 +1,41 @@
+name: Feature request
+description: Propose behavior specd does not have
+labels: [enhancement]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        specd subtracts by default: complexity has to earn its place through
+        real use, and unowned surface fails the build. A proposal that names a
+        concrete thing that was actually blocked will get further than one that
+        names a capability.
+
+        Orchestration, delivery, multi-root views, importers, network services,
+        LLM evaluators, telemetry, and plugins are **deferred domains** — see
+        [release-decision.md](../blob/main/release/release-decision.md). They
+        enter only after two friction records from two independent changes name
+        the same missing capability.
+
+  - type: textarea
+    id: blocked
+    attributes:
+      label: What did this block?
+      description: >
+        Describe real work that could not proceed. What were you doing, which
+        operation stopped you, and what was the consequence?
+    validations:
+      required: true
+
+  - type: textarea
+    id: proposal
+    attributes:
+      label: What behavior would unblock it
+      description: Observable behavior, not implementation.
+    validations:
+      required: true
+
+  - type: textarea
+    id: alternatives
+    attributes:
+      label: What you tried instead
+      description: Including whether an existing operation nearly does this.
