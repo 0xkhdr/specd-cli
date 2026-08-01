@@ -9,6 +9,12 @@ import (
 	"time"
 )
 
+// testTimeout is the budget for a command these tests expect to finish, not a
+// deadline any of them measure. It has to cover spawning a process on a loaded
+// CI runner under -race, which on Windows exceeded a second and failed the
+// suite. Cases that assert timeout behavior set their own short deadline.
+const testTimeout = 30 * time.Second
+
 func TestArgvKeepsMetacharactersLiteral(t *testing.T) {
 	dir := t.TempDir()
 	sentinel := filepath.Join(dir, "sentinel")
@@ -23,7 +29,7 @@ func TestArgvKeepsMetacharactersLiteral(t *testing.T) {
 	}
 	for _, injection := range injections {
 		result, err := Run(context.Background(), Request{
-			Dir: dir, Argv: []string{"printf", "%s", injection}, Timeout: time.Second,
+			Dir: dir, Argv: []string{"printf", "%s", injection}, Timeout: testTimeout,
 		})
 		if err != nil {
 			t.Fatalf("run %q: %v", injection, err)
@@ -64,7 +70,7 @@ func TestArgvBoundsOutputAndTime(t *testing.T) {
 	dir := t.TempDir()
 	result, err := Run(context.Background(), Request{
 		Dir: dir, Argv: []string{"sh", "-c", "head -c 8192 /dev/zero | tr '\\0' 'x'"},
-		Timeout: 5 * time.Second, OutputLimit: 128,
+		Timeout: testTimeout, OutputLimit: 128,
 	})
 	if err != nil {
 		t.Fatalf("run: %v", err)
@@ -86,7 +92,7 @@ func TestArgvBoundsOutputAndTime(t *testing.T) {
 func TestArgvReportsExitCode(t *testing.T) {
 	result, err := Run(context.Background(), Request{
 		Dir: t.TempDir(), Argv: []string{"sh", "-c", "printf failed >&2; exit 7"},
-		Timeout: 5 * time.Second,
+		Timeout: testTimeout,
 	})
 	if err != nil {
 		t.Fatalf("run: %v", err)
