@@ -1,36 +1,46 @@
 ## Purpose
-Help a reader choose the right entry point and understand specd's workflow
-without reading duplicate or competing introductions.
+Help developers evaluate, adopt, operate, integrate, and contribute to specd
+using documentation that is readable, current, and honest about its guarantees.
 
 ## ADDED Requirements
 
-### Requirement: Audience-oriented entry points
-The documentation MUST provide a concise root README for product orientation
-and installation, plus a documentation index that routes users by goal and
-recommended reading order.
+### Requirement: Audience-oriented navigation
+The documentation MUST provide a concise root README and one documentation hub
+that route evaluators, users, agent integrators, and contributors to the right
+page without duplicating full reference material.
 
-#### Scenario: New user finds the first workflow
-- **WHEN** a reader opens the repository README to evaluate or install specd
-- **THEN** the README explains what specd is, shows the shortest useful
-  workflow, and links to the getting-started guide without duplicating the
-  full command reference
+#### Scenario: Reader finds the right starting point
+- **WHEN** a reader opens the root README or `docs/README.md`
+- **THEN** the page identifies the relevant audience path, expected outcome,
+  and next document to read
 
-### Requirement: Single ownership of documentation navigation
-The documentation MUST keep navigation and audience routing in `docs/README.md`
-while the detailed topic pages remain linked by their subject.
+### Requirement: Consistent developer-friendly voice
+Every hand-written documentation page MUST use the project vocabulary, direct
+plain language, scannable sections, and enough context for its intended reader
+without assuming knowledge supplied only by another duplicate introduction.
 
-#### Scenario: Reader chooses a path
-- **WHEN** a reader opens `docs/README.md`
-- **THEN** the page identifies paths for using specd, understanding its model,
-  driving it from an agent, troubleshooting it, and contributing to it
+#### Scenario: Developer moves between pages
+- **WHEN** a developer follows links across the documentation set
+- **THEN** terminology, command naming, tone, and explanations remain
+  consistent while each fact has one clear owner
 
-### Requirement: Existing claims remain linked and verifiable
-The documentation MUST link the generated operation reference, binding agent
-guide, release decision, security policy, and changelog from an appropriate
-entry point without changing their claims.
+### Requirement: Current operational guidance
+Commands, examples, file layouts, lifecycle descriptions, refusal recovery,
+agent integration guidance, and contributor instructions MUST agree with the
+current registry, source, tests, and generated operation reference.
 
-#### Scenario: Release documentation checks the new structure
-- **WHEN** the repository documentation link and release qualification checks
-  run
-- **THEN** all relative links resolve and generated operation documentation is
-  unchanged
+#### Scenario: Documentation is checked against the repository
+- **WHEN** the documentation review and release qualification checks run
+- **THEN** relative links resolve, generated operation documentation has byte
+  parity, examples use current syntax, and behavioral claims have a current
+  implementation or test owner
+
+### Requirement: Honest production boundary
+The documentation MUST help a developer assess production use by separating
+implemented guarantees from experimental profiles, supported platforms,
+advisory host checks, and unproven scale or concurrency claims.
+
+#### Scenario: Evaluator assesses production use
+- **WHEN** a reader looks for deployment or production guidance
+- **THEN** the docs link to the security policy and release decision and do not
+  imply assurance beyond the evidence recorded there

@@ -1,44 +1,61 @@
 # Design
 
 ## Boundaries
-documentation/Audience-oriented entry points
-Only the two hand-written entry points, `README.md` and `docs/README.md`, are
-changed. Existing topic pages remain the detailed source for their subjects.
+documentation/Requirement: Audience-oriented navigation
+`README.md` owns product orientation and the shortest evaluation path;
+`docs/README.md` owns audience routing and reading order. Topic pages own their
+subject and link outward instead of repeating the full loop or command palette.
 
-documentation/Single ownership of documentation navigation
-`docs/README.md` owns the reading map; the root README links into it instead of
-repeating its full page index.
+documentation/Requirement: Consistent developer-friendly voice
+All hand-written documentation uses the nouns defined in `AGENTS.md`, direct
+second-person instructions where action is required, short introductions,
+descriptive headings, and concise examples. Existing pages are revised in
+place; no new hierarchy or documentation tooling is added.
 
-documentation/Existing claims remain linked and verifiable
-Links point to existing repository documents and generated references; no
-behavioral or release claim is rewritten.
+documentation/Requirement: Current operational guidance
+The operation registry and generated `docs/operations.md` own command syntax,
+flags, lifecycles, and exits. Source and tests own behavior. Hand-written pages
+explain workflows and link to those owners rather than maintaining competing
+reference tables. Walkthrough output is checked against the current binary.
+
+documentation/Requirement: Honest production boundary
+`release/release-decision.md` owns proven and unproven release claims;
+`SECURITY.md` owns security boundaries; `release/surface-inventory.md` owns
+surface ownership. User guides summarize only what their audience needs and
+link to these files for the authoritative boundary.
 
 ## Interfaces
-The Markdown files are the user-facing documentation interface. Navigation uses
-relative Markdown links that the existing release test resolves from each file.
+The interface is the existing Markdown set: `README.md`, the nine hand-written
+pages under `docs/`, and generated `docs/operations.md`. Relative links remain
+portable on GitHub and in a repository checkout. No site generator or external
+documentation dependency is introduced.
 
 ## Invariants
-`docs/operations.md` remains generated and byte-checked. The root README stays
-short enough to orient a new reader; detailed command facts live in the
-generated reference. Every audience path names a next page.
+`docs/operations.md` remains generated and byte-checked. Managed `.specd/`
+state remains untouched. Project vocabulary stays canonical. No page invents
+an operation, bypass, platform guarantee, host containment claim, deployment
+effect, or production assurance. Each page has one audience, one subject, and
+a useful next link.
 
 ## Failure behavior
-Broken links or stale generated documentation fail the existing release
-qualification test. If a topic is not covered by an existing page, the index
-links to the closest authoritative repository document rather than inventing a
-new page.
+Broken links, generated-document drift, dead vocabulary, or release-surface
+drift fail existing tests. A prose claim that cannot be matched to current
+source, tests, security policy, or release evidence is removed or qualified.
+An example that cannot be reproduced is corrected from current output rather
+than preserved for narrative continuity.
 
 ## Integration
-The root README remains the public landing page. `docs/README.md` becomes its
-documentation hub and routes to `getting-started.md`, `concepts.md`,
-`the-loop.md`, `agent-setup.md`, `troubleshooting.md`, `layout.md`,
-`approval-and-evidence.md`, `operations.md`, and `contributing.md`, plus the
-root-level release and policy documents.
+Entry points route into topic pages. Topic pages link to
+`docs/operations.md` for exact command contracts, `docs/troubleshooting.md` for
+recovery, and release or security documents for assurance boundaries.
+`docs/contributing.md` records the maintenance rules needed to keep this
+ownership model current.
 
 ## Alternatives
-Adding subdirectories or renaming the nine existing topic pages would create
-link churn without adding information. A new overview page would duplicate
-the existing docs index, so the current `docs/README.md` remains the owner.
+Renaming, splitting, or nesting the existing pages creates link churn without
+fixing voice or accuracy. Adding a site generator adds maintenance and a
+dependency while Markdown already serves the repository audience. Rewriting
+generated operation docs by hand would create a second source of truth.
 
 ## Owner
 repository documentation

@@ -1,11 +1,48 @@
 {
   "schemaVersion": 1,
   "change": "docs-navigation",
-  "stage": "planning",
+  "stage": "approved",
   "condition": "active",
-  "revision": 1,
-  "approvals": [],
+  "revision": 2,
+  "approvals": [
+    {
+      "schema_version": 1,
+      "id": "approval:8c5c4af779d9fdcf:1",
+      "change": "docs-navigation",
+      "gate": "planning_to_approved",
+      "lifecycle_from": "planning",
+      "lifecycle_to": "approved",
+      "approver": "0xkhdr@gmail.com",
+      "actor_class": "human",
+      "artifacts": [
+        {
+          "path": "design.md",
+          "hash": "fbf5f3503f2decc4e14cde2defbdd06c742559e08518c5011654fa5987915be6"
+        },
+        {
+          "path": "proposal.md",
+          "hash": "54b6140e37c99e987b38292e8b30b459e4015b8ae692b77cb307494cab522685"
+        },
+        {
+          "path": "specs/documentation/spec.md",
+          "hash": "de38dada9db220f32a6b9ecc4771e02edd450d876ec566b7939c099af81252a2"
+        },
+        {
+          "path": "tasks.md",
+          "hash": "450497739762eea1d0756f7aeaabb425c5ebae5488fcb48976d8d4f35b9f81e1"
+        }
+      ],
+      "aggregate_hash": "8c5c4af779d9fdcf4bc09ea8703b0040c9995e51b8b0136a0ad0dce1497a71cd",
+      "registry_version": "core-v2",
+      "policy_digest": "ddc8b3ab149139c731d50ab1e80ae554a4d73d469ed683d99ac790b76c966040",
+      "revision_before": 1,
+      "revision_after": 2,
+      "timestamp": "2026-08-01T16:51:52.022227398Z",
+      "reason": "Reviewed expanded documentation plan",
+      "assurance": "advisory"
+    }
+  ],
   "tasks": {},
   "createdBy": "9f038189ecfb43f8cb397c905f5e4d270076b8765814f3f37db540cb74b5ee1b",
-  "lastTransition": "9f038189ecfb43f8cb397c905f5e4d270076b8765814f3f37db540cb74b5ee1b"
+  "lastTransition": "48fd188488ac1d83473997be3bb8bea8bff97fa745b0bdf68cd10187525ac644"
 }
