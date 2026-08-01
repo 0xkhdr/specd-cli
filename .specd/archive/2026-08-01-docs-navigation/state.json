@@ -1,9 +1,9 @@
 {
   "schemaVersion": 1,
   "change": "docs-navigation",
-  "stage": "approved",
+  "stage": "archived",
   "condition": "active",
-  "revision": 8,
+  "revision": 10,
   "approvals": [
     {
       "schema_version": 1,
@@ -48,7 +48,7 @@
     "D3": "completed"
   },
   "createdBy": "9f038189ecfb43f8cb397c905f5e4d270076b8765814f3f37db540cb74b5ee1b",
-  "lastTransition": "44261aeb563113af88fb1bb0d0e3dcdc4322a24a05b9491603290538b7c5de89",
+  "lastTransition": "d3df56e2bdd67f43296954de4411b92b90fcdc9fe4859f89e5af68d25891b419",
   "extensions": {
     "completions": {
       "D1": {
