@@ -1,9 +1,9 @@
 {
   "schemaVersion": 1,
   "change": "release-contract-gate",
-  "stage": "approved",
+  "stage": "archived",
   "condition": "active",
-  "revision": 8,
+  "revision": 10,
   "approvals": [
     {
       "schema_version": 1,
@@ -48,7 +48,7 @@
     "T3": "completed"
   },
   "createdBy": "f20348238c96640ba54346032b13e33c707d5392899a39ff3c56cae8c2d04d5f",
-  "lastTransition": "a3985f2228a24c710861e0e653b36f5ece8314a45db4679b9e77aca936621b81",
+  "lastTransition": "bef1a54f20a8d59929cb09c8a1456bd1296370c5862e61456ffa6d79487f39e2",
   "extensions": {
     "completions": {
       "T1": {
