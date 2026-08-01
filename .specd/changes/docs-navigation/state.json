@@ -3,7 +3,7 @@
   "change": "docs-navigation",
   "stage": "approved",
   "condition": "active",
-  "revision": 6,
+  "revision": 8,
   "approvals": [
     {
       "schema_version": 1,
@@ -44,10 +44,11 @@
   ],
   "tasks": {
     "D1": "completed",
-    "D2": "completed"
+    "D2": "completed",
+    "D3": "completed"
   },
   "createdBy": "9f038189ecfb43f8cb397c905f5e4d270076b8765814f3f37db540cb74b5ee1b",
-  "lastTransition": "8ee2a256612daa3daa4bf278b70f9b73cdbda22b1cd4a23fce6399ca7451b376",
+  "lastTransition": "44261aeb563113af88fb1bb0d0e3dcdc4322a24a05b9491603290538b7c5de89",
   "extensions": {
     "completions": {
       "D1": {
@@ -59,6 +60,11 @@
         "attempt": "7f70bec87f7627a2a431e9f220bf9acdcadbacc5d8fac3daf641dc252b9f4ad9",
         "evidence": "3684e633da48da50112e47c3c5b2a6af3117465608a14f90a9655086a718df90",
         "history": "8ee2a256612daa3daa4bf278b70f9b73cdbda22b1cd4a23fce6399ca7451b376"
+      },
+      "D3": {
+        "attempt": "9908987617156a3a47b48c005e913514b1373151d5b5dac40bdc3c2cbc5521b8",
+        "evidence": "e6482133748edbbfdbd053638edc8f8da78daf8db7eeb6f97657df3330dba84e",
+        "history": "44261aeb563113af88fb1bb0d0e3dcdc4322a24a05b9491603290538b7c5de89"
       }
     }
   }

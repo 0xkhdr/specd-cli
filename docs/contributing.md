@@ -1,7 +1,7 @@
 # Contributing
 
-How to build, test, and extend specd without breaking the guarantees that are
-the whole product.
+Use this guide to build, test, document, and extend specd without weakening its
+enforced guarantees.
 
 Read [`../AGENTS.md`](../AGENTS.md) first — it is the binding workspace guide.
 This page is the practical version of it.
@@ -25,6 +25,10 @@ go test ./internal/core -run TestSomething -count=1
 ```
 
 Then the affected package, then the whole suite before handing off.
+
+When dogfooding this checkout, use `go run ./cmd/specd` or a repository-local
+binary. Confirm `command -v specd` before using a global executable; another
+project may install a different command with the same name.
 
 ## What the release gate checks
 
@@ -96,9 +100,9 @@ The registry is the source of truth; everything else projects from it.
    to a journey or an invariant.
 6. **Cover it with a journey** if it is user-reachable, in
    `internal/integration/release_journeys_test.go`.
-7. **Update the hand-written docs** that describe the palette — the command
-   table in [`../README.md`](../README.md) and, if it changes the loop or a
-   guarantee, the relevant page here.
+7. **Update the hand-written docs** only where the operation changes a workflow
+   or guarantee. The README links to the generated operation reference instead
+   of maintaining a second command table.
 
 If the operation is human-only, `AgentVisible` is false and there is no
 agent-callable form. Do not add a flag that reveals one.
@@ -121,6 +125,8 @@ The `docs/` set is nine hand-written pages plus one generated. Rules:
 - **One source of truth per fact.** `docs/operations.md` is generated and is the
   only place flags, exit codes, and lifecycles are enumerated. Guides link to
   it; they never restate a flag table.
+- **Give every page one audience and subject.** Use direct language, project
+  vocabulary, scannable headings, and a useful next link.
 - **Don't document surface that doesn't exist.** If it is not in
   `release/surface-inventory.md`, it gets no page.
 - **Run what you write.** Command output in the guides is captured from real
@@ -143,7 +149,7 @@ The `docs/` set is nine hand-written pages plus one generated. Rules:
 | `internal/exec/`, `internal/core/verify/` | bounded process execution and evidence |
 | `internal/agentjson/`, `internal/generate/`, `internal/host/` | the agent-facing surface |
 | `internal/integration/` | journeys, release gates, surface ownership |
-| `.github/workflows/` | the two gates a test cannot run on itself: `go vet` and `go test -race` |
+| `.github/workflows/` | platform matrix, race tests, vet, and release publication |
 | `.specd/` | specd's own managed root; specd plans its changes here, like any other project |
 | `release/` | release decision and surface inventory |
 
@@ -161,3 +167,6 @@ The `docs/` set is nine hand-written pages plus one generated. Rules:
 A deliberate shortcut with a known ceiling gets a `ponytail:` comment naming the
 ceiling and the upgrade trigger. There are a few in the tree already; follow the
 shape.
+
+Report any mismatch among docs, source, tests, security policy, and release
+evidence. Do not silently choose the more convenient claim.

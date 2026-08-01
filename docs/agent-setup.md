@@ -1,12 +1,11 @@
 # Driving specd from an agent
 
-specd is built to be driven by an AI coding agent, with a human at two gates.
-This page is the contract between them: the JSON envelope, the generated
-guidance file, the operation palette, and what the host is and is not trusted to
-do.
+This page defines the contract for driving specd from an AI coding agent: the
+JSON envelope, control flow, generated guidance, callable operations, and host
+assurance. A human remains responsible for the two semantic gates.
 
-Read [approval-and-evidence.md](approval-and-evidence.md) first if you haven't.
-The rules there are the ones an agent most often tries to route around.
+Read [Approval and evidence](approval-and-evidence.md) first. An integration
+must preserve those rules rather than reproducing them in prompt text.
 
 ## The JSON envelope
 
@@ -78,9 +77,8 @@ A refusal envelope:
 }
 ```
 
-There is always exactly one legal next action. An agent that retries the same
-call unchanged, or tries a different flag to get past a refusal, is doing the
-one thing the design is built to prevent.
+There is always exactly one legal next action. Do not retry an unchanged call
+or search for a flag that bypasses a refusal.
 
 ### Bounded output
 
@@ -90,8 +88,22 @@ credential-shaped text (`Authorization:`, `api_key=`, `token:`, `password=`,
 `secret:`) is redacted. Every excerpt is paired with a digest and an evidence
 reference, so the authoritative record is always reachable.
 
-Don't parse excerpts for correctness. Read the exit code and the evidence
+Do not parse excerpts for correctness. Read the exit code and the evidence
 record.
+
+## Confirm the binary
+
+Agent hosts should resolve the executable explicitly and record its version:
+
+```bash
+command -v specd
+specd --version
+```
+
+A different program may use the same executable name. Reject a binary whose
+help, version, or JSON schema does not match the integration contract. When
+developing this repository, `go run ./cmd/specd --version` removes PATH
+ambiguity.
 
 ## The generated guidance file
 
@@ -135,9 +147,9 @@ The callable set is the registry's own agent projection, filtered to operations
 that are executable and agent-visible. The adapter adds nothing and hides
 nothing else.
 
-Thirteen operations are agent-callable. **`approve` and `sync` are not**, and no
-flag reveals them. This is not access control an agent can negotiate with; the
-operations have no agent-callable form.
+The agent projection excludes **`approve` and `sync`**, and no flag reveals
+them. Read the projection instead of hard-coding its count; the registry owns
+the callable set.
 
 Every flag, exit code, and lifecycle constraint is in
 [operations.md](operations.md), generated from the same registry and
@@ -168,6 +180,9 @@ files — specd will refuse the attempt afterwards. Detection, not prevention.
 Report this honestly. An agent that tells a user its file scope was *enforced*
 when the label says `advisory` is overstating a security property.
 
+The opt-in production profile does not raise host assurance and is experimental
+in the current [release decision](../release/release-decision.md).
+
 ## Rules for an agent integration
 
 1. **Branch on `next.kind`.** Don't parse human-readable text.
@@ -175,8 +190,9 @@ when the label says `advisory` is overstating a security property.
    don't look for another route, don't claim the gate was passed.
 3. **Round-trip `state.revision`** into `start --revision` and
    `complete --revision`. It is a staleness guard.
-4. **Never write under `.specd/`.** State, history, evidence, and accepted specs
-   are harness-owned. Writing there is not a repair.
+4. **Write only authored planning files under `.specd/`.** State, history,
+   evidence, accepted specs, task markers, and locks are harness-owned. Writing
+   those files is not a repair.
 5. **Never edit planning artifacts during an attempt.** It invalidates both the
    approval and the attempt.
 6. **Treat a passing `verify` as an observation.** Call `complete`.
@@ -195,3 +211,6 @@ and accepted behavior.
 
 If your integration can't answer those from a cold start, that is a contract or
 guidance problem, not a prompt problem.
+
+Next: use generated [Operations](operations.md) for exact command contracts and
+[Troubleshooting](troubleshooting.md) for refusal recovery.
