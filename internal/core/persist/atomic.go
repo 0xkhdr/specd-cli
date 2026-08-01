@@ -57,12 +57,7 @@ func AtomicReplace(path string, data []byte, hook Hook) error {
 	}
 	renamed = true
 
-	d, err := os.Open(dir)
-	if err != nil {
-		return fmt.Errorf("open state directory for sync: %w", err)
-	}
-	defer d.Close()
-	if err := d.Sync(); err != nil {
+	if err := SyncDir(dir); err != nil {
 		if errors.Is(err, os.ErrInvalid) {
 			return fmt.Errorf("%w: %v", ErrDirectorySyncUnsupported, err)
 		}

@@ -790,12 +790,7 @@ func writeSynced(path string, data []byte) error {
 }
 
 func syncDir(path string) error {
-	directory, err := os.Open(path)
-	if err != nil {
-		return ioRefusal(path, err)
-	}
-	defer directory.Close()
-	if err := directory.Sync(); err != nil && !errors.Is(err, os.ErrInvalid) {
+	if err := persist.SyncDir(path); err != nil && !errors.Is(err, os.ErrInvalid) {
 		return ioRefusal(path, err)
 	}
 	return nil

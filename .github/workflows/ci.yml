@@ -44,15 +44,16 @@ jobs:
   # release/release-decision.md is limited to the platforms actually run, so
   # removing a leg here narrows that claim and belongs in that file first.
   #
-  # windows-latest is deliberately absent: it was run on 2026-08-01 and failed
-  # 254 tests across 14 packages on line-ending and path-separator assumptions.
-  # That is a port, not a fix, and claiming it here would be claiming something
-  # no run supports.
+  # windows-latest is back after the port that made it pass: the directory
+  # flush every managed write ended on does not exist on Windows, and the CRLF
+  # checkout that made gofmt and every golden fixture drift is pinned by
+  # .gitattributes. ubuntu-24.04-arm covers linux/arm64, which was previously
+  # unobserved and therefore unclaimed.
   gates:
     strategy:
       fail-fast: false
       matrix:
-        os: [ubuntu-latest, macos-latest]
+        os: [ubuntu-latest, ubuntu-24.04-arm, macos-latest, windows-latest]
     runs-on: ${{ matrix.os }}
     permissions:
       contents: read

@@ -1,0 +1,10 @@
+# specd's bytes are LF on every platform. A Windows checkout with core.autocrlf
+# left on its default rewrites the tree to CRLF, which makes gofmt report every
+# Go file as unformatted and every golden comparison drift by one byte per line.
+# The line ending is part of the source, so it is pinned here rather than left
+# to a contributor's Git configuration.
+* text=auto eol=lf
+
+# Fixtures are compared byte for byte. They get no end-of-line translation at
+# all, in either direction.
+*.golden -text
