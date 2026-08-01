@@ -8,13 +8,24 @@ import (
 	"os"
 	"os/exec"
 	"strconv"
+	"strings"
 	"syscall"
 )
 
 const createNewProcessGroup = 0x00000200
 
+// runTaskkill terminates the process tree and reports why it could not. The
+// command's own output is the only account of a partial kill, so a refusal that
+// drops it leaves an operator with an exit status and no reason.
 var runTaskkill = func(pid int) error {
-	return exec.Command("taskkill", "/T", "/F", "/PID", strconv.Itoa(pid)).Run()
+	output, err := exec.Command("taskkill", "/T", "/F", "/PID", strconv.Itoa(pid)).CombinedOutput()
+	if err == nil {
+		return nil
+	}
+	if trimmed := strings.TrimSpace(string(output)); trimmed != "" {
+		return fmt.Errorf("%w: %s", err, trimmed)
+	}
+	return err
 }
 
 func configureProcess(process *exec.Cmd) {
