@@ -12,10 +12,12 @@ calls, network calls, daemon, or telemetry in the deterministic pipeline.
 
 ## Project status
 
-specd is released at `v0.1.1` and remains a young `0.x` project. The base loop
-is proven end to end on linux/amd64. The production profile is experimental;
-scale, concurrent callers, long-lived changes, and end-to-end macOS use are not
-yet proven. Windows is unsupported.
+specd is released at `v0.2.0` and remains a young `0.x` project. The base loop
+is proven end to end on linux/amd64. On linux/arm64, macOS, and Windows the
+suite and all fourteen release journeys are green and gate every release, but
+no change has been driven through the loop by hand there. The production
+profile is experimental; scale, concurrent callers, and long-lived changes are
+not yet proven.
 
 Before production use, read the exact [release boundary](release/release-decision.md)
 and [security model](SECURITY.md). Host assurance is `advisory` unless the host
@@ -27,7 +29,7 @@ process that made them.
 Requires Go 1.26 or newer:
 
 ```bash
-go install github.com/0xkhdr/specd-cli/cmd/specd@v0.1.1
+go install github.com/0xkhdr/specd-cli/cmd/specd@v0.2.0
 specd --version
 ```
 
@@ -38,7 +40,8 @@ go build -o specd ./cmd/specd
 ./specd --version
 ```
 
-Tagged releases also publish one `linux/amd64` binary with checksums and build
+Tagged releases also publish a binary for linux/amd64, linux/arm64,
+darwin/arm64, darwin/amd64, and windows/amd64, with checksums and build
 provenance:
 
 ```bash

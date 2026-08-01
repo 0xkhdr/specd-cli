@@ -11,25 +11,23 @@ is either a limitation that record already names, or housekeeping that record
 does not care about. When one of these is finished, the change belongs in the
 release decision first and in this file second.
 
-Written 2026-08-01, against `v0.1.1`.
+Written 2026-08-01, against `v0.2.0`.
 
 ## Re-proving the loop
 
 These are the reasons the release decision says what a user gets is "a working
 base loop, fourteen replayed journeys, an audited surface" and not more.
 
-- [~] **Drive one real change through specd's own loop.** In flight as of
-      2026-08-01: `docs-navigation` is approved, task D1 is completed against
-      real evidence, and D2 is open. Not finished until the change is synced
-      and archived. This is limitation 5.
-- [ ] **Do it with a change that is not release machinery.** The v0.1.0/v0.1.1
-      work — module path, workflows, platform claims — was done as ordinary
-      edits rather than as a change under `.specd/`. That is limitation 6, and
-      it is exactly what limitation 5 says the next change should not be.
-- [~] **Finish `docs-navigation`.** No longer stranded: it is approved and D1 is
-      complete. Two tasks remain, and the platform tiers changed underneath it,
-      so its "Honest production boundary" requirement now has a different truth
-      to state than it did when the plan was approved.
+- [x] **Drive one real change through specd's own loop.** Done 2026-08-01.
+      `docs-navigation` went created (11:13) → approved by a human (16:51) →
+      three tasks each started, verified, and completed → synced (18:21) →
+      archived, and every step is in the published Git history.
+- [x] **Do it with a change that is not release machinery.** Done. It was
+      documentation, not workflows or platform claims.
+- [ ] **Put the release machinery itself through the loop.** Still limitation 6.
+      The Windows and linux/arm64 port, the workflows, and the `v0.2.0` release
+      were ordinary edits. This is now the only part of the repository that has
+      never gone through its own harness.
 - [ ] **Exercise two concurrent callers against one root.** The root and change
       locks serialize managed writes, but nothing has proven it. The release
       decision claims no proof under concurrent callers, and `SECURITY.md` says
@@ -39,11 +37,11 @@ base loop, fourteen replayed journeys, an audited surface" and not more.
 
 ## Corroboration
 
-- [ ] **The 2026-07-31 real-root traversal is operator testimony.** It is not in
-      the published tree and not in the published Git history, which begins at a
-      single initial commit. Nobody but its operator can check it. It is
-      recorded honestly as testimony rather than evidence, and the only fix is a
-      new traversal that lands in this repository's history.
+- [x] **The 2026-07-31 real-root traversal is operator testimony.** Answered
+      2026-08-01, not by corroborating it but by replacing its role: the
+      `docs-navigation` traversal is a second, independent one, and it lands in
+      this repository's history where a reader can check it. The 2026-07-31
+      account stays testimony and is still labelled as such.
 
 ## Platforms
 
@@ -69,10 +67,8 @@ base loop, fourteen replayed journeys, an audited surface" and not more.
       immediately after the process starts rather than before it runs, so a
       descendant spawned in that interval would escape termination. Both are
       recorded in `release/release-decision.md`.
-- [ ] **README and `docs/` still say Windows is unsupported.** They were true
-      when written and are not now. They are the declared scope of the
-      in-flight `docs-navigation` change, so the correction belongs in that
-      change rather than beside it.
+- [x] **README and `docs/` said Windows is unsupported.** Corrected for
+      `v0.2.0`, after `docs-navigation` archived and the files were free.
 
 ## Housekeeping
 
@@ -93,11 +89,10 @@ base loop, fourteen replayed journeys, an audited surface" and not more.
 - [ ] **Drop the `v0.1.0` retraction when it stops mattering.** It is in
       `go.mod` because that tag ships a platform claim its own CI run disproved.
       Once no one could reasonably reach for it, the directive is noise.
-- [ ] **Stale internal naming in `release/release-decision.md`.** It opens with
-      "what specd v2 is" and refers throughout to "stage 9" and "stage 10" —
-      vocabulary from the build process that produced the tool, not from the
-      tool. A reader outside that process cannot resolve it. Either define the
-      stages once or rewrite the references.
+- [x] **Stale internal naming in `release/release-decision.md`.** Done for
+      `v0.2.0`: "specd v2" is gone from the opening, and a "Terms from the
+      build" section defines stages 1–10, D9, and D14 once, so the references
+      resolve for a reader who never saw that process.
 
 ## Deferred domains
 

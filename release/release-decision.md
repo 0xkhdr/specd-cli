@@ -1,10 +1,29 @@
 # Release decision
 
-One compact record of what specd v2 is, what has been proven about it, and what
-has not. `internal/integration/release_test.go` parses this file: it requires
-every section below, exactly one dated decision, and it forbids `release` while
-any gate is red. This document projects retained truth and can never override
-it.
+One compact record of what specd is, what has been proven about it, and what has
+not. `internal/integration/release_test.go` parses this file: it requires every
+section below, exactly one dated decision, and it forbids `release` while any
+gate is red. This document projects retained truth and can never override it.
+
+## Terms from the build
+
+This record numbers things the way the process that produced specd numbered
+them. None of it is part of the tool, and a reader who never saw that process
+needs it defined once:
+
+- **Stages 1–7** built the base loop: root and layout, state, planning
+  artifacts, gates, approval, readiness and context, execution, evidence,
+  completion, sync, and archive.
+- **Stage 8** added the opt-in production profile — production reports, the
+  separate reviewer verdict, policy, and friction records.
+- **Stage 9** was release qualification: it fixed the fourteen journeys, the
+  gate list, and the shape of this document, and it is the source of the rule
+  that a platform claim is earned by a green run rather than inferred.
+- **Stage 10** is the deferred work, listed under "Deferred domains and
+  triggers". None of it was started.
+- **D9** and **D14** are two numbered decisions from that process. D9 made
+  harness locks mutual exclusion and never content. D14 set the threshold a
+  deferred domain must clear before it may be planned at all.
 
 ## Implemented base loop
 
@@ -108,10 +127,18 @@ a third party can inspect. Weigh it as testimony. Every mechanically re-checkabl
 claim in this document is elsewhere — in the gate table above, in the fourteen
 replayed journeys, and in the tests — and none of them depends on this one.
 
-Real-root evidence now exists: `.specd/evidence.jsonl` holds two verification
-records (`7ce4804f`, `43812bdf`), both non-vacuous and passing at the HEAD they
-were observed at, and `.specd/specs/release-qualification/spec.md` is accepted
-truth reconciled by `sync` rather than authored by hand.
+That gap is what the 2026-08-01 traversal closes, and it closes it with
+artifacts rather than prose. `.specd/evidence.jsonl` holds three verification
+records (`2d6b55e3`, `3684e633`, `e6482133`), one per task of
+`docs-navigation`, each non-vacuous and passing at the HEAD it was observed at.
+`.specd/history.jsonl` carries the whole traversal in order — created,
+approved, three attempt/completion pairs, synced, archived — with the two human
+gates recorded against a human identity and every other step against the
+implementing actor. `.specd/specs/documentation/spec.md` is accepted truth
+reconciled by `sync` rather than authored by hand, and
+`.specd/archive/2026-08-01-docs-navigation/` is where the change came to rest.
+All of it is in the published Git history, so a reader re-derives it from a
+checkout instead of weighing testimony.
 
 ## Assurance boundary
 
@@ -132,8 +159,8 @@ truth reconciled by `sync` rather than authored by hand.
 - The real-root traversal of 2026-07-31 is uncorroborated. It is neither in the
   published tree nor in the published Git history, so the harness cannot
   re-derive it and a reader cannot check it. Treat it as operator testimony, not
-  as evidence. The `.specd/` root re-created on 2026-08-01 is an empty root, not
-  a restored one: it re-enables the loop and restores no evidence.
+  as evidence. The traversal of 2026-08-01 does not corroborate it either — it
+  is a second, independent traversal, and it is the one a reader can check.
 
 ## Known limitations
 
@@ -146,9 +173,10 @@ truth reconciled by `sync` rather than authored by hand.
    amendments those observations were recorded in are not in the published
    repository; the three of them are restated under "Recorded frictions" below,
    which is now their only surviving record.
-2. **One traversal is one traversal.** The base loop is proven end to end by a
-   single two-task change in one root on one platform. It is not proven at
-   scale, over long-lived changes, or across concurrent callers.
+2. **Two traversals are two traversals.** The base loop is proven end to end by
+   a two-task change on 2026-07-31 and a three-task change on 2026-08-01, both
+   in one root on one platform. It is not proven at scale, over long-lived
+   changes, or across concurrent callers.
 3. **Registration is not visibility.** `report` and `review` were registered,
    documented, and unreachable until the envelope projection was fixed. The
    class of defect is now covered by reachability tests, not by assumption.
@@ -157,21 +185,23 @@ truth reconciled by `sync` rather than authored by hand.
    artifacts sat in the tree. That is deliberate — honoring `.gitignore` would
    let an agent write anywhere by adding an ignore rule — but it means a dirty
    working tree blocks the loop for reasons no plan mentions.
-5. **This repository dogfoods itself again, but has not yet re-proven it.**
-   `.specd/` was removed for publishing on 2026-08-01 and re-created by `specd
-   init` the same day, so the root exists and the loop is available here again.
-   It holds one change, `docs-navigation`, at stage `planning`, revision 1,
-   with zero approvals, zero tasks started, zero evidence, and zero archived
-   work — so it proves the root is live, not that the loop ran. The traversal of
-   2026-07-31 stays uncorroborated, and nothing about it became re-derivable
-   from a checkout by re-running `init`. The next real change is what re-proves
-   this, and it should be a change that is not this repository's release
-   machinery.
-6. **The v0.1.0 release machinery was not itself driven through the loop.**
-   Renaming the module path, rewriting the workflows, and cutting this release
-   were done as ordinary edits, not as a change under `.specd/`. That is the
-   thing limitation 5 says the next change should not be, and it is recorded
-   here rather than left implied.
+5. **The re-proof is one change, in one root, on one platform, in one day.**
+   `docs-navigation` traversed the whole loop in this root on 2026-08-01:
+   created at 11:13, approved at 16:51 by a human on a terminal, three tasks
+   each started, verified against real evidence, and completed, synced at 18:21
+   by a human, and archived at
+   `.specd/archive/2026-08-01-docs-navigation/`. Unlike the 2026-07-31
+   traversal, every step of it is in the published Git history and in
+   `.specd/history.jsonl`, so a reader can re-derive it from a checkout instead
+   of trusting its operator. What it does not establish is duration or
+   contention: it ran on linux/amd64, in one root, across a few hours, with no
+   second caller.
+6. **The release machinery is still not driven through the loop.** The Windows
+   and linux/arm64 port, the workflows, and this release were done as ordinary
+   edits, not as a change under `.specd/`. `docs-navigation` was deliberately
+   not that — it was documentation, which is why it counts as the re-proof
+   limitation 5 asked for — but the machinery itself remains the part of this
+   repository that has never gone through its own harness.
 
 ## Recorded frictions
 
@@ -277,56 +307,54 @@ production-profile assurance is claimed.
 
 ## Decision
 
-The base loop, the fourteen journeys, the subtraction audit, and every mechanical
-gate that still has an input are green. `S9-DOG-01`'s real-root traversal was
-completed on 2026-07-31: the dogfood change went through both human gates and
-archived at revision 8, and the prior blocker — no route to record friction — is
-resolved by `specd friction`.
+The base loop, the fourteen journeys, the subtraction audit, and every
+mechanical gate that still has an input are green, on four runners rather than
+two. The prior decision's own next steps have been taken in part: a real change
+was driven through this loop and archived here, and two platforms moved from
+unclaimed to observed.
 
 A green board permits `release`. It does not establish maturity, and nothing
 below is withdrawn by deciding to publish.
 
-The 2026-07-31 decision was `continue dogfood`, on the argument that one
-traversal found three defects and the next would not find zero. That argument
-still stands and is not answered here. What changed on 2026-08-01 is the
-audience, not the evidence: the two reference repositories, the stage build
-documents, the agent skills, and the dogfood `.specd/` root were removed so the
-published tree carries the tool rather than the workshop that produced it. That
-cleanup narrowed assurance — it removed two mechanical gates and left the
-real-root traversal uncorroborated. No new traversal or concurrent caller was
-run.
+What changed since the 2026-08-01 `v0.1.1` decision is evidence, not scope. The
+tool gained no capability. It gained a checkable traversal — `docs-navigation`,
+planned, approved by a human, executed as three tasks against three
+verification records, synced, and archived, with every step in the published
+Git history rather than in an operator's account. It gained Windows and
+linux/arm64, each earned by a green run after a port that cost five distinct
+defects, and lost the claim that Windows is unsupported. The 2026-07-31
+traversal stays uncorroborated; it is simply no longer the only one.
 
-The publication itself moved to `github.com/0xkhdr/specd-cli` at `v0.1.0`. The
-previous module path had six versions permanently cached by the module proxy
-and notarized in the checksum database, pointing at an abandoned lineage this
-repository no longer contains; those numbers can never serve this code, and the
-proxy and sum database are immutable by design. A fresh path was taken so the
-first release could be numbered honestly rather than starting at a major version
-nothing here has earned. The tests and the fourteen journeys now also run on
-linux/arm64, macOS, and Windows before any binary ships, which widens what is
-checked without widening what is claimed — see "Supported platforms".
+The publication path `github.com/0xkhdr/specd-cli` is unchanged, and so is the
+reason for it: the previous module path has six versions permanently cached by
+the module proxy and notarized in the checksum database, pointing at an
+abandoned lineage this repository no longer contains.
 
-So this decision rests on a different basis from the one it replaces. It is not
-a claim that the loop is load-bearing; it is the root owner accepting that the
-loop is publishable at its stated boundary and that the boundary is written down
-here honestly. What a user gets is: a working base loop, fourteen replayed
-journeys replayed on every platform it ships for, an audited surface, and a
-suite that passes on three operating systems and two architectures. What a user does not get is proof at scale, under concurrent callers,
-over a long-lived change, or that the loop has been driven through a real change
-anywhere but linux/amd64. Anyone relying on this beyond that boundary is relying
-on something no gate in this repository asserts.
+So this decision rests on more than the one it replaces, and on the same kind
+of thing. It is not a claim that the loop is load-bearing; it is the root owner
+accepting that the loop is publishable at its stated boundary and that the
+boundary is written down here honestly. What a user gets is: a working base
+loop, fourteen journeys replayed on every platform a binary ships for, an
+audited surface, a suite that passes on three operating systems and two
+architectures, and one traversal they can re-derive from a checkout. What a
+user does not get is proof at scale, under concurrent callers, over a
+long-lived change, or that the loop has been driven through a real change
+anywhere but linux/amd64. Anyone relying on this beyond that boundary is
+relying on something no gate in this repository asserts.
 
 Decision (2026-08-01, root owner): release
 
 This publication is young, and its `0.x` version number says so: it asserts no
-stability beyond the boundary above, and a minor bump may break anything.
-`specd init` has since been re-run in this root, so the loop is available here
-again and the first item below is a route rather than a plan. Next: put specd's
-own changes back through that loop; ship real changes that are not this
-repository's release machinery; drive one real change through the loop on macOS
-or Windows rather than inferring the platform from a green test run; and
-exercise two concurrent callers against one root. Record friction through
-`specd friction` when a deferred domain blocks real work — D14 has a route, this
-root has zero records, so the threshold remains honestly unmet and every deferred
-domain stays blocked. Revisit this record on the first of those results, and
-re-decide rather than amend.
+stability beyond the boundary above, and a minor bump may break anything. This
+release changes one on-disk path — a change's lock moved out of the folder
+`archive` renames — which no root reads and no migration needs, but which an
+older root's `.specd/.gitignore` does not cover. Next: drive a real change
+through the loop on macOS, Windows, or linux/arm64 rather than inferring the
+platform from a green suite; put this repository's own release machinery
+through the loop, which is the part that never has been; exercise two
+concurrent callers against one root; and run a change that stays open across
+many commits. Record friction through `specd friction` when a deferred domain
+blocks real work — D14 has a route, this root has zero records, so the
+threshold remains honestly unmet and every deferred domain stays blocked.
+Revisit this record on the first of those results, and re-decide rather than
+amend.

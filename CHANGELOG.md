@@ -10,6 +10,12 @@ This file records what changed; that one records what has been proven.
 
 ## [Unreleased]
 
+## [0.2.0] — 2026-08-01
+
+Three operating systems and two architectures, all observed rather than
+inferred. This release also carries the first change specd planned, approved,
+executed, verified, and archived through its own loop in this repository.
+
 ### Added
 
 - Windows and `linux/arm64` are supported platforms for the suite and for all
@@ -41,6 +47,27 @@ This file records what changed; that one records what has been proven.
 - Verification process trees are terminated through a job object rather than
   `taskkill`, whose exit status cannot distinguish a descendant it failed to
   kill from one that had already exited.
+
+### Changed
+
+- A change's lock moved from `.specd/changes/<name>/.lock` to
+  `.specd/changes/<name>.lock`. Locking the folder that `archive` renames is
+  what made `archive` impossible on Windows. Nothing reads a lock file, so
+  upgrading needs no migration, but a root created before this release keeps a
+  `.specd/.gitignore` that names the old location: add `changes/*.lock` to it,
+  or the new lock files show up as untracked. They are never treated as
+  content — any `.specd/**.lock` is ignored by scope and dirty-worktree checks.
+- The documentation is reorganized around audiences: `README.md` is a product
+  and boundary overview, and `docs/README.md` is the one map into the rest.
+  This was authored as the `docs-navigation` change and driven through the
+  loop, which is also what retires limitations 5 and 6 of the previous release
+  decision.
+
+### Install
+
+```bash
+go install github.com/0xkhdr/specd-cli/cmd/specd@v0.2.0
+```
 
 ## [0.1.1] — 2026-08-01
 
@@ -125,6 +152,7 @@ at scale, across concurrent callers, or over long-lived changes.
 go install github.com/0xkhdr/specd-cli/cmd/specd@v0.1.0
 ```
 
-[Unreleased]: https://github.com/0xkhdr/specd-cli/compare/v0.1.1...HEAD
+[Unreleased]: https://github.com/0xkhdr/specd-cli/compare/v0.2.0...HEAD
+[0.2.0]: https://github.com/0xkhdr/specd-cli/releases/tag/v0.2.0
 [0.1.1]: https://github.com/0xkhdr/specd-cli/releases/tag/v0.1.1
 [0.1.0]: https://github.com/0xkhdr/specd-cli/releases/tag/v0.1.0
