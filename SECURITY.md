@@ -86,8 +86,11 @@ be closed as working-as-designed:
   remote, your CI credentials, your agent's network access, or what the agent
   does with the context it was handed.
 - **Concurrency at scale.** The root and change locks serialize managed writes,
-  but the release boundary does not claim proof under concurrent callers. A
-  concurrency defect is a real bug worth reporting — just not a surprise.
+  and `TestConcurrentCallersOneRoot` races six real processes at one root to
+  prove a contested transition elects one caller and racing appends lose
+  nothing. Six callers on one host is not scale, and the release boundary claims
+  nothing beyond it. A concurrency defect is a real bug worth reporting — just
+  not a surprise.
 
 ## No telemetry, no network
 

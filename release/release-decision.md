@@ -175,8 +175,16 @@ checkout instead of weighing testimony.
    which is now their only surviving record.
 2. **Three traversals are three traversals.** The base loop is proven end to end
    by a two-task change on 2026-07-31 and three-task changes on 2026-08-01 and
-   2026-08-02, all in one root on one platform. It is not proven at scale, over
-   long-lived changes, or across concurrent callers.
+   2026-08-02, all in one root on one platform. It is not proven at scale or
+   over long-lived changes. Contention is narrower than it was:
+   `TestConcurrentCallersOneRoot` races six real `specd` processes against one
+   root and asserts that a contested transition elects exactly one caller while
+   every loser fails closed on a named refusal with one legal next action, and
+   that independent appends to the shared history ledger all survive a clean
+   replay. Processes rather than goroutines, because the in-process mutex in
+   `internal/core/lock` would satisfy an in-process race without the file lock
+   ever being exercised. What that does not establish is the loop driven end to
+   end from two callers at once, which still has not been done.
 3. **Registration is not visibility.** `report` and `review` were registered,
    documented, and unreachable until the envelope projection was fixed. The
    class of defect is now covered by reachability tests, not by assumption.

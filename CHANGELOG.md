@@ -10,6 +10,20 @@ This file records what changed; that one records what has been proven.
 
 ## [Unreleased]
 
+### Added
+
+- Contention between callers is now proven rather than argued.
+  `TestConcurrentCallersOneRoot` races six real `specd` processes against one
+  root: a contested task transition elects exactly one caller and every loser
+  fails closed on a named refusal carrying one legal next action, and racing
+  appends to the shared history ledger all survive a clean replay with no lost,
+  duplicated, or torn record. Real processes rather than goroutines, because the
+  in-process mutex in `internal/core/lock` would satisfy an in-process race
+  without the file lock ever being exercised. Limitation 2 of
+  [`release/release-decision.md`](release/release-decision.md) is narrowed
+  accordingly; driving the loop end to end from two callers at once is still not
+  claimed.
+
 ## [0.3.0] — 2026-08-02
 
 ### Added
