@@ -9,7 +9,7 @@ func TestCompleteRefusesUnauthorizedWithoutMutation(t *testing.T) {
 	root := statusReadinessRoot(t)
 	path := mustStatePath(t, root, "safe-change")
 	before, _ := os.ReadFile(path)
-	if _, err := Complete(root, "safe-change", "active", 2, CompleteOptions{}); err == nil {
+	if _, err := Complete(root, "safe-change", "active", 2, ""); err == nil {
 		t.Fatal("unauthorized completion passed")
 	}
 	after, _ := os.ReadFile(path)

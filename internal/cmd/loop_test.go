@@ -50,7 +50,7 @@ func TestLoopCompletesOneTaskWithRealEvidence(t *testing.T) {
 		t.Fatalf("check authored: %v", err)
 	}
 	if !authored.Success {
-		t.Fatalf("authored plan failed check:\n%s", RenderCheck(authored))
+		t.Fatalf("authored plan failed check:\n%s", renderCheck(t, authored))
 	}
 
 	t.Logf("check authored: success=%v", authored.Success)
@@ -80,7 +80,7 @@ func TestLoopCompletesOneTaskWithRealEvidence(t *testing.T) {
 	}
 
 	t.Logf("context: revision=%d", manifest.StateRevision)
-	attempt, err := Start(root, change, taskID, manifest.StateRevision, StartOptions{Actor: agent})
+	attempt, err := Start(root, change, taskID, manifest.StateRevision, agent)
 	if err != nil {
 		t.Fatalf("start: %v", err)
 	}
@@ -98,7 +98,7 @@ func TestLoopCompletesOneTaskWithRealEvidence(t *testing.T) {
 
 	// 4. Completion refuses while no evidence exists, even though every other
 	// guard passes.
-	if _, err := Complete(root, change, taskID, attempt.RevisionAfter, CompleteOptions{Actor: agent}); err == nil {
+	if _, err := Complete(root, change, taskID, attempt.RevisionAfter, agent); err == nil {
 		t.Fatal("completion succeeded without evidence")
 	} else if !failure.IsCode(err, "complete_evidence") {
 		t.Fatalf("no-evidence refusal = %v", err)
@@ -125,7 +125,7 @@ func TestLoopCompletesOneTaskWithRealEvidence(t *testing.T) {
 	}
 
 	// 6. Completion consumes that exact evidence once.
-	completion, err := Complete(root, change, taskID, attempt.RevisionAfter, CompleteOptions{Actor: agent})
+	completion, err := Complete(root, change, taskID, attempt.RevisionAfter, agent)
 	if err != nil {
 		t.Fatalf("complete: %v", err)
 	}
@@ -147,7 +147,7 @@ func TestLoopCompletesOneTaskWithRealEvidence(t *testing.T) {
 	}
 
 	// 7. Replay refuses: the evidence is spent and the task is no longer active.
-	if _, err := Complete(root, change, taskID, completion.RevisionAfter, CompleteOptions{Actor: agent}); err == nil {
+	if _, err := Complete(root, change, taskID, completion.RevisionAfter, agent); err == nil {
 		t.Fatal("second completion succeeded")
 	} else if !failure.IsCode(err, "complete_activity") {
 		t.Fatalf("replay refusal = %v", err)

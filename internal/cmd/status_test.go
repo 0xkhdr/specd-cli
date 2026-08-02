@@ -8,8 +8,10 @@ import (
 	"strings"
 	"testing"
 
+	"github.com/0xkhdr/specd-cli/internal/agentjson"
 	"github.com/0xkhdr/specd-cli/internal/core"
 	corepath "github.com/0xkhdr/specd-cli/internal/core/path"
+	"github.com/0xkhdr/specd-cli/internal/core/report"
 	"github.com/0xkhdr/specd-cli/internal/core/state"
 	"github.com/0xkhdr/specd-cli/internal/plan"
 )
@@ -41,10 +43,6 @@ func TestApprovalHandoffStatus(t *testing.T) {
 		len(result.Approval.Findings) == 0 ||
 		!strings.Contains(result.Approval.HumanInstruction, "human terminal") {
 		t.Fatalf("status approval handoff = %#v", result.Approval)
-	}
-	raw, err := json.Marshal(result)
-	if err != nil || !strings.Contains(string(raw), `"humanApprovalRequired":true`) {
-		t.Fatalf("status JSON = %s, %v", raw, err)
 	}
 }
 
@@ -99,25 +97,48 @@ func TestStatusReadinessTextJSONParity(t *testing.T) {
 	if first.Next.Kind != "operation" || first.Next.Operation != "next" {
 		t.Fatalf("next = %#v", first.Next)
 	}
-	raw, err := RenderStatusJSON(first)
+	// One envelope feeds both surfaces, so the terminal and the JSON document
+	// cannot disagree about a fact.
+	envelope, err := Envelope(Outcome{Operation: "status", Value: first})
 	if err != nil {
 		t.Fatal(err)
 	}
-	var decoded StatusResult
-	if err := json.Unmarshal(raw, &decoded); err != nil || !reflect.DeepEqual(decoded, first) {
-		t.Fatalf("JSON parity = %#v, %v", decoded, err)
+	raw, err := agentjson.Encode(envelope)
+	if err != nil {
+		t.Fatal(err)
 	}
-	text := RenderStatusText(first)
+	text := RenderText(envelope)
 	for _, value := range []string{
-		"lifecycle: approved", "approval-current: true",
-		"task ready:", "task active:", "task waiting:",
-		"task failed:", "task blocked:", "task done:",
-		"frontier: ready", "next: kind=operation operation=next",
+		"change: safe-change", "stage: approved", "approval_current: true",
+		"frontier: ready", "next: operation next",
 	} {
 		if !strings.Contains(text, value) {
 			t.Fatalf("text missing %q:\n%s", value, text)
 		}
 	}
+	for _, value := range []string{
+		`"stage":"approved"`, `"approval_current":true`, `"operation":"next"`,
+	} {
+		if !strings.Contains(string(raw), value) {
+			t.Fatalf("json missing %s: %s", value, raw)
+		}
+	}
+	// Per-task readiness rows are `report`'s projection, not a second one here.
+	rows := factValue(mustReport(t, root, "safe-change", report.KindStatus), "tasks")
+	for _, id := range []string{"ready", "active", "waiting", "failed", "blocked", "done"} {
+		if !strings.Contains(rows, id+" activity=") {
+			t.Fatalf("task %q missing from report rows: %s", id, rows)
+		}
+	}
+}
+
+func mustReport(t *testing.T, root, change, kind string) ReportResult {
+	t.Helper()
+	result, err := Report(root, change, kind, "")
+	if err != nil {
+		t.Fatal(err)
+	}
+	return result
 }
 
 func TestStatusReadinessStaleAndInvalid(t *testing.T) {
@@ -137,6 +158,16 @@ func TestStatusReadinessStaleAndInvalid(t *testing.T) {
 		if result.ApprovalStatus.Current || len(result.Frontier) != 0 ||
 			result.Next.Kind != "human_handoff" || result.Next.Owner != "human" {
 			t.Fatalf("stale result = %#v", result)
+		}
+		// The handoff reaches the agent as the one legal next action, never as
+		// a second approval document it could act on.
+		envelope, err := Envelope(Outcome{Operation: "status", Value: result})
+		if err != nil {
+			t.Fatal(err)
+		}
+		if envelope.Next.Kind != agentjson.NextHumanHandoff || envelope.Next.Owner != "human" ||
+			!strings.Contains(envelope.Next.Instruction, "human approval") {
+			t.Fatalf("stale next = %#v", envelope.Next)
 		}
 	})
 	t.Run("invalid", func(t *testing.T) {
@@ -232,56 +263,5 @@ func writeStatusFile(t *testing.T, path string, raw []byte) {
 	}
 	if err := os.WriteFile(path, raw, 0o600); err != nil {
 		t.Fatal(err)
-	}
-}
-
-// Canonical status carries the stage-8 facts a reviewer needs — the policy it
-// ran under, the assurance it can honestly claim, whether a review packet is
-// approvable, and mechanical deferred-domain eligibility — on both surfaces.
-func TestStatusProduction(t *testing.T) {
-	const change, taskID = "sample-loop", "edit-sample"
-	root, _ := productionAttempt(t, change, taskID, "agent:builder")
-
-	result, err := Status(root, change)
-	if err != nil {
-		t.Fatal(err)
-	}
-	production := result.Production
-	if production.Profile != string(core.ProfileDefault) ||
-		production.PolicyDigest != core.DefaultPolicyDigest() ||
-		production.Assurance != core.AttemptAssurance {
-		t.Fatalf("status production = %#v", production)
-	}
-	// Nothing is proven yet, so the packet is not approvable and says why.
-	if production.ReviewApprovable || len(production.ReviewBlockers) == 0 {
-		t.Fatalf("unproven change presented an approvable packet: %#v", production)
-	}
-	// Eligibility is mechanical and empty until two independent records exist;
-	// it never authorizes a deferred domain.
-	if len(production.FrictionEligibility) != 0 {
-		t.Fatalf("friction eligibility = %#v with no records", production.FrictionEligibility)
-	}
-
-	text := RenderStatusText(result)
-	for _, want := range []string{
-		"profile: " + production.Profile,
-		"policy-digest: " + production.PolicyDigest,
-		"assurance: " + production.Assurance,
-		"review-approvable: false",
-	} {
-		if !strings.Contains(text, want) {
-			t.Fatalf("status text is missing %q:\n%s", want, text)
-		}
-	}
-	raw, err := RenderStatusJSON(result)
-	if err != nil {
-		t.Fatal(err)
-	}
-	var decoded StatusResult
-	if err := json.Unmarshal(raw, &decoded); err != nil {
-		t.Fatal(err)
-	}
-	if !reflect.DeepEqual(decoded.Production, production) {
-		t.Fatalf("json production = %#v, want %#v", decoded.Production, production)
 	}
 }

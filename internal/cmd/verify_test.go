@@ -184,7 +184,7 @@ func productionAttempt(t *testing.T, change, taskID, agent string) (string, Star
 	if err != nil {
 		t.Fatal(err)
 	}
-	attempt, err := Start(root, change, taskID, manifest.StateRevision, StartOptions{Actor: agent})
+	attempt, err := Start(root, change, taskID, manifest.StateRevision, agent)
 	if err != nil {
 		t.Fatal(err)
 	}

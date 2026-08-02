@@ -2,6 +2,7 @@ package core
 
 import (
 	"fmt"
+	"slices"
 	"strings"
 
 	"github.com/0xkhdr/specd-cli/internal/core/failure"
@@ -54,7 +55,7 @@ func BuildTaskGraph(tasks plan.Tasks) (TaskGraph, error) {
 	}
 	for i, task := range tasks.Tasks {
 		graph.authored[i] = task.ID
-		graph.dependencies[task.ID] = append([]string(nil), task.DependsOn...)
+		graph.dependencies[task.ID] = slices.Clone(task.DependsOn)
 		graph.dependents[task.ID] = nil
 	}
 	for _, task := range tasks.Tasks {
@@ -116,15 +117,15 @@ func (g TaskGraph) TopologicalOrder() []string {
 func (g TaskGraph) Waves() [][]string {
 	waves := make([][]string, len(g.waves))
 	for i := range g.waves {
-		waves[i] = append([]string(nil), g.waves[i]...)
+		waves[i] = slices.Clone(g.waves[i])
 	}
 	return waves
 }
 func (g TaskGraph) Dependencies(id string) []string {
-	return append([]string(nil), g.dependencies[id]...)
+	return slices.Clone(g.dependencies[id])
 }
 func (g TaskGraph) Dependents(id string) []string {
-	return append([]string(nil), g.dependents[id]...)
+	return slices.Clone(g.dependents[id])
 }
 func (g TaskGraph) Wave(id string) (int, bool) {
 	wave, exists := g.wave[id]

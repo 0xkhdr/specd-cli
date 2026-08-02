@@ -1,15 +1,10 @@
 package cmd
 
 import (
-	"errors"
-	"strings"
+	"slices"
 
 	"github.com/0xkhdr/specd-cli/internal/core"
 )
-
-type StartOptions struct {
-	Actor string
-}
 
 type StartResult struct {
 	Change         string   `json:"change"`
@@ -22,14 +17,11 @@ type StartResult struct {
 	Assurance      string   `json:"assurance"`
 }
 
-func Start(root, change, taskID string, expectedRevision uint64, options StartOptions) (StartResult, error) {
-	if strings.TrimSpace(options.Actor) == "" {
-		return StartResult{}, errors.New(
-			"start actor is required; next: retry through an authorized harness operation",
-		)
-	}
+// Start opens one attempt. An unauthorized or empty actor is refused by the
+// core transition itself, which is the one owner of that boundary.
+func Start(root, change, taskID string, expectedRevision uint64, actor string) (StartResult, error) {
 	attempt, err := core.StartTaskAttempt(root, change, core.StartAttemptIntent{
-		TaskID: taskID, ExpectedRevision: expectedRevision, Actor: options.Actor,
+		TaskID: taskID, ExpectedRevision: expectedRevision, Actor: actor,
 	})
 	if err != nil {
 		return StartResult{}, err
@@ -38,7 +30,7 @@ func Start(root, change, taskID string, expectedRevision uint64, options StartOp
 		Change: attempt.Change, TaskID: attempt.TaskID, AttemptID: attempt.ID,
 		BaselineHEAD:   attempt.BaselineHEAD,
 		RevisionBefore: attempt.RevisionBefore, RevisionAfter: attempt.RevisionAfter,
-		DeclaredFiles: append([]string(nil), attempt.DeclaredFiles...),
+		DeclaredFiles: slices.Clone(attempt.DeclaredFiles),
 		Assurance:     attempt.Assurance,
 	}, nil
 }

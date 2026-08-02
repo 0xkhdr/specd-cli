@@ -1,8 +1,6 @@
 package cmd
 
 import (
-	"errors"
-	"strings"
 	"time"
 
 	"github.com/0xkhdr/specd-cli/internal/core"
@@ -15,12 +13,10 @@ type ArchiveOptions struct {
 	Now   time.Time
 }
 
+// Archive moves one reconciled change into the local archive. The actor is
+// checked by core.Archive, which owns that refusal; this entry only supplies
+// the clock core requires.
 func Archive(root, change string, options ArchiveOptions) (core.ArchiveResult, error) {
-	if strings.TrimSpace(options.Actor) == "" {
-		return core.ArchiveResult{}, errors.New(
-			"archive actor is required; next: retry through an authorized harness operation",
-		)
-	}
 	now := options.Now
 	if now.IsZero() {
 		now = time.Now()

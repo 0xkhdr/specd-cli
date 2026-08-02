@@ -5,6 +5,7 @@ package agentjson
 
 import (
 	"bytes"
+	"cmp"
 	"encoding/json"
 	"errors"
 	"fmt"
@@ -455,22 +456,14 @@ func validateNextOperation(next Next) error {
 }
 
 func argumentDeclared(operation core.Operation, name string) bool {
-	for _, argument := range operation.Arguments {
-		if argument.Name == name {
-			return true
-		}
-	}
-	return false
+	return slices.ContainsFunc(operation.Arguments, func(argument core.OperationArgument) bool {
+		return argument.Name == name
+	})
 }
 
-func firstError(candidates ...error) error {
-	for _, candidate := range candidates {
-		if candidate != nil {
-			return candidate
-		}
-	}
-	return nil
-}
+// firstError returns the first refusal, so a document is judged by the first
+// rule it broke rather than by an aggregate nothing can act on.
+func firstError(candidates ...error) error { return cmp.Or(candidates...) }
 
 // rejectNull refuses documented-null drift anywhere in the document: an
 // unavailable value is omitted, never encoded as null.

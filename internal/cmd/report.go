@@ -2,7 +2,6 @@ package cmd
 
 import (
 	"context"
-	"encoding/json"
 	"fmt"
 	"strings"
 
@@ -93,23 +92,6 @@ func Report(root, change, kind, profile string) (ReportResult, error) {
 			"run specd report "+change+" --kind status")
 	}
 	return result, nil
-}
-
-// RenderReportText is the human surface. It prints the same facts in the same
-// order the JSON document carries.
-func RenderReportText(result ReportResult) string {
-	var out strings.Builder
-	fmt.Fprintf(&out, "root: %s\nchange: %s\nkind: %s\n",
-		result.Root.Path, result.Change, result.Kind)
-	for _, fact := range result.Facts {
-		fmt.Fprintf(&out, "%s: %s\n", fact.Field, fact.Value)
-	}
-	return out.String()
-}
-
-// RenderReportJSON is the machine surface over the same values.
-func RenderReportJSON(result ReportResult) ([]byte, error) {
-	return json.Marshal(result)
 }
 
 func statusFacts(model report.StatusModel, eligibility []core.FrictionEligibility) []ReportFact {

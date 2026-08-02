@@ -2,11 +2,12 @@ package plan
 
 import (
 	"bytes"
+	"cmp"
 	"errors"
 	"os"
 	"path/filepath"
 	"regexp"
-	"sort"
+	"slices"
 	"strings"
 
 	corepath "github.com/0xkhdr/specd-cli/internal/core/path"
@@ -273,7 +274,7 @@ func DiscoverCapabilityDeltas(owner *corepath.Owner, change string) ([]Capabilit
 		}
 		results = append(results, ParseCapabilityDelta(source, entry.Name(), acceptedSource))
 	}
-	sort.Slice(results, func(i, j int) bool { return results[i].Capability < results[j].Capability })
+	slices.SortFunc(results, func(a, b CapabilityDelta) int { return cmp.Compare(a.Capability, b.Capability) })
 	sortDiagnostics(diagnostics)
 	return results, diagnostics
 }
@@ -468,7 +469,7 @@ func parseRenameOperations(result *CapabilityDelta, diagnostics *[]Diagnostic, s
 		} else if from != "" && to == "" {
 			to = value
 			result.Operations = append(result.Operations, Operation{
-				Kind: Renamed, From: from, To: to, Raw: append([]byte(nil), raw...), Location: location,
+				Kind: Renamed, From: from, To: to, Raw: slices.Clone(raw), Location: location,
 			})
 			from, to = "", ""
 		} else {
@@ -631,12 +632,9 @@ func visibleLinesAt(raw []byte, base int) []sourceLine {
 }
 
 func normativeIn(raw []byte) bool {
-	for _, line := range visibleLines(raw) {
-		if normativePattern.Match(line.text) {
-			return true
-		}
-	}
-	return false
+	return slices.ContainsFunc(visibleLines(raw), func(item sourceLine) bool {
+		return normativePattern.Match(item.text)
+	})
 }
 
 func pathDiagnostic(code, path string, err error) Diagnostic {

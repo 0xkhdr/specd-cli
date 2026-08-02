@@ -7,7 +7,7 @@ import (
 	"fmt"
 	"io"
 	"path/filepath"
-	"sort"
+	"slices"
 	"strings"
 
 	"github.com/0xkhdr/specd-cli/internal/core/gates"
@@ -261,15 +261,15 @@ func statusCoveredPaths(changeRoot string, change plan.Change) ([]string, error)
 		}
 		paths = append(paths, filepath.ToSlash(relative))
 	}
-	sort.Strings(paths)
+	slices.Sort(paths)
 	return paths, nil
 }
 
 func firstPathDifference(recorded, current []string) string {
-	recorded = append([]string(nil), recorded...)
-	current = append([]string(nil), current...)
-	sort.Strings(recorded)
-	sort.Strings(current)
+	recorded = slices.Clone(recorded)
+	current = slices.Clone(current)
+	slices.Sort(recorded)
+	slices.Sort(current)
 	for index := 0; index < len(recorded) || index < len(current); index++ {
 		if index >= len(recorded) {
 			return current[index]

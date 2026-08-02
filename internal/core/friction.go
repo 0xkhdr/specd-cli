@@ -1,10 +1,10 @@
 package core
 
 import (
+	"cmp"
 	"encoding/json"
 	"fmt"
 	"slices"
-	"sort"
 	"strings"
 	"time"
 
@@ -228,7 +228,7 @@ func ProjectFrictionEligibility(root string) ([]FrictionEligibility, error) {
 			Domain: domain, Records: len(pairs), Eligible: independent(pairs),
 		})
 	}
-	sort.Slice(result, func(left, right int) bool { return result[left].Domain < result[right].Domain })
+	slices.SortFunc(result, func(a, b FrictionEligibility) int { return cmp.Compare(a.Domain, b.Domain) })
 	return result, nil
 }
 

@@ -4,7 +4,7 @@ import (
 	"crypto/sha256"
 	"encoding/hex"
 	"fmt"
-	"sort"
+	"slices"
 	"strings"
 
 	"github.com/0xkhdr/specd-cli/internal/core/evidence"
@@ -115,7 +115,7 @@ func (policy Policy) Rules() []string {
 	for _, check := range policy.RequiredChecks {
 		rules = append(rules, "check="+check.String())
 	}
-	sort.Strings(rules)
+	slices.Sort(rules)
 	return rules
 }
 

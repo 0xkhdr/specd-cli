@@ -12,6 +12,7 @@ import (
 	"os/exec"
 	"path/filepath"
 	"regexp"
+	"slices"
 	"strings"
 	"sync/atomic"
 	"time"
@@ -268,7 +269,7 @@ func command(request Request) (string, []string, string, error) {
 	case len(request.Argv) != 0 && request.Shell != "":
 		return "", nil, "", errors.New("verify command must choose argv or explicit shell semantics")
 	case len(request.Argv) != 0:
-		arguments := append([]string(nil), request.Argv...)
+		arguments := slices.Clone(request.Argv)
 		for _, value := range arguments {
 			if strings.IndexByte(value, 0) >= 0 {
 				return "", nil, "", errors.New("verify argv contains NUL")

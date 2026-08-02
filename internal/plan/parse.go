@@ -6,6 +6,7 @@ import (
 	"io"
 	"os"
 	"path/filepath"
+	"slices"
 
 	corepath "github.com/0xkhdr/specd-cli/internal/core/path"
 )
@@ -246,7 +247,7 @@ func projectTrace(deltas []CapabilityDelta, design Design, tasks Tasks) (Trace, 
 		if !task.Valid {
 			continue
 		}
-		taskTrace := TaskTrace{TaskID: task.ID, Requirements: append([]RequirementReference(nil), task.References...)}
+		taskTrace := TaskTrace{TaskID: task.ID, Requirements: slices.Clone(task.References)}
 		trace.Tasks = append(trace.Tasks, taskTrace)
 		for _, reference := range task.References {
 			resolve(reference, "task "+task.ID, task.ID)
@@ -256,7 +257,7 @@ func projectTrace(deltas []CapabilityDelta, design Design, tasks Tasks) (Trace, 
 	for _, target := range orderedTargets {
 		trace.Requirements = append(trace.Requirements, RequirementTrace{
 			Capability: target.capability, Requirement: target.requirement,
-			Location: target.location, Tasks: append([]string(nil), target.tasks...),
+			Location: target.location, Tasks: slices.Clone(target.tasks),
 		})
 		if len(target.tasks) == 0 {
 			diagnostics = append(diagnostics, diagnostic(

@@ -1,7 +1,6 @@
 package cmd
 
 import (
-	"encoding/json"
 	"slices"
 
 	contextmodel "github.com/0xkhdr/specd-cli/internal/context"
@@ -31,10 +30,6 @@ func Context(root, change, taskID string, budgetBytes int) (contextmodel.Manifes
 		}
 	}
 	return manifest, nil
-}
-
-func RenderContextJSON(manifest contextmodel.Manifest) ([]byte, error) {
-	return json.Marshal(manifest)
 }
 
 func approvalHash(snapshot core.ReadinessSnapshot) string {

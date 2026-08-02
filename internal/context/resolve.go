@@ -1,6 +1,7 @@
 package context
 
 import (
+	"cmp"
 	"crypto/sha256"
 	"encoding/hex"
 	"errors"
@@ -8,7 +9,7 @@ import (
 	"io"
 	"os"
 	"path/filepath"
-	"sort"
+	"slices"
 	"strings"
 
 	"github.com/0xkhdr/specd-cli/internal/plan"
@@ -246,7 +247,7 @@ func enumerateSelector(root, basePath, suffix string, recursive bool) ([]selecto
 	if err != nil {
 		return nil, err
 	}
-	sort.Slice(matches, func(i, j int) bool { return matches[i].path < matches[j].path })
+	slices.SortFunc(matches, func(a, b selectorMatch) int { return cmp.Compare(a.path, b.path) })
 	return matches, nil
 }
 

@@ -2,6 +2,7 @@ package cmd
 
 import (
 	"encoding/json"
+	"reflect"
 	"strings"
 	"testing"
 
@@ -54,29 +55,28 @@ func TestReportsHumanAndJSONAgree(t *testing.T) {
 		if err != nil {
 			t.Fatalf("%s: %v", kind, err)
 		}
-		text := RenderReportText(result)
-		raw, err := RenderReportJSON(result)
+		envelope, err := Envelope(Outcome{Operation: "report", Value: result})
+		if err != nil {
+			t.Fatalf("%s envelope: %v", kind, err)
+		}
+		text := RenderText(envelope)
+		raw, err := json.Marshal(envelope.Data)
 		if err != nil {
 			t.Fatalf("%s json: %v", kind, err)
 		}
-		var decoded ReportResult
+		var decoded map[string]string
 		if err := json.Unmarshal(raw, &decoded); err != nil {
 			t.Fatalf("%s decode: %v", kind, err)
 		}
-		if len(decoded.Facts) != len(result.Facts) {
-			t.Fatalf("%s: json carries %d facts, human carries %d",
-				kind, len(decoded.Facts), len(result.Facts))
-		}
-		// Same values in the same order on both surfaces: a fact can never
-		// appear in one and not the other, and order never drifts.
-		lines := strings.Split(strings.TrimSpace(text), "\n")[3:]
-		for index, fact := range decoded.Facts {
-			if fact != result.Facts[index] {
-				t.Fatalf("%s fact %d: json %#v, model %#v", kind, index, fact, result.Facts[index])
+		// Both surfaces read the one envelope, so a fact can never appear in
+		// one and not the other, and neither can hold a different value.
+		for _, fact := range result.Facts {
+			if decoded[fact.Field] != fact.Value {
+				t.Fatalf("%s fact %q: json %q, model %q",
+					kind, fact.Field, decoded[fact.Field], fact.Value)
 			}
-			want := fact.Field + ": " + fact.Value
-			if lines[index] != want {
-				t.Fatalf("%s line %d = %q, want %q", kind, index, lines[index], want)
+			if !strings.Contains(text, fact.Field+": "+fact.Value+"\n") {
+				t.Fatalf("%s fact %q missing from the human surface:\n%s", kind, fact.Field, text)
 			}
 		}
 	}
@@ -112,6 +112,17 @@ func TestReportsCarryPolicyDigestAndBoundFacts(t *testing.T) {
 	if got := factValue(defaulted, "friction_eligibility"); got != factNone {
 		t.Fatalf("friction_eligibility = %q with no records", got)
 	}
+	// Nothing is proven yet, so the review packet is not approvable and names
+	// why. This is the one place that fact is projected: status does not
+	// restate it.
+	review, err := Report(root, change, report.KindReview, "")
+	if err != nil {
+		t.Fatal(err)
+	}
+	if factValue(review, "approvable") != "false" ||
+		factValue(review, "review_blockers") == factNone {
+		t.Fatalf("unproven change presented an approvable packet: %#v", review.Facts)
+	}
 }
 
 // A report is a projection: repeated reads produce the same facts and mutate
@@ -130,8 +141,8 @@ func TestReportsReplayIdentically(t *testing.T) {
 		if err != nil {
 			t.Fatalf("%s replay: %v", kind, err)
 		}
-		if RenderReportText(first) != RenderReportText(second) {
-			t.Fatalf("%s replay drifted", kind)
+		if !reflect.DeepEqual(first, second) {
+			t.Fatalf("%s replay drifted:\n%#v\n%#v", kind, first, second)
 		}
 	}
 }

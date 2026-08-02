@@ -54,13 +54,13 @@ type ApprovalHandoff struct {
 // ApprovalHandoffFor projects read-only agent handoff data. It never performs
 // approval, emits evidence, or treats configuration as host proof.
 func ApprovalHandoffFor(root, change string) (*ApprovalHandoff, error) {
-	_, handoff, err := ApprovalStatusProjection(root, change)
+	_, handoff, err := approvalStatusProjection(root, change)
 	return handoff, err
 }
 
-// ApprovalStatusProjection reads lifecycle, gates, hashes, and approval
+// approvalStatusProjection reads lifecycle, gates, hashes, and approval
 // applicability while holding one change lock.
-func ApprovalStatusProjection(root, change string) (state.Projection, *ApprovalHandoff, error) {
+func approvalStatusProjection(root, change string) (state.Projection, *ApprovalHandoff, error) {
 	owner, err := corepath.New(root)
 	if err != nil {
 		return state.Projection{}, nil, err

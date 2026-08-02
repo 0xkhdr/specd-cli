@@ -1,10 +1,11 @@
 package gates
 
 import (
+	"cmp"
 	"encoding/json"
 	"errors"
 	"fmt"
-	"sort"
+	"slices"
 	"strings"
 
 	"github.com/0xkhdr/specd-cli/internal/plan"
@@ -102,7 +103,7 @@ func newRegistry(version string, gates []Gate, transitions []Transition) (Regist
 		return Registry{}, errors.New("gate_registry_invalid: version is required; next: repair gate registry metadata")
 	}
 	registry := Registry{
-		version: version, gates: append([]Gate(nil), gates...),
+		version: version, gates: slices.Clone(gates),
 		byID:        make(map[GateID]int, len(gates)),
 		transitions: make(map[TransitionID][]GateID, len(transitions)),
 		control: Gate{
@@ -111,7 +112,7 @@ func newRegistry(version string, gates []Gate, transitions []Transition) (Regist
 		},
 	}
 	for i := range registry.gates {
-		registry.gates[i].Artifacts = append([]Artifact(nil), registry.gates[i].Artifacts...)
+		registry.gates[i].Artifacts = slices.Clone(registry.gates[i].Artifacts)
 		gate := registry.gates[i]
 		if err := validateGate(gate); err != nil {
 			return Registry{}, err
@@ -142,11 +143,11 @@ func newRegistry(version string, gates []Gate, transitions []Transition) (Regist
 			}
 			seen[id] = true
 		}
-		registry.transitions[transition.ID] = append([]GateID(nil), transition.GateIDs...)
+		registry.transitions[transition.ID] = slices.Clone(transition.GateIDs)
 	}
 	for _, gate := range registry.gates {
 		ids, exists := registry.transitions[gate.Transition]
-		if !exists || !containsGate(ids, gate.ID) {
+		if !exists || !slices.Contains(ids, gate.ID) {
 			return Registry{}, fmt.Errorf("gate_registry_invalid: gate %q is not bound to transition %q; next: repair gate registry metadata", gate.ID, gate.Transition)
 		}
 	}
@@ -156,9 +157,9 @@ func newRegistry(version string, gates []Gate, transitions []Transition) (Regist
 func (registry Registry) Version() string { return registry.version }
 
 func (registry Registry) Gates() []Gate {
-	result := append([]Gate(nil), registry.gates...)
+	result := slices.Clone(registry.gates)
 	for i := range result {
-		result[i].Artifacts = append([]Artifact(nil), result[i].Artifacts...)
+		result[i].Artifacts = slices.Clone(result[i].Artifacts)
 	}
 	return result
 }
@@ -195,24 +196,15 @@ func (registry Registry) Evaluate(snapshot Snapshot) []Finding {
 			continue
 		}
 		issues := append([]Issue(nil), gate.Evaluate(input)...)
-		sort.SliceStable(issues, func(i, j int) bool {
-			a, b := issues[i], issues[j]
-			if a.Location.Path != b.Location.Path {
-				return a.Location.Path < b.Location.Path
-			}
-			if a.Location.Offset != b.Location.Offset {
-				return a.Location.Offset < b.Location.Offset
-			}
-			if a.Location.Line != b.Location.Line {
-				return a.Location.Line < b.Location.Line
-			}
-			if a.Location.Column != b.Location.Column {
-				return a.Location.Column < b.Location.Column
-			}
-			if a.Problem != b.Problem {
-				return a.Problem < b.Problem
-			}
-			return a.Repair < b.Repair
+		slices.SortStableFunc(issues, func(a, b Issue) int {
+			return cmp.Or(
+				cmp.Compare(a.Location.Path, b.Location.Path),
+				cmp.Compare(a.Location.Offset, b.Location.Offset),
+				cmp.Compare(a.Location.Line, b.Location.Line),
+				cmp.Compare(a.Location.Column, b.Location.Column),
+				cmp.Compare(a.Problem, b.Problem),
+				cmp.Compare(a.Repair, b.Repair),
+			)
 		})
 		for _, issue := range issues {
 			if strings.TrimSpace(issue.Problem) == "" || strings.TrimSpace(issue.Repair) == "" {
@@ -306,13 +298,4 @@ func validateGate(gate Gate) error {
 		seen[artifact] = true
 	}
 	return nil
-}
-
-func containsGate(ids []GateID, wanted GateID) bool {
-	for _, id := range ids {
-		if id == wanted {
-			return true
-		}
-	}
-	return false
 }

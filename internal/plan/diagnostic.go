@@ -1,6 +1,9 @@
 package plan
 
-import "sort"
+import (
+	"cmp"
+	"slices"
+)
 
 type Diagnostic struct {
 	Code     string
@@ -14,14 +17,11 @@ func diagnostic(code string, location Location, message, repair string) Diagnost
 }
 
 func sortDiagnostics(diagnostics []Diagnostic) {
-	sort.SliceStable(diagnostics, func(i, j int) bool {
-		a, b := diagnostics[i], diagnostics[j]
-		if a.Location.Path != b.Location.Path {
-			return a.Location.Path < b.Location.Path
-		}
-		if a.Location.Offset != b.Location.Offset {
-			return a.Location.Offset < b.Location.Offset
-		}
-		return a.Code < b.Code
+	slices.SortStableFunc(diagnostics, func(a, b Diagnostic) int {
+		return cmp.Or(
+			cmp.Compare(a.Location.Path, b.Location.Path),
+			cmp.Compare(a.Location.Offset, b.Location.Offset),
+			cmp.Compare(a.Code, b.Code),
+		)
 	})
 }

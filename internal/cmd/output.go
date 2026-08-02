@@ -3,7 +3,7 @@ package cmd
 import (
 	"errors"
 	"fmt"
-	"sort"
+	"slices"
 	"strings"
 
 	"github.com/0xkhdr/specd-cli/internal/agentjson"
@@ -60,7 +60,7 @@ func RenderText(envelope agentjson.Envelope) string {
 	for key := range envelope.Data {
 		keys = append(keys, key)
 	}
-	sort.Strings(keys)
+	slices.Sort(keys)
 	for _, key := range keys {
 		fmt.Fprintf(&out, "%s: %s\n", key, text(envelope.Data[key]))
 	}

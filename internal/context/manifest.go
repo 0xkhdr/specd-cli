@@ -192,7 +192,7 @@ func buildManifest(input manifestInput) (Manifest, error) {
 		kept = append(kept, item)
 	}
 
-	frontier := append([]string(nil), input.Frontier...)
+	frontier := slices.Clone(input.Frontier)
 	manifest := Manifest{
 		Version: ManifestVersion, Root: canonicalRoot, Change: input.Change,
 		Task: task.ID, Role: task.Role, StateRevision: input.StateRevision,
@@ -201,7 +201,7 @@ func buildManifest(input manifestInput) (Manifest, error) {
 		Items: kept, Omissions: omissions,
 		RequiredBytes: requiredBytes, OptionalBytes: optionalBytes,
 		Authority: Authority{
-			AllowedWritePaths: append([]string(nil), task.Files...),
+			AllowedWritePaths: slices.Clone(task.Files),
 			DeniedWritePaths:  []string{".specd/**"},
 			OperationClass:    "task_edit_and_verify",
 			Verify:            task.Verify,

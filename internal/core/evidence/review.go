@@ -4,7 +4,7 @@ import (
 	"crypto/sha256"
 	"encoding/hex"
 	"errors"
-	"sort"
+	"slices"
 	"strings"
 	"time"
 
@@ -87,7 +87,7 @@ func EvidenceSetHash(items []record.Record, change string) (string, error) {
 		}
 		ids = append(ids, item.ID)
 	}
-	sort.Strings(ids)
+	slices.Sort(ids)
 	digest := sha256.Sum256([]byte(strings.Join(ids, "\n")))
 	return hex.EncodeToString(digest[:]), nil
 }

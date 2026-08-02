@@ -1,13 +1,14 @@
 package core
 
 import (
+	"cmp"
 	"crypto/sha256"
 	"encoding/hex"
 	"encoding/json"
 	"fmt"
 	"os"
 	"path/filepath"
-	"sort"
+	"slices"
 	"strings"
 	"time"
 
@@ -185,7 +186,7 @@ func syncLocked(owner *corepath.Owner, change, approver string, options SyncOpti
 			Path: relative, Before: capability.AcceptedHash, Bytes: capability.Output,
 		})
 	}
-	sort.Slice(specs, func(i, j int) bool { return specs[i].Capability < specs[j].Capability })
+	slices.SortFunc(specs, func(a, b record.SpecHash) int { return cmp.Compare(a.Capability, b.Capability) })
 
 	payload, err := record.NewSyncPayload(record.SyncPayload{
 		Change: change, Approver: approver, ActorClass: "human",
@@ -402,7 +403,7 @@ func evidenceSetHash(current state.State) string {
 	for task, binding := range bindings {
 		ids = append(ids, task+"\x00"+binding.EvidenceID)
 	}
-	sort.Strings(ids)
+	slices.Sort(ids)
 	return hashBytes([]byte(strings.Join(ids, "\n")))
 }
 
@@ -417,7 +418,7 @@ func planHash(reconciliation reconcile.Plan) string {
 			capability.AcceptedHash, capability.OutputHash,
 		}, "\x00"))
 	}
-	sort.Strings(rows)
+	slices.Sort(rows)
 	return hashBytes([]byte(strings.Join(rows, "\n")))
 }
 

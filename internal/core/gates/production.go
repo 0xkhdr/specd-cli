@@ -3,7 +3,7 @@ package gates
 import (
 	"path"
 	"regexp"
-	"sort"
+	"slices"
 	"strings"
 
 	"github.com/0xkhdr/specd-cli/internal/core/evidence"
@@ -179,7 +179,7 @@ func productionAcceptanceIssues(authored plan.Change) []Issue {
 			seen[token] = true
 			unreachable = append(unreachable, token)
 		}
-		sort.Strings(unreachable)
+		slices.Sort(unreachable)
 		for _, token := range unreachable {
 			issues = append(issues, Issue{
 				Location: task.Location,
@@ -192,12 +192,9 @@ func productionAcceptanceIssues(authored plan.Change) []Issue {
 }
 
 func declaredCanProduce(token string, declared []string) bool {
-	for _, file := range declared {
-		if file == token || path.Dir(file) == path.Dir(token) {
-			return true
-		}
-	}
-	return false
+	return slices.ContainsFunc(declared, func(file string) bool {
+		return file == token || path.Dir(file) == path.Dir(token)
+	})
 }
 
 func referenceKey(capability, requirement string) string {
