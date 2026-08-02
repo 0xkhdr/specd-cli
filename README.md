@@ -12,12 +12,15 @@ calls, network calls, daemon, or telemetry in the deterministic pipeline.
 
 ## Project status
 
-specd is released at `v0.2.0` and remains a young `0.x` project. The base loop
+specd is released at `v0.3.0` and remains a young `0.x` project. The base loop
 is proven end to end on linux/amd64. On linux/arm64, macOS, and Windows the
 suite and all fourteen release journeys are green and gate every release, but
 no change has been driven through the loop by hand there. The production
-profile is experimental; scale, concurrent callers, and long-lived changes are
-not yet proven.
+profile is experimental; scale and long-lived changes are not yet proven.
+Contention between concurrent callers against one root is proven — one caller
+wins a contested transition, losers fail closed, and the shared history ledger
+replays clean — but driving the loop end to end from two callers at once is
+still not claimed.
 
 Before production use, read the exact [release boundary](release/release-decision.md)
 and [security model](SECURITY.md). Host assurance is `advisory` unless the host
@@ -29,8 +32,15 @@ process that made them.
 Requires Go 1.26 or newer:
 
 ```bash
-go install github.com/0xkhdr/specd-cli/cmd/specd@v0.2.0
+go install github.com/0xkhdr/specd-cli/cmd/specd@v0.3.0
 specd --version
+```
+
+`go install` writes to `$(go env GOPATH)/bin`. If `specd --version` reports
+`command not found`, that directory is not on your `PATH`:
+
+```bash
+export PATH="$PATH:$(go env GOPATH)/bin"
 ```
 
 Or build this checkout:
