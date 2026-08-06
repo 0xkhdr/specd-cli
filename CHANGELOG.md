@@ -10,6 +10,8 @@ This file records what changed; that one records what has been proven.
 
 ## [Unreleased]
 
+## [0.4.0] — 2026-08-06
+
 ### Fixed
 
 - A change directory with no `state.json` — what an abandoned or half-created
