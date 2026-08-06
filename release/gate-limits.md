@@ -39,10 +39,16 @@ reachable through dispatch.
 ## maturity claims complete and consistent
 
 Establishes: the typed registry has every required claim, each row has a level,
-date, and resolving evidence path, and the primary user and security summaries
-state matching levels.
+date, and resolving evidence path, the primary user and security summaries
+state matching levels, every platform row's level matches the supported tier
+parsed from `release-decision.md`, and every platform row carries the date of
+the raced-suite observation recorded there.
 Does not establish: the cited evidence proves its claim, anchors resolve, an
-unscanned document agrees, or a dated observation remains current forever.
+unscanned document agrees, that the recorded suite date names a run that
+happened, or that a dated observation remains current forever. Profile,
+guarantee, and coverage rows are still checked only against the summary
+sentences that name them, so a level moved in the registry and in its one
+authored sentence together passes.
 
 ## all fourteen required journeys retained
 

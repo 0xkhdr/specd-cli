@@ -395,6 +395,7 @@ func gateMaturityClaims(t *testing.T) gate {
 		"README.md":      readRepoFile(t, "README.md"),
 		"SECURITY.md":    readRepoFile(t, "SECURITY.md"),
 		"docs/README.md": readRepoFile(t, "docs/README.md"),
+		decisionDoc:      readRepoFile(t, decisionDoc),
 	}
 	g := gate{name: "maturity claims complete and consistent"}
 	if problems := checkMaturityClaims(core.MaturityClaims(), docs); len(problems) > 0 {
@@ -465,7 +466,77 @@ func checkMaturityClaims(claims []core.MaturityClaim, docs map[string]string) []
 			problems = append(problems, check.path+" claims "+check.id+"="+word+", registry says "+seen[check.id])
 		}
 	}
+	problems = append(problems, platformProblems(seen, claims, docs[decisionDoc])...)
 	return problems
+}
+
+// platformProblems judges the platform rows against the one authored tier list
+// and the one dated suite observation in release/release-decision.md. The prose
+// checks above cannot cover these rows without restating each platform's level
+// in a second authored place, so the document is parsed instead: it stays the
+// only place the claim is written, and the registry stays a projection of it.
+//
+// Without this, upgrading a gated platform to proven in the registry alone —
+// a published claim no observation backs — left the whole suite green.
+func platformProblems(seen map[string]string, claims []core.MaturityClaim, decision string) []string {
+	var problems []string
+	supported, found := supportedPlatformParagraph(decision)
+	if !found {
+		return []string{decisionDoc + " has no supported platform paragraph"}
+	}
+	observed, found := observedSuiteDate(decision)
+	if !found {
+		return []string{decisionDoc + " has no dated suite observation"}
+	}
+	for id, level := range seen {
+		subject, isPlatform := strings.CutPrefix(id, "platform/")
+		if !isPlatform {
+			continue
+		}
+		switch listed := strings.Contains(supported, subject); {
+		case listed && level != "proven":
+			problems = append(problems, id+" is "+level+", "+decisionDoc+" supports it")
+		case !listed && level == "proven":
+			problems = append(problems, id+" claims proven, "+decisionDoc+" does not support it")
+		}
+	}
+	for _, claim := range claims {
+		if claim.Category == "platform" && claim.Observed != observed {
+			problems = append(problems, "platform/"+claim.Subject+" is dated "+claim.Observed+
+				", the suite was observed on "+observed)
+		}
+	}
+	slices.Sort(problems)
+	return problems
+}
+
+// supportedPlatformParagraph returns the bolded "Supported." paragraph of the
+// platform section. Everything after the blank line that ends it — including
+// the tier that only replays journeys — is deliberately excluded, because that
+// tier's prose names the supported platform too.
+func supportedPlatformParagraph(decision string) (string, bool) {
+	_, after, found := strings.Cut(decision, "**Supported.**")
+	if !found {
+		return "", false
+	}
+	paragraph, _, _ := strings.Cut(after, "\n\n")
+	return paragraph, true
+}
+
+// observedSuiteDate reads the date from the raced-suite row of the observed CI
+// facts table. That run is what a platform claim rests on, so a claim dated
+// anything else is dated by hand rather than by an observation.
+func observedSuiteDate(decision string) (string, bool) {
+	date := regexp.MustCompile(`\d{4}-\d{2}-\d{2}`)
+	for _, line := range strings.Split(decision, "\n") {
+		if !strings.HasPrefix(line, "| `"+observedGates[0]+"` |") {
+			continue
+		}
+		if dates := date.FindAllString(line, -1); len(dates) > 0 {
+			return dates[len(dates)-1], true
+		}
+	}
+	return "", false
 }
 
 func TestMaturityGateBites(t *testing.T) {
@@ -485,6 +556,30 @@ func TestMaturityGateBites(t *testing.T) {
 		return strings.Contains(problem, "profile/production=proven")
 	}) {
 		t.Fatalf("contradictory documentation did not bite: %v", problems)
+	}
+	repository := map[string]string{decisionDoc: readRepoFile(t, decisionDoc)}
+	upgraded := core.MaturityClaims()
+	gated := slices.IndexFunc(upgraded, func(claim core.MaturityClaim) bool {
+		return claim.Category == "platform" && claim.Maturity == core.MaturityGated
+	})
+	if gated < 0 {
+		t.Fatal("no gated platform claim to upgrade")
+	}
+	upgraded[gated].Maturity = core.MaturityProven
+	if problems := checkMaturityClaims(upgraded, repository); !slices.ContainsFunc(problems, func(problem string) bool {
+		return strings.Contains(problem, "platform/"+upgraded[gated].Subject+" claims proven")
+	}) {
+		t.Fatalf("unobserved platform upgrade did not bite: %v", problems)
+	}
+	redated := core.MaturityClaims()
+	platform := slices.IndexFunc(redated, func(claim core.MaturityClaim) bool {
+		return claim.Category == "platform"
+	})
+	redated[platform].Observed = "2030-01-01"
+	if problems := checkMaturityClaims(redated, repository); !slices.ContainsFunc(problems, func(problem string) bool {
+		return strings.Contains(problem, "the suite was observed on")
+	}) {
+		t.Fatalf("hand-dated platform claim did not bite: %v", problems)
 	}
 }
 
