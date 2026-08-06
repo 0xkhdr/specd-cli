@@ -54,12 +54,14 @@ journey can retain its name.
 ## runtime trace conformance
 
 Establishes: executions in all fourteen journeys emitted bounded state steps,
-every executable operation was reached, and the steps matched an independent
-test-local transition model. Full limits and the next ratchet are in
-`internal/integration/conformance/LIMITS.md`.
-Does not establish: exhaustive sequences, correctness of the hand-written
-model, persistence internals, concurrency, or behavior outside the executions
-that ran.
+every executable operation was reached and has an independent rule, malformed
+result output fails closed, generated model steps exercise legal and illegal
+cases, and four committed trace fixtures replay byte-for-byte. Full limits are
+in `internal/integration/conformance/LIMITS.md`.
+Does not establish: production decision-seam tracing, generated sequences
+through the real CLI, exhaustive states, correctness of the hand-written model,
+every refusal code, persistence internals, concurrency, or behavior outside the
+journeys that ran.
 
 ## no unowned surface
 
@@ -139,6 +141,7 @@ behavior, concurrency under load, or long-lived-change behavior.
 
 ## Next ratchet
 
-Largest blind spot: retained-journey gate checks names, not behavior. Independent
-model conformance can require every legal transition and refusal class to be
-reached, making a gutted journey fail on coverage.
+Largest conformance blind spot: generated sequences exercise the independent
+checker but not the CLI. Drive bounded generated legal and illegal sequences
+through the existing journey driver before considering exhaustive state-space
+enumeration.

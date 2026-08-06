@@ -61,6 +61,12 @@ fail-closed refusal carrying exactly one legal next action, and each recovery
 proves old-or-new durable bytes with no invented evidence, completion, approval,
 sync, or archive.
 
+`TestConformance` separately judges actor, lifecycle, revision, task,
+dependency, and evidence projections for every executable operation.
+`TestConformanceBites`, four byte-stable fixtures, and fixed-seed generated
+steps retain the three failure classes and exercise both legal and illegal
+model transitions.
+
 ## Release gates
 
 Mechanically asserted by `TestReleaseQualification` from repository facts:
@@ -74,7 +80,7 @@ Mechanically asserted by `TestReleaseQualification` from repository facts:
 | generated guidance parity | `generate.Render` is deterministic and names every agent-visible executable operation |
 | maturity claims complete and consistent | every platform, profile, guarantee, and explicitly unclaimed coverage boundary has one typed, dated evidence row; primary user and security summaries agree with it |
 | all fourteen required journeys retained | required list is `requiredJourneys` in `release_test.go`, retained list parsed from the runner |
-| runtime trace conformance | every executable registry operation and all fourteen journeys emit a bounded step checked against an independent test-local transition model |
+| runtime trace conformance | every executable registry operation has an independent rule and an observed bounded step, all fourteen journeys are observed, malformed output fails closed, and four typed fixtures replay byte-for-byte |
 | no unowned surface | pending-deletion table of `release/surface-inventory.md` must be empty |
 | no dead vocabulary in the user and agent surface | guidance template, generated operations document, and registry help scanned |
 | no network or LLM path in the deterministic core | imports of `internal/core`, `internal/plan`, `internal/reconcile`, `internal/generate`, `internal/agentjson`, `internal/context` parsed |
@@ -254,6 +260,12 @@ checkout instead of weighing testimony.
    task starts and its scope refuses every real file it needs. Combined with
    limitation 7, the defect cost a full rebuild of the change. The plan gate
    sees the declared paths and could refuse one that cannot exist.
+9. **Runtime conformance observes the journey driver, not production decision
+   seams.** All fifteen executable operations are independently modeled and
+   observed across the fourteen retained journeys, but behavior outside those
+   executions is not traced. The 1,000 legal and 1,000 illegal generated steps
+   exercise the checker rather than the CLI. The next ratchet is to drive
+   bounded generated sequences through the real CLI.
 
 ## Recorded frictions
 

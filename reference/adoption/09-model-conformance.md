@@ -202,17 +202,17 @@ go test ./internal/integration -run TestConformance -count=1
 
 Then prove it bites, and record the results the way `LIMITS.md` records counts:
 
-1. Mutate a guard in `internal/core` so an illegal transition is permitted.
-   `IllegalTransition` must fire. Revert.
-2. Register a new operation in the registry and wire no journey to it.
-   `CoverageBreach` must fire. Revert.
-3. Gut one journey to a no-op. `CoverageBreach` must fire on its missing
-   operations. Revert.
-4. Make `complete` accept stale evidence. `StateMismatch` must fire on the
-   invariant predicate. Revert.
+1. Route a human-only success through the agent class. `IllegalTransition`
+   must fire.
+2. Construct completion with stale evidence and with an incomplete dependency.
+   `StateMismatch` must fire for both invariants.
+3. Omit a required operation and feed malformed result output.
+   `CoverageBreach` must fire for both observation failures.
+4. Refresh the four typed fixtures explicitly and require any changed bytes to
+   remain visible for review before replay.
 
-If any of the four stays green, the corresponding half of the gate is not armed
-— say which one in `LIMITS.md` rather than shipping it as complete.
+If any mutation class stays green, say which one in `LIMITS.md` rather than
+shipping it as complete.
 
 ## Do not
 
@@ -240,3 +240,14 @@ If any of the four stays green, the corresponding half of the gate is not armed
 - Tracing the persistence layer. The decision seam is where the interesting
   refusals live; persistence is covered by `journey:10` and the atomicity bite
   tests.
+
+## Acceptance record — 2026-08-06
+
+Applied with the release-journey CLI driver as the observation seam; no
+production tracer or exported surface was added. All 15 executable operations
+have independent rules and observed steps across all 14 journeys. Five
+mutation-class cases retain `IllegalTransition`, `StateMismatch`, and
+`CoverageBreach`, including malformed output. Four typed JSONL fixtures are
+reconstructed, byte-compared, read, and replayed. A fixed seed exercises 1,000
+legal and 1,000 illegal generated model steps; these judge the checker, not the
+CLI. Generated sequences through the real CLI are the next ratchet.

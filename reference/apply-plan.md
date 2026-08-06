@@ -89,9 +89,10 @@ The set is complete when all of these are true:
 - `release/gate-limits.md` has a section for every gate in
   `release/release-decision.md`, and adding a gate without its section fails the
   build.
-- The conformance gate fails on all four mutations listed in
-  [09](adoption/09-model-conformance.md)'s acceptance section, and
-  `internal/integration/conformance/LIMITS.md` states which half is armed.
+- The conformance gate independently models and observes every executable
+  operation, retains illegal-transition, state-mismatch, coverage-breach, and
+  malformed-output bites, replays typed byte fixtures, and states its exact
+  observation seam in `internal/integration/conformance/LIMITS.md`.
 - `release/scale.md` carries measured numbers, a named machine, and a date, and
   `README.md`'s scale sentence points at it rather than standing alone.
 - A release is cut by opening a `release/<version>` PR and merging it; no human
