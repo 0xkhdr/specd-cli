@@ -1,0 +1,48 @@
+{
+  "schemaVersion": 1,
+  "change": "audit-branch-docs",
+  "stage": "approved",
+  "condition": "active",
+  "revision": 2,
+  "approvals": [
+    {
+      "schema_version": 1,
+      "id": "approval:ee878b382bff5171:1",
+      "change": "audit-branch-docs",
+      "gate": "planning_to_approved",
+      "lifecycle_from": "planning",
+      "lifecycle_to": "approved",
+      "approver": "0xkhdr@gmail.com",
+      "actor_class": "human",
+      "artifacts": [
+        {
+          "path": "design.md",
+          "hash": "4983f95d83174d457f89684b4c61bf1a19a916b62db61f68f4c9ecfa36287e0c"
+        },
+        {
+          "path": "proposal.md",
+          "hash": "eb6e04991de50ebade20323f80823bb4d06c1a41c7fb6fc02edfdf56227a55fc"
+        },
+        {
+          "path": "specs/release-assurance/spec.md",
+          "hash": "cd5caa40b4bdaceb435de73dd120d0f291153da2b06b7fdc63b21ecb6c461220"
+        },
+        {
+          "path": "tasks.md",
+          "hash": "097cd6fa961dc11b99704308217dbc98e7f6643491d9143f31541de5878e63a8"
+        }
+      ],
+      "aggregate_hash": "ee878b382bff5171369613fea7c80bd2e41d8727bb92db6dfa6b692d7fcfabe9",
+      "registry_version": "core-v2",
+      "policy_digest": "ddc8b3ab149139c731d50ab1e80ae554a4d73d469ed683d99ac790b76c966040",
+      "revision_before": 1,
+      "revision_after": 2,
+      "timestamp": "2026-08-06T20:56:56.928640968Z",
+      "reason": "Approve scoped documentation parity corrections",
+      "assurance": "advisory"
+    }
+  ],
+  "tasks": {},
+  "createdBy": "175095dd1ded4a513c24bbcce22a1cd9ca36c6653967e3edf354e4091df69a59",
+  "lastTransition": "eb67bc77aba6e21fbb6a165f4c050299201306337333b9b03623de04f30fa2ba"
+}
