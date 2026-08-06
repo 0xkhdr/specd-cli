@@ -2,7 +2,7 @@
 
 | Pattern | Phase | Effort | Risk | Status |
 | --- | --- | --- | --- | --- |
-| [P3](../patterns.md#p3--a-gate-must-be-provable-and-its-blind-spots-must-be-written-down) | 2 | medium | low | not applied |
+| [P3](../patterns.md#p3--a-gate-must-be-provable-and-its-blind-spots-must-be-written-down) | 2 | medium | low | applied 2026-08-06 |
 
 ## Why
 
@@ -149,3 +149,21 @@ same reason.
 Coverage percentage targets. Line coverage would say nothing here: the question
 is whether the *refusals* fire, and a bite test answers that directly while a
 coverage number does not.
+
+## Acceptance note — 2026-08-06
+
+Audit found named bites for all eight foundations: approval
+`TestApproveAgentCapableRouteRefusesBeforeFilesystem`; authority
+`TestTaskTransitionRefusalsChangeNothing`; scope
+`TestScopeRejectsOutsideDeleteRenameSymlinkAndManaged`; evidence
+`TestCompleteRequiresCurrentProofAndExactScope`; staleness
+`TestCompleteConsumesExactEvidenceOnce`; atomicity
+`TestRecoverRollsBackUncommittedStaging` and
+`TestRecoverRollsForwardCommittedTransaction`; validation
+`TestApproveTransactionFailedGatesCommitNothing`; fail-closed
+`TestDecodeRefusalNamesExternalRepair`. `TestNewRejectsIncompleteRefusal`
+proves the shared constructor cannot produce a refusal without one next action.
+
+Three temporary mutations bit and were reverted: inverted task authority failed
+`task_unauthorized`; inverted segment validation failed `unsafe_segment` cases;
+inverted state schema validation failed `state_schema_unsupported`.

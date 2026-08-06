@@ -3,14 +3,21 @@
 # has to resolve a Makefile, and so the Windows leg needs no make at all.
 # If a gate is added to the workflow, it is added here in the same commit.
 
-.PHONY: ci check test vet fmt fmt-check deps-empty vuln smoke docs hooks
+.PHONY: ci check test fuzz vet fmt fmt-check deps-empty vuln smoke docs hooks
 
-ci: check test smoke
+ci: check fuzz test smoke
 
 check: fmt-check vet deps-empty vuln
 
 test:
 	go test ./... -race -count=1
+
+# CI explores these three high-risk boundaries on Ubuntu only. Seed corpora for
+# every fuzz target still run under ordinary `go test` on every platform.
+fuzz:
+	go test ./internal/core/path -run '^$$' -fuzz '^FuzzChangePathContainment$$' -fuzztime 60s
+	go test ./internal/core/record -run '^$$' -fuzz '^FuzzRecordLedger$$' -fuzztime 60s
+	go test ./internal/plan -run '^$$' -fuzz '^FuzzParseTasks$$' -fuzztime 60s
 
 vet:
 	go vet ./...

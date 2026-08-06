@@ -17,8 +17,8 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
-  # Repository-wide facts. They are platform-independent, so running them on
-  # every matrix leg would assert the same thing three times.
+  # Repository-wide facts. Fuzzing stays Ubuntu-only because bounded input
+  # exploration is not multiplied into a platform claim.
   repo:
     runs-on: ubuntu-latest
     # A job that has stopped making progress should fail fast rather than hold
@@ -55,6 +55,15 @@ jobs:
       # while cutting a release is finding out too late.
       - name: release tag contract self-check
         run: sh release/tag-contract.sh --self-check
+
+      # Seed corpora run in every ordinary suite leg. One Ubuntu-only burst per
+      # boundary explores beyond them for bounded time; it is an observation,
+      # not proof of absence.
+      - name: fuzz burst
+        run: |
+          go test ./internal/core/path -run '^$' -fuzz '^FuzzChangePathContainment$' -fuzztime 60s
+          go test ./internal/core/record -run '^$' -fuzz '^FuzzRecordLedger$' -fuzztime 60s
+          go test ./internal/plan -run '^$' -fuzz '^FuzzParseTasks$' -fuzztime 60s
 
   # Zero runtime dependencies is not zero advisories: specd links the Go
   # standard library and is built by a pinned toolchain, and both receive

@@ -1,0 +1,54 @@
+{
+  "name": "add-locking",
+  "proposal_sections": [
+    "Problem",
+    "Outcome",
+    "Scope",
+    "Non-goals",
+    "Affected capabilities"
+  ],
+  "design_sections": [
+    "Boundaries",
+    "Interfaces",
+    "Invariants",
+    "Failure behavior",
+    "Integration",
+    "Alternatives",
+    "Owner"
+  ],
+  "deltas": [
+    {
+      "capability": "accounts",
+      "operations": [
+        "MODIFIED: Stable locking"
+      ]
+    }
+  ],
+  "tasks": [
+    {
+      "id": "S2-001",
+      "files": [
+        "internal/accounts/update.go"
+      ],
+      "depends_on": null
+    }
+  ],
+  "waves": [
+    {
+      "Number": 0,
+      "Tasks": [
+        "S2-001"
+      ]
+    }
+  ],
+  "trace": [
+    {
+      "capability": "accounts",
+      "requirement": "Stable locking",
+      "tasks": [
+        "S2-001"
+      ]
+    }
+  ],
+  "diagnostics": null
+}

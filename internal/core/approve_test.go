@@ -30,9 +30,7 @@ func TestApproveAgentCapableRouteRefusesBeforeFilesystem(t *testing.T) {
 			GitEmail: "human@example.com", ClaimedApprover: "human@example.com",
 			Reason: "reviewed", Route: route,
 		})
-		if !failure.IsCode(err, "human_approval_required") {
-			t.Fatalf("route %q reached filesystem: %v", route, err)
-		}
+		assertActionableRefusal(t, err, "human_approval_required")
 	}
 }
 
@@ -174,9 +172,7 @@ func TestApproveTransactionFailedGatesCommitNothing(t *testing.T) {
 	_, err := Approve(root, "safe-change", ApproveIntent{
 		GitEmail: "human@example.com", ClaimedApprover: "human@example.com", Reason: "reviewed", Route: ApprovalRouteHumanTerminal,
 	})
-	if err == nil {
-		t.Fatal("failed gates approved")
-	}
+	assertActionableRefusal(t, err, "approval_gates")
 	after, _ := os.ReadFile(statePath)
 	if string(before) != string(after) {
 		t.Fatal("failed gates changed state")

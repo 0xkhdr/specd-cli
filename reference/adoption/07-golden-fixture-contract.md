@@ -2,7 +2,7 @@
 
 | Pattern | Phase | Effort | Risk | Status |
 | --- | --- | --- | --- | --- |
-| [P6](../patterns.md#p6--golden-fixtures-are-a-byte-contract-with-an-explicit-refresh-switch), [P7](../patterns.md#p7--adversarial-fixtures-named-for-what-they-violate) | 2 | small | low | not applied |
+| [P6](../patterns.md#p6--golden-fixtures-are-a-byte-contract-with-an-explicit-refresh-switch), [P7](../patterns.md#p7--adversarial-fixtures-named-for-what-they-violate) | 2 | small | low | applied 2026-08-06 |
 
 ## Why
 
@@ -147,3 +147,11 @@ enforced by a test that reads the directory"). Worth adding once the naming
 convention has settled — do it as part of
 [adoption 09](09-model-conformance.md), where the invariant list already has to
 exist as data.
+
+## Acceptance note — 2026-08-06
+
+`TestPlanGoldenByteContract` byte-compares one stable semantic projection and
+names `SPECD_WRITE_PLAN_FIXTURES=1` on drift. Fixture READMEs define
+`good_<case>` and `bad_<invariant>_<violation>`. Existing journey directories
+remain authored inputs: no write switch was added because regenerating authored
+Markdown would erase the distinction between input and expected output.

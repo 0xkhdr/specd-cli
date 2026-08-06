@@ -1,0 +1,118 @@
+# Gate limits
+
+[`release-decision.md`](release-decision.md) records whether each gate is
+green. This file records what a green gate does not establish. Implementation
+wins over both documents when they disagree, and both documents then need a
+fix.
+
+## standard-library-only default binary
+
+Establishes: `go.mod` has no required module at test time.
+Does not establish: alternate build tags add none, local subprocesses are
+absent, or linked standard-library code has no advisory.
+
+## formatting clean
+
+Establishes: current Go files equal `gofmt` output.
+Does not establish: generated non-Go files are current or code is correct.
+
+## generated docs parity
+
+Establishes: `docs/operations.md` equals registry projection byte-for-byte.
+Does not establish: registry usage text matches command behavior. Wrong input
+is rendered faithfully.
+
+## no broken link in the user documentation
+
+Establishes: relative inline links in `README.md` and `docs/*.md` resolve in
+this checkout.
+Does not establish: anchors exist, external URLs work, or links elsewhere are
+valid.
+
+## generated guidance parity
+
+Establishes: guidance renders deterministically and names every registered,
+agent-visible executable operation.
+Does not establish: operation prose is correct or every named operation is
+reachable through dispatch.
+
+## all fourteen required journeys retained
+
+Establishes: runner contains fourteen journeys whose names overlap the required
+list.
+Does not establish: a journey still asserts its named behavior. A gutted
+journey can retain its name.
+
+## no unowned surface
+
+Establishes: live inventoried surface has an owner row and dead rows are
+refused.
+Does not establish: owner text is correct or its journey reaches the surface.
+Ownership remains reviewable evidence, not re-derived proof.
+
+## no dead vocabulary in the user and agent surface
+
+Establishes: guidance template, generated operations, and registry help omit
+forbidden nouns.
+Does not establish: every authored document, source comment, or runtime refusal
+body omits them.
+
+## no network or LLM path in the deterministic core
+
+Establishes: listed deterministic packages do not import listed network APIs.
+Does not establish: future packages join the list, indirect local subprocesses
+cannot use a network, or imports outside the list are clean.
+
+## gate limits complete
+
+Establishes: every gate row in the release decision has an exact limits
+heading.
+Does not establish: limits prose is accurate or complete. Implementation and
+review remain authoritative.
+
+## go test ./... -race -count=1
+
+Establishes: suite and race detector passed for exercised paths on recorded
+runners.
+Does not establish: absence of races outside those paths or a hand-driven loop
+on platforms not named as supported.
+
+## go vet ./...
+
+Establishes: configured `go vet` analyzers found no issue in current packages.
+Does not establish: broader static analysis, runtime correctness, or security.
+
+## release/tag-contract.sh --self-check
+
+Establishes: tag contract accepts and rejects its synthetic cases on Ubuntu.
+Does not establish: release workflow calls it correctly or other shells behave
+identically.
+
+## no advisory reachable from called code (`govulncheck`)
+
+Establishes: current advisory database found no known vulnerability reachable
+from analyzed calls.
+Does not establish: no unknown vulnerability exists, specd logic is correct,
+or tomorrow's database returns the same result.
+
+## bounded fuzz burst
+
+Establishes: three high-risk targets explored generated inputs for 60 seconds
+on one Ubuntu runner.
+Does not establish: exhaustive inputs, deterministic discoveries, other
+platform behavior, or coverage of every fuzz target beyond committed seeds.
+
+## Cross-cutting limits
+
+- Gates observe a checkout, not a deployment or host containment.
+- Bite tests prove named forbidden examples fail. Native fuzzing broadens input
+  samples; neither proves absence.
+- Golden fixtures expose byte changes for review. Refresh can bless bad bytes.
+- CI fuzz bursts run on Ubuntu only, target one parser at a time, and are
+  bounded observations.
+
+## Next ratchet
+
+Largest blind spot: retained-journey gate checks names, not behavior. Independent
+model conformance can require every legal transition and refusal class to be
+reached, making a gutted journey fail on coverage.

@@ -76,6 +76,7 @@ Mechanically asserted by `TestReleaseQualification` from repository facts:
 | no unowned surface | pending-deletion table of `release/surface-inventory.md` must be empty |
 | no dead vocabulary in the user and agent surface | guidance template, generated operations document, and registry help scanned |
 | no network or LLM path in the deterministic core | imports of `internal/core`, `internal/plan`, `internal/reconcile`, `internal/generate`, `internal/agentjson`, `internal/context` parsed |
+| gate limits complete | every gate row in this section must have an exact heading in `release/gate-limits.md` |
 
 Recorded as observed CI facts, not asserted here — running either from inside
 this test recurses into it:
@@ -84,10 +85,13 @@ this test recurses into it:
 | --- | --- |
 | `go test ./... -race -count=1` | observed green on linux/amd64, linux/arm64, darwin/arm64, and windows/amd64, 2026-08-01 |
 | `go vet ./...` | observed green on linux/amd64, linux/arm64, darwin/arm64, and windows/amd64, 2026-08-01 |
+| bounded fuzz burst | path containment, ledger replay, and task parsing each explored for 60 seconds on a linux/amd64 developer host, 2026-08-06; the same burst now runs in the Ubuntu `repo` job on every push and pull request |
 | `release/tag-contract.sh --self-check` | observed green in the `repo` job on ubuntu-latest, 2026-08-06, and on a linux/amd64 developer host the same day. Runs on every push and pull request now, not only inside the release workflow on a tag push |
 | no advisory reachable from called code (`govulncheck`) | observed green in the `vulnerabilities` job on ubuntu-latest, 2026-08-06, and on a linux/amd64 developer host the same day. Runs on every push and pull request |
 
-All four are run by `.github/workflows/ci.yml` on every push and pull request,
+[Gate limits](gate-limits.md) records what each green row does not establish.
+
+All five are run by `.github/workflows/ci.yml` on every push and pull request,
 alongside the formatting and empty-require checks. That makes the observation
 repeatable by anyone reading the run log instead of trusting the dates above.
 

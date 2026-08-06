@@ -35,7 +35,7 @@ func TestSegment(t *testing.T) {
 			t.Errorf("ValidateSegment(%q): %v", valid, err)
 		}
 	}
-	for _, invalid := range []string{"", "..", "/abs", "a/b", `a\b`, "a\x00b", "Upper", "a--b", "archive", "state"} {
+	for _, invalid := range []string{"", "..", "/abs", "a/b", `a\b`, "a\x00b", "Upper", "a--b", "archive", "state", "con", "nul", "com1", "lpt9"} {
 		err := ValidateSegment(invalid)
 		var refusal *failure.Refusal
 		if !errors.As(err, &refusal) || refusal.Code == "" || refusal.Next != "choose another name" {

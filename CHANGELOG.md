@@ -12,6 +12,12 @@ This file records what changed; that one records what has been proven.
 
 ### Added
 
+- Phase 2 release proof: every foundation invariant has an actionable bite
+  assertion; native fuzz targets cover path containment, ledger replay, state
+  decode, and all planning parser families; task transitions have a fixed-seed
+  property check; plan output has an explicit byte golden; and
+  `release/gate-limits.md` records every gate's blind spots. CI and `make ci`
+  run bounded fuzz bursts for the three highest-risk boundaries.
 - One command reproduces the gate: `make ci` is the local projection of
   `.github/workflows/ci.yml` — formatting, `go vet`, the empty-require-set
   check, a `govulncheck` scan, the raced suite, and the `--version`/`--help`
@@ -80,6 +86,8 @@ This file records what changed; that one records what has been proven.
 
 ### Fixed
 
+- Windows device names such as `con`, `nul`, `com1`, and `lpt9` are refused as
+  managed path segments on every platform, keeping accepted names portable.
 - The empty-require-set check in CI passed when `go list -m all` failed. A
   failing `go list` prints nothing, and nothing read as "no dependencies", so a
   `go.mod` with a require line and no matching `go.sum` entry — the state a

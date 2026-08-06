@@ -2,7 +2,7 @@
 
 | Pattern | Phase | Effort | Risk | Status |
 | --- | --- | --- | --- | --- |
-| [P8](../patterns.md#p8--fuzz-what-parses-property-test-what-transitions) | 2 | medium | low | not applied |
+| [P8](../patterns.md#p8--fuzz-what-parses-property-test-what-transitions) | 2 | medium | low | applied 2026-08-06 |
 
 ## Why
 
@@ -169,3 +169,12 @@ budget. Revert, and record the finding in the acceptance note.
 Continuous fuzzing (OSS-Fuzz or a scheduled long-run workflow). Revisit once the
 corpora have stabilized and the 60-second bursts stop finding anything — and
 record that date, the way `release-decision.md` records every other observation.
+
+## Acceptance note — 2026-08-06
+
+Native targets cover change paths, record replay, state decode, proposal and
+design sections, tasks, and capability deltas. A fixed-seed generated sequence
+test checks task activity against a test-local transition table. Temporarily
+disabling segment validation made the path target reject committed seeds `..`,
+`../escape`, and `a/../../b`; the guard was restored. A 120-second containment
+run completed 3,097,449 executions without failure.

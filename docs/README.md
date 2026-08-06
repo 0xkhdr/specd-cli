@@ -12,7 +12,8 @@ Start with:
    `archive`.
 2. [Concepts](concepts.md) — understand root, spec, change, approval, evidence,
    and completion.
-3. [Release decision](../release/release-decision.md) and
+3. [Release decision](../release/release-decision.md),
+   [gate limits](../release/gate-limits.md), and
    [Security](../SECURITY.md) — decide whether the current platform and
    assurance boundary fit your use.
 

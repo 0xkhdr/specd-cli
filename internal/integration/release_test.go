@@ -32,7 +32,8 @@ import (
 )
 
 const (
-	decisionDoc = "release/release-decision.md"
+	decisionDoc   = "release/release-decision.md"
+	gateLimitsDoc = "release/gate-limits.md"
 )
 
 // requiredJourneys are the fourteen journeys the release requires the runner to
@@ -117,6 +118,7 @@ func TestReleaseQualification(t *testing.T) {
 		gateUnownedSurface(t),
 		gateVocabulary(t),
 		gateDeterministicCore(t),
+		gateLimitsComplete(t),
 	}
 	for _, name := range observedGates {
 		gates = append(gates, gate{name: name, observed: true})
@@ -455,6 +457,42 @@ func checkDecision(t *testing.T, gates []gate, red map[string]string) {
 	if decision != "release" && len(red) == 0 {
 		t.Logf("%s: every gate is green and the decision is %q", decisionDoc, decision)
 	}
+}
+
+func gateLimitsComplete(t *testing.T) gate {
+	t.Helper()
+	g := gate{name: "gate limits complete"}
+	decision := readRepoFile(t, decisionDoc)
+	start := strings.Index(decision, "## Release gates")
+	if start < 0 {
+		g.blocker = "Release gates section is missing"
+		return g
+	}
+	section := decision[start:]
+	if end := strings.Index(section[len("## Release gates"):], "\n## "); end >= 0 {
+		section = section[:len("## Release gates")+end]
+	}
+	limits := readRepoFile(t, gateLimitsDoc)
+	seen := map[string]bool{}
+	for _, line := range strings.Split(section, "\n") {
+		if !strings.HasPrefix(line, "|") {
+			continue
+		}
+		cells := strings.Split(strings.Trim(line, "|"), "|")
+		name := strings.Trim(strings.TrimSpace(cells[0]), "`")
+		if name == "gate" || strings.HasPrefix(name, "---") || name == "" || seen[name] {
+			continue
+		}
+		seen[name] = true
+		if !strings.Contains(limits, "## "+name+"\n") {
+			g.blocker = "gate " + name + " has no limits heading"
+			return g
+		}
+	}
+	if len(seen) == 0 {
+		g.blocker = "no gate rows parsed from " + decisionDoc
+	}
+	return g
 }
 
 // --------------------------------------------------------------------- helpers

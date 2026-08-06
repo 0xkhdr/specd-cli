@@ -2,7 +2,7 @@
 
 | Pattern | Phase | Effort | Risk | Status |
 | --- | --- | --- | --- | --- |
-| [P3](../patterns.md#p3--a-gate-must-be-provable-and-its-blind-spots-must-be-written-down), [P14](../patterns.md#p14--name-the-trade-off-and-the-next-ratchet) | 2 | small | low | not applied |
+| [P3](../patterns.md#p3--a-gate-must-be-provable-and-its-blind-spots-must-be-written-down), [P14](../patterns.md#p14--name-the-trade-off-and-the-next-ratchet) | 2 | small | low | applied 2026-08-06 |
 
 ## Why
 
@@ -155,3 +155,9 @@ permits — a gutted journey then fails on coverage, not on its name.
 Per-invariant limits (what "scope is enforced" does not cover). That belongs
 with [adoption 09](09-model-conformance.md), where the invariant list becomes
 machine-readable and the limits can hang off it.
+
+## Acceptance note — 2026-08-06
+
+Every release gate row has an exact section in `release/gate-limits.md`.
+`gate limits complete` parses both gate tables and fails when a heading is
+missing. User documentation links the limits beside the release decision.

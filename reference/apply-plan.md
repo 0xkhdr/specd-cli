@@ -19,7 +19,7 @@ parallel. Items in a later phase assume the earlier phases landed.
 Phase 1 changes no production code. It is safe to apply as ordinary commits
 rather than through the `.specd/` loop.
 
-### Phase 2 — Make the gates provable (medium)
+### Phase 2 — Make the gates provable (medium) — applied 2026-08-06
 
 | Item | Depends on | Deliverable |
 | --- | --- | --- |

@@ -121,9 +121,7 @@ func TestTaskTransitionRefusalsChangeNothing(t *testing.T) {
 			beforeState, _ := os.ReadFile(statePath)
 			beforeHistory, _ := os.ReadFile(historyPath)
 			_, err := TransitionTaskActivity(root, "safe-change", test.request)
-			if !failure.IsCode(err, test.code) {
-				t.Fatalf("error = %v, want %s", err, test.code)
-			}
+			assertActionableRefusal(t, err, test.code)
 			afterState, _ := os.ReadFile(statePath)
 			afterHistory, _ := os.ReadFile(historyPath)
 			if string(beforeState) != string(afterState) || string(beforeHistory) != string(afterHistory) {
