@@ -1,9 +1,9 @@
 {
   "schemaVersion": 1,
   "change": "close-adoption-set",
-  "stage": "approved",
+  "stage": "reconciling",
   "condition": "active",
-  "revision": 8,
+  "revision": 9,
   "approvals": [
     {
       "schema_version": 1,
@@ -48,7 +48,7 @@
     "C3": "completed"
   },
   "createdBy": "4c0fdec186f158a5857703db270a9f635624b75122c9d4fd27731bce046d6fd4",
-  "lastTransition": "1cc3d32a2ba03e49270e246dccd1734c031385dad5ac4995d5ed19969d318b19",
+  "lastTransition": "0e4cd1b6c87e4ddeb72f39aedc49869b5e1ac09395c39bf766cab2371fa987c5",
   "extensions": {
     "completions": {
       "C1": {
