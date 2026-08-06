@@ -143,3 +143,28 @@ fails, the registry is decoration.
 Per-operation maturity (marking individual operations experimental). The
 production profile is already the unit of experimentation, and per-operation
 levels would be finer than any claim specd currently makes.
+
+## Acceptance note — 2026-08-06
+
+The first acceptance run failed the item. Changing `platform/linux/arm64` from
+`gated` to `proven` in `internal/core/maturity.go` — an upgraded published claim
+with no observation behind it — left `go test ./... -count=1` fully green: the
+registry was decoration for every row the summary sentences did not name.
+
+The doc cross-check covered four claim ids in three files, and `Observed` was
+checked for date shape only, never against an observation. Restating each
+platform's level in prose would have put the claim in a second authored place,
+so `release-decision.md` is parsed instead: the supported tier paragraph decides
+which platform rows may be `proven`, and the raced-suite row's date is the date
+every platform row must carry. Both bites are asserted in `TestMaturityGateBites`.
+
+Re-run after the fix: the `arm64` upgrade fails release qualification with
+`platform/linux/arm64 claims proven, release/release-decision.md does not
+support it`, and hand-dating one platform row fails with `platform/linux/amd64
+is dated 2026-08-06, the suite was observed on 2026-08-01`. Regenerating the
+operations document on the green tree leaves no diff.
+
+Still not gated: a profile, guarantee, or coverage level moved in the registry
+and in its one authored sentence together. Recorded in
+`release/gate-limits.md` rather than fixed by inventing a second sentence to
+contradict.

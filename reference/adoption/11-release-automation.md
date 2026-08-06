@@ -180,3 +180,29 @@ Multiple release lanes. specd ships one artifact set from one tag; buzz's
 three-lane structure exists because desktop, relay, and mobile version
 independently. Adding lanes to a single-binary project would be scaffolding for
 a need that has not appeared.
+
+## Acceptance note — 2026-08-06
+
+Observed locally: `release/prepare.sh --self-check` drives the whole prepare
+path in a scratch repository — branch `release/9.9.9` created, changelog section
+written, `chore: prepare v9.9.9` committed, and no tag created — and
+`release/tag-contract.sh --self-check` accepts an annotated tag with a section
+while refusing a lightweight tag and a missing section. Both run in the Ubuntu
+`repo` job on every push and pull request.
+
+Observed by rehearsal: the exact step sequence of `auto-tag.yml`'s `tag` job was
+replayed in a scratch repository — version cut from the `release/0.3.1` branch
+name, contract self-check, `--prospective v0.3.1`, `git cat-file -t HEAD` =
+`commit`, `git tag -a`. `git cat-file -t v0.3.1` returned `tag`, so the created
+ref is an annotated tag object, and the full contract passed against it.
+Preparing `0.3.2` with an empty changelog section refused with `CHANGELOG.md has
+no non-empty section for 0.3.2: write one before tagging` and left no tag behind.
+
+Not observed, and the reason this item's acceptance is not complete: no release
+has been cut through GitHub. The rehearsal replays the job's commands, not the
+event wiring — that a merged `release/<version>` PR triggers the workflow, that
+the default token's `contents: write` scope is sufficient, and that the tag
+lands on the merge commit are still unobserved. `release/gate-limits.md` already
+says the self-checks do not prove a merged PR creates a tag, and
+`release/release-decision.md` still carries "cut the first release through the
+release-PR path" as the next step. It stays there until a real one is cut.

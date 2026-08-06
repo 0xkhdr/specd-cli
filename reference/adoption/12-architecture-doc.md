@@ -138,3 +138,11 @@ architecture rather than to features.
 
 Diagrams. An ASCII layer diagram in section 2 is enough; rendered diagrams add a
 build step and a way for the picture to disagree with the text.
+
+## Acceptance note — 2026-08-06
+
+`ARCHITECTURE.md` has the nine planned sections, and the relative-link release
+gate covers it in the green suite. Every rule in section 3 names its enforcing
+test — `TestSurfaceOwnership`, `TestAgentJSONGolden`,
+`TestReportsHumanAndJSONAgree`, `TestMaturityGateBites`, and the named refusal
+tests — and section 9 states reversal conditions rather than planned work.

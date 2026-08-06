@@ -3,7 +3,7 @@
   "change": "close-adoption-set",
   "stage": "approved",
   "condition": "active",
-  "revision": 6,
+  "revision": 8,
   "approvals": [
     {
       "schema_version": 1,
@@ -44,10 +44,11 @@
   ],
   "tasks": {
     "C1": "completed",
-    "C2": "completed"
+    "C2": "completed",
+    "C3": "completed"
   },
   "createdBy": "4c0fdec186f158a5857703db270a9f635624b75122c9d4fd27731bce046d6fd4",
-  "lastTransition": "2607634df8618929c0457bd1ccd11de9878eb7dfb8b6019efe0ca015c20c031d",
+  "lastTransition": "1cc3d32a2ba03e49270e246dccd1734c031385dad5ac4995d5ed19969d318b19",
   "extensions": {
     "completions": {
       "C1": {
@@ -59,6 +60,11 @@
         "attempt": "c38412ed2023af1a70cf253b5cedc96b0294a9cc545168f68c05f6c605351886",
         "evidence": "a45977516af58aba7453da8ee1e7e4bab92af593324b4412210e411f5acf216b",
         "history": "2607634df8618929c0457bd1ccd11de9878eb7dfb8b6019efe0ca015c20c031d"
+      },
+      "C3": {
+        "attempt": "25d6eb7b9acb0e8a79ac7ba72784dd5202feed1b7b4f35c6197e5fcf512624d2",
+        "evidence": "e458666f0dd4d12dcdfc9716a80e5b36cc94afb1665be5f480fccb17b72e6775",
+        "history": "1cc3d32a2ba03e49270e246dccd1734c031385dad5ac4995d5ed19969d318b19"
       }
     }
   }

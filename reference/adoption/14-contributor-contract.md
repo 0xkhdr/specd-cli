@@ -170,3 +170,14 @@ it happens.
 A `GOVERNANCE.md`. buzz's is one line. specd is maintained by one person and
 `SECURITY.md` already states that plainly, which is more useful than a
 governance document describing a body that does not exist.
+
+## Acceptance note — 2026-08-06
+
+`CONTRIBUTING.md` states the merge policy (required CI checks plus maintainer
+review), the claim-editing obligation on `release/release-decision.md`, the
+refusal list, and the agent-authored position. The DCO decision is recorded
+explicitly as *no gate*, with the instruction not to add sign-off trailers for a
+policy that does not exist — the one form of this decision that cannot rot into
+half-enforcement. `docs/contributing.md` carries the three cookbooks — adding an
+operation, a gate, and a refusal — plus failure-shaped gotchas, and the
+relative-link gate passes over the new cross-links.

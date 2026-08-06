@@ -10,6 +10,21 @@ This file records what changed; that one records what has been proven.
 
 ## [Unreleased]
 
+### Fixed
+
+- A change directory with no `state.json` — what an abandoned or half-created
+  change leaves behind — refused with a raw filesystem error whose recovery
+  action was `run specd status <change>`, the command that had just failed.
+  Every operation that loads state now refuses `check_state` with one legal next
+  action, because the refusal moved into the single reader of the state file
+  instead of being restated by one caller.
+- The maturity registry was decoration for every claim no summary sentence
+  named: upgrading a gated platform to `proven` — a published claim with no
+  observation behind it — kept the whole suite green. Platform levels are now
+  checked against the supported tier stated in `release/release-decision.md`,
+  and every platform claim must carry the date of the raced-suite observation
+  recorded there, so a level or a date cannot move alone.
+
 ### Added
 
 - Phase 4 completes the hardening adoption set: `ARCHITECTURE.md` maps code

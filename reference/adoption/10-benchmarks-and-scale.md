@@ -152,3 +152,13 @@ A long-lived-change soak (drive one change through hundreds of tasks over
 simulated weeks). It is the real answer to "long-lived changes are not yet
 proven" and it is a bigger item than benchmarks; name it as the next ratchet in
 `release/scale.md`.
+
+## Acceptance note — 2026-08-06
+
+`go test ./... -run '^$' -bench . -benchmem -benchtime 1x` reports all four
+families — context assembly, readiness projection, state read-modify-write, and
+ledger replay — with no panic. `release/scale.md` carries the `-benchtime 3x`
+numbers, the named machine, and the date, and `README.md`'s status paragraph
+cites it rather than standing alone. The readiness wall at 10,000 tasks is
+stated as what a caller observes: a projection that takes about a third of a
+second before any command output appears.

@@ -53,6 +53,38 @@ currently lacks.
 | [13 experimental registry](adoption/13-experimental-registry.md) | 10 (scale numbers to reference) | `internal/core/maturity.go` + projection + gate |
 | [14 contributor contract](adoption/14-contributor-contract.md) | 01–08 (the cookbooks reference them) | commit/merge policy, cookbooks, gotchas |
 
+### Phase 5 — close the set (small) — applied 2026-08-06
+
+A review of the applied set found two defects and one piece of stale state. The
+work is recorded here rather than as a new adoption item, because none of it is
+a new pattern: each is an item that was marked applied without its acceptance
+being run.
+
+| Item | What was wrong | Fix |
+| --- | --- | --- |
+| [13](adoption/13-experimental-registry.md) | upgrading a gated platform to `proven` in the registry alone left the suite green — the registry was decoration for every row no summary sentence named | platform levels are checked against the supported tier parsed from `release-decision.md`, and every platform row must carry the raced-suite observation date; both bites in `TestMaturityGateBites` |
+| 10, 12, 13, 14 | marked applied with no acceptance note, unlike 01–09 | acceptance run and recorded; [11](adoption/11-release-automation.md) records what a local rehearsal can and cannot observe |
+| — | `status` and `next` leaked a raw filesystem error for a change with no `state.json`, with `run specd status <change>` as the recovery — the command that had just failed | the refusal moved into `readCheckState`, the one reader of state, so every loader refuses `check_state` with one legal next action; bite in `TestUnreadableStateRefusesOnEveryLoaderBite` |
+
+Still open, and deliberately not closed by writing a date:
+
+- The raced-suite and `go vet` rows in `release/release-decision.md`, and every
+  `Observed` value in `internal/core/maturity.go`, are dated 2026-08-01 — before
+  phases 1–4 added conformance, fuzz, benchmarks, and the registry. CI has run
+  the larger suite on all four legs since. Re-dating requires reading a green
+  four-platform run and moving the decision row and the registry together; the
+  new date gate now forces them to move together.
+- No release has been cut through the release-PR path, so the definition of done
+  below is not yet met on that line.
+
+Driving this phase through the `.specd/` loop produced one finding of its own,
+recorded as limitation 9 in `release/release-decision.md`: a task's verification
+was authored with a Markdown-escaped `\|` in a `go test -run` pattern, `verify`
+correctly refused the vacuous run, and no operation could then repair the
+approved plan. That is the second-hand traversal working as
+[09](adoption/09-model-conformance.md) argues it should — the loop found a
+defect in the loop.
+
 ## Cross-cutting obligations
 
 Every item, without exception:
