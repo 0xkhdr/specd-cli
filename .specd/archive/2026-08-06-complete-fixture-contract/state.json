@@ -1,9 +1,9 @@
 {
   "schemaVersion": 1,
   "change": "complete-fixture-contract",
-  "stage": "approved",
+  "stage": "archived",
   "condition": "active",
-  "revision": 6,
+  "revision": 8,
   "approvals": [
     {
       "schema_version": 1,
@@ -47,7 +47,7 @@
     "F2": "completed"
   },
   "createdBy": "ef26df5195da3da7b45082ed8d6926c1be7f45919d05689e815f9a85888fc3d9",
-  "lastTransition": "43afa10dcdc7b84da4790c248f3d3291855d77fb2689f0dc3d3f979a2f227ad3",
+  "lastTransition": "ece9f9a2fd0948644030f84488c4215854d7e8a5976ee5d2ebbad567d1c55015",
   "extensions": {
     "completions": {
       "F1": {
