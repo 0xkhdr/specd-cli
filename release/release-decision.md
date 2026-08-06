@@ -59,7 +59,9 @@ the same CLI routes a caller drives. Evidence refs:
 The refusal and recovery journeys (04, 05, 06, 07, 08, 09, 10, 11) each prove a
 fail-closed refusal carrying exactly one legal next action, and each recovery
 proves old-or-new durable bytes with no invented evidence, completion, approval,
-sync, or archive.
+sync, or archive. Journey 06 additionally proves an approved change with a
+moved-HEAD active attempt returns to planning under `reopen`, retains old
+records, clears execution bindings, and requires fresh check and human approval.
 
 `TestReleaseFixtureContract` discovers one good and nine adversarial committed
 cases. The adversarial set covers all eight protected foundation invariants;
@@ -200,7 +202,7 @@ table above, the fourteen replayed journeys, or the retained tests.
    publication can only be retried against that existing immutable tag. What
    this does not answer is a real release through that new path: no release PR
    has yet been merged and published with it.
-6. **An attempt is bound to one commit and only `complete` releases it.**
+6. **Resolved: a moved-HEAD attempt now has a revocation route.**
    `release-contract-gate` was planned three times before it ran. `start` binds
    an attempt to the commit HEAD was at, and the scope check counts uncommitted
    planning artifacts as paths outside that attempt's authority — both correct
@@ -209,36 +211,30 @@ table above, the fourteen replayed journeys, or the retained tests.
    `verify` then refuses on a moved baseline and directs the caller to
    regenerate context, `context` refuses because an in-progress task is not in
    the frontier, and `start` refuses because an attempt is already bound. No
-   operation rebinds or discards an attempt, so the only exit is to rebuild the
-   change and spend a second human approval. The refusal names a next action the
-   tool cannot perform, which is the one thing a fail-closed refusal must not
-   do.
+   operation previously released the attempt. `reopen` now accepts the clean
+   moved-HEAD worktree, records the prior attempt and observed HEAD, clears its
+   binding, and returns the same change to planning. Journey 06 retains that
+   recovery. Dirty project work still refuses; `reopen` never resets Git.
 7. **A declared file list separated by commas is accepted at plan time.** The
    `files` column splits on `;`. Commas parse as a single path whose name
    contains commas, which `check` accepts, and which surfaces only when that
-   task starts and its scope refuses every real file it needs. Combined with
-   limitation 6, the defect cost a full rebuild of the change. The plan gate
-   sees the declared paths and could refuse one that cannot exist.
-8. **An approved plan cannot be repaired; approval is content-bound and the
-   lifecycle is one-way.** Observed on 2026-08-06 while planning
+   task starts and its scope refuses every real file it needs. Before `reopen`,
+   the defect also cost a full rebuild of the change. The plan gate sees the
+   declared paths and could still refuse one that cannot exist.
+8. **Resolved: an approved plan can revoke authority and return to planning.**
+   The dead end was observed on 2026-08-06 while planning
    `close-adoption-set`: a task's declared verification was authored with a
    Markdown-escaped `\|` inside a `go test -run` pattern, which Go's regexp
    reads as a literal pipe. `go test` matched nothing and exited 0; `verify`
    correctly refused the vacuous run rather than recording it as evidence. Every
-   route to fix the plan is then shut. Editing `tasks.md` makes approval stale,
+   route to fix the plan was then shut. Editing `tasks.md` makes approval stale,
    which is correct — approval covers bytes, and restoring them restores it —
-   but `check` refuses because the lifecycle is no longer `planning`, `approve`
-   refuses for the same reason, and `context` refuses on the stale approval. No
-   operation returns an approved change to planning, and none abandons it, so
-   the only exits are restoring the exact approved bytes or discarding the
-   change outside the harness and spending a second human approval. `status`
-   meanwhile advises rerunning check and obtaining fresh approval — a next
-   action neither command will accept, which is the same defect limitation 6
-   names in the attempt path. Two of the three cases now known (6, 7, and this
-   one) are authoring mistakes the plan gate could refuse before approval is
-   spent; this one is also a missing lifecycle route.
+   and `context` refuses on the stale approval. `reopen` now records why
+   execution authority was revoked, clears task and attempt state, and returns
+   the same identity to planning without rewriting old records. It deliberately
+   requires a clean project worktree and a fresh whole-plan human approval.
 9. **Runtime conformance observes the journey driver, not production decision
-   seams.** All fifteen executable operations are independently modeled and
+   seams.** All sixteen executable operations are independently modeled and
    observed across the fourteen retained journeys, but behavior outside those
    executions is not traced. The 1,000 legal and 1,000 illegal generated steps
    exercise the checker rather than the CLI. The next ratchet is to drive

@@ -204,6 +204,20 @@ Before starting the next task, commit the completed task's code and managed
 specd records. `start` requires a clean Git baseline so one task cannot inherit
 another task's uncommitted diff.
 
+## `reopen` — repair an approved plan
+
+If an approved plan or its active attempt reaches a dead end, first make the
+project worktree clean, then run
+`specd reopen CHANGE --revision REVISION --reason REASON`. Reopening revokes
+authority: the same change returns to `planning`, every task becomes pending,
+and active attempt and completion bindings are cleared. Earlier approval,
+attempt, evidence, completion, and friction records remain append-only but are
+not applicable to the repaired plan.
+
+Repair the existing artifacts, run `check`, and obtain fresh human approval.
+`reopen` cannot approve bytes, preserve old completion as current, or reverse
+`sync` or `archive`.
+
 ## When you are refused
 
 Every refusal carries a code, the offending path, a reason, and exactly one

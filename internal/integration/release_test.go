@@ -46,7 +46,7 @@ var requiredJourneys = []string{
 	"two independent wave-0 tasks and dependent wave-1 task",
 	"process interruption after state mutation and after evidence append",
 	"malformed Markdown and corrupt/future state",
-	"stale approval after artifact byte change",
+	"stale approval recovery after artifact byte change",
 	"stale evidence after Git HEAD change",
 	"out-of-scope implementation diff",
 	"failing and zero-match verification",

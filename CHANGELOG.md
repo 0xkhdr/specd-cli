@@ -10,6 +10,15 @@ This file records what changed; that one records what has been proven.
 
 ## [Unreleased]
 
+### Added
+
+- `specd reopen CHANGE --revision REVISION --reason REASON` revokes execution
+  authority for an approved change and returns the same identity to planning.
+  It preserves append-only approval, attempt, evidence, completion, and
+  friction records; clears task and execution bindings; requires a clean
+  project worktree; and requires fresh check and human approval before work can
+  resume. Journey 06 retains the moved-HEAD active-attempt recovery.
+
 ## [0.4.0] — 2026-08-06
 
 ### Fixed

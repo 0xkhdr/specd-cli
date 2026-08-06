@@ -31,7 +31,7 @@ it).
 | `complete_evidence` | no applicable passing evidence for this task | run `verify` again at the current HEAD |
 | `complete_head` | HEAD moved between `verify` and `complete` | regenerate context and re-verify at current HEAD |
 | `context_budget_exceeded` | required context doesn't fit `--budget-bytes` | raise the budget, or split the task |
-| `approval_stale` / `approval_drift` | a planning artifact changed after approval | `check`, then get fresh human approval |
+| `approval_stale` / `approval_drift` | a planning artifact changed after approval | make project work clean, `reopen`, repair, `check`, then get fresh human approval |
 
 Two of these deserve a sentence more.
 
@@ -89,7 +89,7 @@ and `start` and dies at `verify` as `scope_outside`.
 | `approval_intent` | reason missing, or terminal confirmation not given | supply `--reason`, then confirm in the human terminal |
 | `approval_gates` | blocking gate findings still open | repair findings, rerun `check` |
 | `approval_drift` | artifacts changed between `check` and `approve` | rerun `check`, approve fresh content |
-| `approval_stale` | the approval no longer covers current bytes | rerun `check`, obtain fresh approval |
+| `approval_stale` | the approval no longer covers current bytes | `reopen`, repair, rerun `check`, obtain fresh approval |
 | `approval_artifact` | a covered artifact is missing or unsafe | restore it, rerun `check` |
 | `approval_recovery` | an interrupted approval is pending | let the same approver finish it, or rerun `check` |
 | `lifecycle_transition` | the change isn't in a stage this operation allows | do the next legal action |
@@ -97,6 +97,22 @@ and `start` and dies at `verify` as `scope_outside`.
 If an approval went stale and you don't know which file moved, `status` names
 the blocking artifact and the reason code — see the staleness table in
 [approval-and-evidence.md](approval-and-evidence.md).
+
+### Reopening an approved change
+
+`reopen` is the recovery route when the approved plan or active attempt cannot
+continue. It requires a clean project worktree and the revision from `status`.
+It preserves old records but clears task activity and execution bindings, so
+the repaired whole plan must pass `check` and human approval again.
+
+| code | meaning | next action |
+| --- | --- | --- |
+| `reopen_intent` | actor or reason is empty | supply a non-empty reason and retry |
+| `reopen_lifecycle` | the change is not approved | continue planning, or plan accepted-truth changes as a new change |
+| `reopen_state` | attempt state is malformed or ambiguous | repair state, run `status` |
+| `reopen_history` | state is not bound to exact append-only history | repair history, run `status` |
+| `reopen_interrupted` | history append completed before state replacement | retry `reopen` with the same inputs |
+| `reopen_recovery` | retry inputs differ from the pending record | run `status`, recover the pending transition |
 
 ## Readiness and tasks
 
@@ -206,8 +222,9 @@ directory was deleted while its history records remain.** History is append-only
 creating a change with the same name again starts from revision 0 against a
 chain that already reached 1.
 
-There is no operation that abandons a change — a change leaves `planning` only
-by being approved, executed, synced, and archived. If you delete one anyway,
+There is no operation that abandons a change. An approved change may return to
+planning through `reopen`; accepted truth still moves only through sync and
+archive. If you delete a change anyway,
 that name is unusable in that root until you restore the directory from version
 control. Pick a different name, or restore the change and finish it.
 

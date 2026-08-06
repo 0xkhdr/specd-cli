@@ -62,7 +62,7 @@ func runReleaseJourneys(t *testing.T) {
 	t.Run("03 two wave-0 tasks and a dependent wave-1 task", releaseWaveJourney)
 	t.Run("04 interruption after state mutation and after evidence append", releaseInterruptionJourney)
 	t.Run("05 malformed Markdown and corrupt or future state", releaseMalformedJourney)
-	t.Run("06 stale approval after artifact byte change", releaseStaleApprovalJourney)
+	t.Run("06 stale approval recovery after artifact byte change", releaseStaleApprovalJourney)
 	t.Run("07 stale evidence after Git HEAD change", releaseStaleEvidenceJourney)
 	t.Run("08 out-of-scope implementation diff", releaseOutOfScopeJourney)
 	t.Run("09 failing and zero-match verification", releaseVerificationJourney)
@@ -321,11 +321,18 @@ func releaseStaleApprovalJourney(t *testing.T) {
 	r := newRelease(t, nil, nil)
 	r.must("check", releaseChange)
 	r.approve()
-	if dataOf(r.json("status", releaseChange))["approval_current"] != true {
-		t.Fatal("approval is not current immediately after approval")
+	manifest := r.json("context", releaseChange, releaseTask)
+	started := r.json("start", releaseChange, releaseTask, "--revision", revisionOf(t, manifest))
+	releaseWrite(t, r.root, map[string]string{"sample.go": afterSample})
+	verified := r.json("verify", releaseChange, releaseTask, dataString(t, started, "attempt"))
+	if dataOf(verified)["passed"] != true {
+		t.Fatalf("pre-reopen evidence did not pass: %v", verified)
 	}
-	// One byte of authored planning truth changes, so the human authorization
-	// no longer covers the current bytes.
+	git(t, r.root, []string{"add", "sample.go"}, []string{"commit", "-m", "moved attempt head", "--no-gpg-sign"})
+
+	// Authored truth changes after approval and after an attempt opened. The
+	// project worktree is clean, but the approval and attempt can no longer be
+	// used at the moved HEAD.
 	releaseWrite(t, r.root, map[string]string{
 		".specd/changes/" + releaseChange + "/proposal.md": readFile(t,
 			filepath.Join(r.root, ".specd", "changes", releaseChange, "proposal.md")) + "\nExtra scope.\n",
@@ -334,10 +341,30 @@ func releaseStaleApprovalJourney(t *testing.T) {
 	if dataOf(status)["approval_current"] != false {
 		t.Fatalf("approval survived an artifact byte change: %v", dataOf(status))
 	}
-	if next := releaseOneNextAction(t, status); next["kind"] != "human_handoff" {
-		t.Fatalf("stale approval offered %v instead of the human gate", next)
+	historyPath := filepath.Join(r.root, ".specd", "history.jsonl")
+	evidencePath := filepath.Join(r.root, ".specd", "evidence.jsonl")
+	beforeHistory, beforeEvidence := readFile(t, historyPath), readFile(t, evidencePath)
+	reopened := r.json("reopen", releaseChange, "--revision", revisionOf(t, status),
+		"--reason", "repair stale task scope")
+	if reopened["subject"].(map[string]any)["change"] != releaseChange ||
+		dataString(t, reopened, "attempt") != dataString(t, started, "attempt") ||
+		dataString(t, reopened, "observed_head") == dataString(t, started, "baseline_head") {
+		t.Fatalf("reopen lost identity or moved-HEAD facts: %v", reopened)
 	}
-	r.refuses([]string{"context", releaseChange, releaseTask}, "context_approval_stale")
+	if !strings.HasPrefix(readFile(t, historyPath), beforeHistory) || readFile(t, evidencePath) != beforeEvidence {
+		t.Fatal("reopen rewrote retained history or evidence")
+	}
+	status = r.json("status", releaseChange)
+	if dataOf(status)["stage"] != "planning" || dataOf(status)["pending"] != float64(1) ||
+		dataOf(status)["in_progress"] != float64(0) || dataOf(status)["completed"] != float64(0) {
+		t.Fatalf("reopened work did not reset to pending: %v", dataOf(status))
+	}
+	r.refuses([]string{"context", releaseChange, releaseTask}, "lifecycle_unsupported")
+	r.must("check", releaseChange)
+	r.approve()
+	if dataOf(r.json("status", releaseChange))["approval_current"] != true {
+		t.Fatal("reopened plan did not require and accept fresh human approval")
+	}
 }
 
 func releaseStaleEvidenceJourney(t *testing.T) {

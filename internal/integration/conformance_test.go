@@ -69,6 +69,7 @@ var conformanceRules = map[string]conformanceRule{
 	"new":      {"agent,human", "", "new"},
 	"check":    {"agent,human", "planning,approved,executing,reconciling,archived", "unchanged"},
 	"approve":  {"human", "planning", "approve"},
+	"reopen":   {"agent,human", "approved", "reopen"},
 	"status":   {"agent,human", "planning,approved,executing,reconciling,archived", "unchanged"},
 	"next":     {"agent,human", "planning,approved,executing,reconciling,archived", "unchanged"},
 	"context":  {"agent,human", "approved", "unchanged"},
@@ -543,6 +544,18 @@ func checkConformanceTransition(step conformanceStep) error {
 		}
 		if step.After.Revision != step.Before.Revision+1 {
 			return errors.New("StateMismatch: approval did not advance one revision")
+		}
+	case "reopen":
+		if step.Before.Lifecycle != "approved" || step.After.Lifecycle != "planning" {
+			return errors.New("IllegalTransition: reopen lifecycle")
+		}
+		if step.After.Revision != step.Before.Revision+1 || len(step.After.Tasks) != 0 {
+			return errors.New("StateMismatch: reopen did not reset task activity at one new revision")
+		}
+		for _, applicability := range step.After.Evidence {
+			if applicability == "applicable" {
+				return errors.New("StateMismatch: reopen retained applicable evidence")
+			}
 		}
 	case "start":
 		if !slices.Contains([]string{"", "pending", "failed"}, step.Before.Tasks[step.Task]) ||

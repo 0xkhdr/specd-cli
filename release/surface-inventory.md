@@ -58,6 +58,7 @@ their registries and are listed individually.
 | command | new | journey:01 — change creation |
 | command | check | journey:05 — malformed artifacts are refused here |
 | command | approve | invariant:approval — human semantic authorization of the plan |
+| command | reopen | journey:06 — stale approved bytes and a moved-HEAD attempt return to planning without losing identity or history |
 | command | status | journey:14 — the cold agent's lifecycle and approval facts |
 | command | next | journey:03 — the ready frontier across two waves |
 | command | context | journey:01 — bounded context for one task |
@@ -74,6 +75,8 @@ their registries and are listed individually.
 | config key | new --capability | journey:02 — the capability a brownfield delta is authored under |
 | config key | approve --approver | invariant:approval — the recorded human identity |
 | config key | approve --reason | invariant:approval — the recorded reason for that authorization |
+| config key | reopen --revision | invariant:staleness — the observed revision before execution authority is revoked |
+| config key | reopen --reason | journey:06 — the machine-checked explanation for returning the same change to planning |
 | config key | context --budget-bytes | journey:01 — the bound on assembled context |
 | config key | start --revision | invariant:staleness — the observed revision an attempt is guarded by |
 | config key | verify --timeout | journey:09 — wall-clock bound on a verification run |
@@ -99,6 +102,7 @@ their registries and are listed individually.
 | record kind | synced | journey:10 — the accepted-truth mutation and its inputs |
 | record kind | archived | journey:11 — a change becoming immutable local history |
 | record kind | friction | contract: D14 friction threshold; two independent records plus a dated owner decision are the only route into a deferred domain |
+| record kind | reopened | journey:06 — append-only revocation of an approved plan and its active attempt binding |
 | generated instruction | Root and change | journey:14 — the selected root and current change |
 | generated instruction | Who owns what | journey:14 — owners of state, evidence, and accepted behavior |
 | generated instruction | The loop | journey:01 — the base loop the agent follows |
