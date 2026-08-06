@@ -3,7 +3,7 @@
   "change": "audit-branch-docs",
   "stage": "approved",
   "condition": "active",
-  "revision": 2,
+  "revision": 4,
   "approvals": [
     {
       "schema_version": 1,
@@ -42,7 +42,18 @@
       "assurance": "advisory"
     }
   ],
-  "tasks": {},
+  "tasks": {
+    "T1": "completed"
+  },
   "createdBy": "175095dd1ded4a513c24bbcce22a1cd9ca36c6653967e3edf354e4091df69a59",
-  "lastTransition": "eb67bc77aba6e21fbb6a165f4c050299201306337333b9b03623de04f30fa2ba"
+  "lastTransition": "e3bf82643dfd45b264bb07d8b72eb43ad6321bbce8a5c4eb02891d57e0c7e195",
+  "extensions": {
+    "completions": {
+      "T1": {
+        "attempt": "95e98d92515f6a267140cd48186771ef7c98a79a5a85cdca95828825fe2c5315",
+        "evidence": "7fdc63fe2127e63200c6bbd9af95fa47a111706049710e6ca89db68f378a86e8",
+        "history": "e3bf82643dfd45b264bb07d8b72eb43ad6321bbce8a5c4eb02891d57e0c7e195"
+      }
+    }
+  }
 }

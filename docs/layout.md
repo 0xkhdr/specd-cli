@@ -65,7 +65,9 @@ automated mutation — which is exactly what the refusal will tell you.
 
 Change and capability names are lowercase kebab-case: `add-dark-mode`, `accounts`,
 `release-qualification`. Six segment names are reserved because the managed tree
-uses them: `archive`, `changes`, `evidence`, `history`, `specs`, `state`.
+uses them: `archive`, `changes`, `evidence`, `history`, `specs`, `state`. Windows
+device names (`con`, `prn`, `aux`, `nul`, `com1`–`com9`, and `lpt1`–`lpt9`) are
+also reserved on every platform so accepted names remain portable.
 
 A change name must be unique against both active changes *and* the archive, so
 you cannot resurrect a name that already has history. Archived directories are

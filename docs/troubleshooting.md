@@ -55,7 +55,7 @@ revision to retry from.
 | `path_symlink` | a symlink in the managed prefix | choose another name |
 | `path_unsafe` | `.specd` is not a safe directory | repair the path, re-init |
 | `unsafe_segment` | name isn't lowercase kebab-case | rename |
-| `reserved_segment` | name is one of `archive`, `changes`, `evidence`, `history`, `specs`, `state` | rename |
+| `reserved_segment` | name is a managed-tree word or Windows device name, which is reserved on every platform | rename |
 | `change_not_found` | no such change | choose an existing change |
 | `duplicate_change` | the name exists, active or archived | choose another name |
 
