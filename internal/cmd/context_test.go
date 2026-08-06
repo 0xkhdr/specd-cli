@@ -29,9 +29,9 @@ func TestContextFrontierParityAndReadOnly(t *testing.T) {
 	if string(before) != string(after) {
 		t.Fatal("context mutated state")
 	}
-	raw, err := RenderContextJSON(manifest)
+	raw, _, err := RenderJSON(Outcome{Operation: "context", Value: manifest})
 	if err != nil || !strings.Contains(string(raw), `"assurance":"advisory"`) ||
-		!strings.Contains(string(raw), `"manifestHash":"`) {
+		!strings.Contains(string(raw), `"manifest_hash":"`) {
 		t.Fatalf("JSON = %s, %v", raw, err)
 	}
 }

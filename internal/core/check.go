@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"io"
 	"os"
+	"slices"
 
 	"github.com/0xkhdr/specd-cli/internal/core/failure"
 	"github.com/0xkhdr/specd-cli/internal/core/gates"
@@ -147,7 +148,7 @@ func newCheckResult(snapshot CheckSnapshot, findings []gates.Finding) CheckResul
 		StateRevision:   snapshot.snapshot.StateRevision,
 		RegistryVersion: snapshot.registry.Version(),
 		PolicyDigest:    snapshot.snapshot.PolicyDigest,
-		Findings:        append([]gates.Finding(nil), findings...), Success: true,
+		Findings:        slices.Clone(findings), Success: true,
 	}
 	for _, finding := range findings {
 		if finding.Severity == gates.Error {

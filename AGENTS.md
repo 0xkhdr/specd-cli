@@ -63,6 +63,13 @@ State, evidence, and task markers are harness-owned. Never hand-edit
 - Prefer one canonical parser/model per contract; do not duplicate resolution,
   task parsing, command metadata, or JSON envelopes. The single-owner roles are
   gated in `internal/integration/subtraction_test.go`.
+- One output owner. Both surfaces project the one envelope through
+  `cmd.RenderJSON` and `cmd.RenderText`; a per-operation `RenderX` helper is a
+  second surface even when only a test calls it. Project the result in
+  `internal/cmd/output.go` instead.
+- One validation boundary. If `core` already refuses an input, the command entry
+  does not restate the check. A duplicated guard drifts, and it usually drifts
+  into a weaker refusal than the one it shadows.
 - Keep deterministic gates, graph projection, persistence, and reports free of
   LLM and network calls.
 - Keep activity, readiness, evidence, and human approval as separate concepts.

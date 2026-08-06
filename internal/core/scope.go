@@ -2,11 +2,12 @@ package core
 
 import (
 	"bytes"
+	"cmp"
 	"errors"
 	"os"
 	"path"
 	"path/filepath"
-	"sort"
+	"slices"
 	"strings"
 	"unicode/utf8"
 
@@ -189,7 +190,7 @@ func CheckScope(root, change, taskID, attemptID string) (ScopeResult, error) {
 		}
 		result = ScopeResult{
 			AttemptID: attempt.ID, BaselineHEAD: attempt.BaselineHEAD,
-			ChangedPaths: changed, DeclaredFiles: append([]string(nil), attempt.DeclaredFiles...),
+			ChangedPaths: changed, DeclaredFiles: slices.Clone(attempt.DeclaredFiles),
 			Assurance: AttemptAssurance, Valid: true,
 		}
 		return nil
@@ -297,11 +298,8 @@ func deriveScopeChanges(root, baseline string) ([]gitScopeChange, error) {
 		}
 		changes = append(changes, gitScopeChange{Kind: "A", Path: normalized})
 	}
-	sort.SliceStable(changes, func(i, j int) bool {
-		if changes[i].Path != changes[j].Path {
-			return changes[i].Path < changes[j].Path
-		}
-		return changes[i].PreviousPath < changes[j].PreviousPath
+	slices.SortStableFunc(changes, func(a, b gitScopeChange) int {
+		return cmp.Or(cmp.Compare(a.Path, b.Path), cmp.Compare(a.PreviousPath, b.PreviousPath))
 	})
 	return changes, nil
 }
@@ -434,7 +432,7 @@ func equalStrings(left, right []string) bool {
 }
 
 func sortedUnique(values []string) []string {
-	sort.Strings(values)
+	slices.Sort(values)
 	result := values[:0]
 	for index, value := range values {
 		if index == 0 || value != values[index-1] {

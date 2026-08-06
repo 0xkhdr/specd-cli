@@ -1,7 +1,8 @@
 package reconcile
 
 import (
-	"sort"
+	"cmp"
+	"slices"
 	"strconv"
 	"strings"
 
@@ -148,8 +149,8 @@ func ProjectReview(reconciliation Plan, input ReviewInput) Review {
 			Next:   "run specd status " + reconciliation.Change + " to observe canonical state",
 		})
 	}
-	sort.SliceStable(review.Blockers, func(i, j int) bool {
-		return review.Blockers[i].Code < review.Blockers[j].Code
+	slices.SortStableFunc(review.Blockers, func(a, b Blocker) int {
+		return cmp.Compare(a.Code, b.Code)
 	})
 	review.Ready = len(review.Blockers) == 0
 	return review

@@ -11,7 +11,7 @@ import (
 	"path"
 	"path/filepath"
 	"regexp"
-	"sort"
+	"slices"
 	"strings"
 	"time"
 
@@ -103,8 +103,8 @@ func ComputeApprovalIdentity(changeRoot string, covered []string) (ApprovalIdent
 		return ApprovalIdentity{}, approvalArtifactError(root, errors.New("covered artifacts are required"))
 	}
 
-	paths := append([]string(nil), covered...)
-	sort.Strings(paths)
+	paths := slices.Clone(covered)
+	slices.Sort(paths)
 	identity := ApprovalIdentity{Artifacts: make([]ApprovalArtifact, 0, len(paths))}
 	seen := map[string]bool{}
 	var seenFiles []os.FileInfo

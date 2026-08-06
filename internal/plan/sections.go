@@ -3,6 +3,7 @@ package plan
 import (
 	"bytes"
 	"regexp"
+	"slices"
 	"strings"
 )
 
@@ -282,6 +283,6 @@ func lineNumberAt(raw []byte, offset int) int {
 }
 
 func cloneSource(source Source) Source {
-	source.Bytes = append([]byte(nil), source.Bytes...)
+	source.Bytes = slices.Clone(source.Bytes)
 	return source
 }

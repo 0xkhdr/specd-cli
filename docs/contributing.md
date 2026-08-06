@@ -65,13 +65,20 @@ violate one of them:
 2. **No LLM or network** in gates, graph projection, persistence, or reports.
 3. **One owner per contract.** One parser, one resolver, one state transition,
    one evidence rule, one envelope, one report model. If you are about to write
-   a second one, you are about to create drift.
-4. **Fail closed.** Stale, malformed, future, ambiguous, unsafe, or unauthorized
+   a second one, you are about to create drift. This includes output: both
+   surfaces render the one envelope through `cmd.RenderJSON` and
+   `cmd.RenderText`, so a per-operation `RenderX` helper is a second surface
+   even when only a test calls it. Project the result in
+   `internal/cmd/output.go` instead.
+4. **Validate at one boundary.** If `core` already refuses an input, the command
+   entry does not restate the check. A duplicated guard drifts, and it usually
+   drifts into a weaker refusal than the one it shadows.
+5. **Fail closed.** Stale, malformed, future, ambiguous, unsafe, or unauthorized
    input stops. Every refusal carries exactly one legal next action.
-5. **Keep the four concepts separate**: activity, readiness, evidence, approval.
-6. **Be honest about assurance.** The harness validates scope; only a host
+6. **Keep the four concepts separate**: activity, readiness, evidence, approval.
+7. **Be honest about assurance.** The harness validates scope; only a host
    contains a process. Don't relabel `advisory` as enforced.
-7. **No speculative surface.** No interface with one implementation, no config
+8. **No speculative surface.** No interface with one implementation, no config
    for a value that never changes, no field reserved for a deferred domain.
    `TestSurfaceOwnership` enforces this, and it is stricter than review.
 

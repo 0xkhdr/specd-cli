@@ -44,11 +44,11 @@ type RequiredCheck struct {
 func (check RequiredCheck) String() string { return check.Class + "/" + check.CheckID }
 
 func (check RequiredCheck) Valid() bool {
-	return KnownClass(check.Class) && len(check.CheckID) <= maximumCheckID &&
+	return knownClass(check.Class) && len(check.CheckID) <= maximumCheckID &&
 		checkIDPattern.MatchString(check.CheckID)
 }
 
-func KnownClass(class string) bool {
+func knownClass(class string) bool {
 	switch class {
 	case ClassTestRun, ClassBuild, ClassLint, ClassReview:
 		return true
@@ -272,7 +272,7 @@ func ClassOf(raw []byte) (string, error) {
 	if err := json.Unmarshal(raw, &envelope); err != nil {
 		return "", errors.New("evidence payload is malformed")
 	}
-	if !KnownClass(envelope.Class) {
+	if !knownClass(envelope.Class) {
 		return "", fmt.Errorf("unknown evidence class %q", envelope.Class)
 	}
 	return envelope.Class, nil

@@ -433,11 +433,11 @@ func decodePayload(raw json.RawMessage, out any) error {
 
 func NewAttemptPayload(attempt AttemptPayload) (AttemptPayload, error) {
 	attempt.SchemaVersion = AttemptSchemaVersion
-	attempt.ID = AttemptIdentity(attempt)
+	attempt.ID = attemptIdentity(attempt)
 	return attempt, attempt.Validate()
 }
 
-func AttemptIdentity(attempt AttemptPayload) string {
+func attemptIdentity(attempt AttemptPayload) string {
 	attempt.ID = ""
 	raw, _ := json.Marshal(attempt)
 	sum := sha256.Sum256(raw)
@@ -455,7 +455,7 @@ func (attempt AttemptPayload) Validate() error {
 		len(attempt.DeclaredFiles) == 0 || strings.TrimSpace(attempt.Actor) == "" ||
 		attempt.Assurance != "advisory" ||
 		attempt.ActivityFrom != "pending" || attempt.ActivityTo != "in_progress" ||
-		attempt.ID != AttemptIdentity(attempt) {
+		attempt.ID != attemptIdentity(attempt) {
 		return errors.New("attempt binding is malformed")
 	}
 	for index, path := range attempt.DeclaredFiles {

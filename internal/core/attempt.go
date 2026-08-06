@@ -10,7 +10,7 @@ import (
 	"os"
 	"os/exec"
 	"path/filepath"
-	"sort"
+	"slices"
 	"strings"
 	"time"
 
@@ -277,8 +277,8 @@ func canonicalTask(tasks []plan.Task, id string) (plan.Task, bool) {
 }
 
 func validateAttemptFiles(root string, declared []string) ([]string, error) {
-	files := append([]string(nil), declared...)
-	sort.Strings(files)
+	files := slices.Clone(declared)
+	slices.Sort(files)
 	for index, file := range files {
 		if file == ".specd" || strings.HasPrefix(file, ".specd/") ||
 			file == ".git" || strings.HasPrefix(file, ".git/") {
@@ -436,7 +436,7 @@ func TaskContractHash(task plan.Task) string {
 		References                   [][2]string
 	}{
 		task.ID, task.Role, task.Verify, task.Acceptance,
-		append([]string(nil), task.Files...), append([]string(nil), task.DependsOn...), references,
+		slices.Clone(task.Files), slices.Clone(task.DependsOn), references,
 	}
 	raw, _ := json.Marshal(contract)
 	digest := sha256.Sum256(raw)

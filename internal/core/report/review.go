@@ -2,8 +2,9 @@ package report
 
 import (
 	"bytes"
+	"cmp"
 	"path/filepath"
-	"sort"
+	"slices"
 
 	"github.com/0xkhdr/specd-cli/internal/agentjson"
 	"github.com/0xkhdr/specd-cli/internal/core"
@@ -257,8 +258,8 @@ func packetBlockers(packet ReviewPacket) []core.ReadinessBlocker {
 // distinctBlockers keeps one blocker per code in canonical order, so the same
 // truth always produces the same packet.
 func distinctBlockers(blockers []core.ReadinessBlocker) []core.ReadinessBlocker {
-	sort.SliceStable(blockers, func(left, right int) bool {
-		return blockers[left].Code < blockers[right].Code
+	slices.SortStableFunc(blockers, func(a, b core.ReadinessBlocker) int {
+		return cmp.Compare(a.Code, b.Code)
 	})
 	result := []core.ReadinessBlocker{}
 	for index, blocker := range blockers {

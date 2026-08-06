@@ -120,7 +120,7 @@ var handlers = map[string]func(context.Context, invocation) (any, error){
 	},
 	"start": func(_ context.Context, in invocation) (any, error) {
 		return Start(in.root, in.arg("change"), in.arg("task"),
-			value[uint64](in, "--revision"), StartOptions{Actor: in.actor})
+			value[uint64](in, "--revision"), in.actor)
 	},
 	"verify": func(ctx context.Context, in invocation) (any, error) {
 		return Verify(ctx, in.root, in.arg("change"), in.arg("task"), in.arg("attempt"), VerifyOptions{
@@ -131,7 +131,7 @@ var handlers = map[string]func(context.Context, invocation) (any, error){
 	},
 	"complete": func(_ context.Context, in invocation) (any, error) {
 		return Complete(in.root, in.arg("change"), in.arg("task"),
-			value[uint64](in, "--revision"), CompleteOptions{Actor: in.actor})
+			value[uint64](in, "--revision"), in.actor)
 	},
 	"sync": func(_ context.Context, in invocation) (any, error) {
 		return Sync(in.root, in.arg("change"), SyncOptions{

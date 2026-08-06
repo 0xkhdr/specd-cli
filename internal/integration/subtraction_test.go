@@ -26,7 +26,6 @@ import (
 	"reflect"
 	"regexp"
 	"slices"
-	"sort"
 	"strings"
 	"testing"
 
@@ -282,7 +281,7 @@ func recordKinds(t *testing.T, files map[string]*ast.File) []string {
 	if len(kinds) == 0 {
 		t.Fatal("no record kinds found; the record codec is the only owner of that list")
 	}
-	sort.Strings(kinds)
+	slices.Sort(kinds)
 	return kinds
 }
 
@@ -325,7 +324,7 @@ func adapterHooks(files map[string]*ast.File) []string {
 			hooks = append(hooks, name)
 		}
 	}
-	sort.Strings(hooks)
+	slices.Sort(hooks)
 	return hooks
 }
 

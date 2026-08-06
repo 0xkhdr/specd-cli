@@ -3,6 +3,7 @@ package core
 import (
 	"encoding/json"
 	"fmt"
+	"slices"
 
 	"github.com/0xkhdr/specd-cli/internal/core/gates"
 	"github.com/0xkhdr/specd-cli/internal/core/lock"
@@ -75,8 +76,8 @@ func (snapshot ReadinessSnapshot) Handoff() *ApprovalHandoff {
 		return nil
 	}
 	copy := *snapshot.handoff
-	copy.Findings = append([]gates.Finding(nil), snapshot.handoff.Findings...)
-	copy.ReviewedArtifacts = append([]ApprovalArtifact(nil), snapshot.handoff.ReviewedArtifacts...)
+	copy.Findings = slices.Clone(snapshot.handoff.Findings)
+	copy.ReviewedArtifacts = slices.Clone(snapshot.handoff.ReviewedArtifacts)
 	return &copy
 }
 func (snapshot ReadinessSnapshot) Valid() bool {
@@ -92,16 +93,11 @@ func (model ReadinessModel) Tasks() []TaskReadiness {
 }
 
 func (model ReadinessModel) Frontier() []string {
-	return append([]string(nil), model.frontier...)
+	return slices.Clone(model.frontier)
 }
 
 func (model ReadinessModel) InFrontier(id string) bool {
-	for _, candidate := range model.frontier {
-		if candidate == id {
-			return true
-		}
-	}
-	return false
+	return slices.Contains(model.frontier, id)
 }
 
 func (model ReadinessModel) Task(id string) (TaskReadiness, bool) {
@@ -388,7 +384,7 @@ func copyBlocker(value *ReadinessBlocker) *ReadinessBlocker {
 }
 
 func cloneTaskReadiness(row TaskReadiness) TaskReadiness {
-	row.Dependencies = append([]string(nil), row.Dependencies...)
+	row.Dependencies = slices.Clone(row.Dependencies)
 	row.Blocker = copyBlocker(row.Blocker)
 	return row
 }
@@ -396,7 +392,7 @@ func cloneTaskReadiness(row TaskReadiness) TaskReadiness {
 func cloneApprovalStatus(value ApprovalStatus) ApprovalStatus {
 	if value.Approval != nil {
 		approval := *value.Approval
-		approval.Artifacts = append([]ApprovalArtifact(nil), value.Approval.Artifacts...)
+		approval.Artifacts = slices.Clone(value.Approval.Artifacts)
 		value.Approval = &approval
 	}
 	return value
@@ -405,69 +401,69 @@ func cloneApprovalStatus(value ApprovalStatus) ApprovalStatus {
 func clonePlanChange(value plan.Change) plan.Change {
 	value.Proposal.Source = clonePlanSource(value.Proposal.Source)
 	value.Proposal.Sections = clonePlanSections(value.Proposal.Sections)
-	value.Proposal.Diagnostics = append([]plan.Diagnostic(nil), value.Proposal.Diagnostics...)
+	value.Proposal.Diagnostics = slices.Clone(value.Proposal.Diagnostics)
 	value.Design.Source = clonePlanSource(value.Design.Source)
 	value.Design.Sections = clonePlanSections(value.Design.Sections)
-	value.Design.References = append([]plan.RequirementReference(nil), value.Design.References...)
-	value.Design.Diagnostics = append([]plan.Diagnostic(nil), value.Design.Diagnostics...)
+	value.Design.References = slices.Clone(value.Design.References)
+	value.Design.Diagnostics = slices.Clone(value.Design.Diagnostics)
 	value.Tasks.Source = clonePlanSource(value.Tasks.Source)
-	value.Tasks.Tasks = append([]plan.Task(nil), value.Tasks.Tasks...)
+	value.Tasks.Tasks = slices.Clone(value.Tasks.Tasks)
 	for index := range value.Tasks.Tasks {
 		task := &value.Tasks.Tasks[index]
-		task.Files = append([]string(nil), task.Files...)
-		task.DependsOn = append([]string(nil), task.DependsOn...)
-		task.References = append([]plan.RequirementReference(nil), task.References...)
-		task.Source = append([]byte(nil), task.Source...)
+		task.Files = slices.Clone(task.Files)
+		task.DependsOn = slices.Clone(task.DependsOn)
+		task.References = slices.Clone(task.References)
+		task.Source = slices.Clone(task.Source)
 	}
-	value.Tasks.Waves = append([]plan.TaskWave(nil), value.Tasks.Waves...)
+	value.Tasks.Waves = slices.Clone(value.Tasks.Waves)
 	for index := range value.Tasks.Waves {
-		value.Tasks.Waves[index].Tasks = append([]string(nil), value.Tasks.Waves[index].Tasks...)
+		value.Tasks.Waves[index].Tasks = slices.Clone(value.Tasks.Waves[index].Tasks)
 	}
-	value.Tasks.Diagnostics = append([]plan.Diagnostic(nil), value.Tasks.Diagnostics...)
-	value.Deltas = append([]plan.CapabilityDelta(nil), value.Deltas...)
+	value.Tasks.Diagnostics = slices.Clone(value.Tasks.Diagnostics)
+	value.Deltas = slices.Clone(value.Deltas)
 	for index := range value.Deltas {
 		delta := &value.Deltas[index]
 		delta.Source = clonePlanSource(delta.Source)
-		delta.Purpose = append([]byte(nil), delta.Purpose...)
-		delta.Diagnostics = append([]plan.Diagnostic(nil), delta.Diagnostics...)
-		delta.Operations = append([]plan.Operation(nil), delta.Operations...)
+		delta.Purpose = slices.Clone(delta.Purpose)
+		delta.Diagnostics = slices.Clone(delta.Diagnostics)
+		delta.Operations = slices.Clone(delta.Operations)
 		for operationIndex := range delta.Operations {
 			operation := &delta.Operations[operationIndex]
-			operation.Raw = append([]byte(nil), operation.Raw...)
+			operation.Raw = slices.Clone(operation.Raw)
 			if operation.Requirement != nil {
 				requirement := *operation.Requirement
-				requirement.Raw = append([]byte(nil), requirement.Raw...)
-				requirement.Scenarios = append([]plan.Scenario(nil), requirement.Scenarios...)
+				requirement.Raw = slices.Clone(requirement.Raw)
+				requirement.Scenarios = slices.Clone(requirement.Scenarios)
 				for scenarioIndex := range requirement.Scenarios {
 					requirement.Scenarios[scenarioIndex].Raw =
-						append([]byte(nil), requirement.Scenarios[scenarioIndex].Raw...)
+						slices.Clone(requirement.Scenarios[scenarioIndex].Raw)
 				}
 				operation.Requirement = &requirement
 			}
 		}
 	}
-	value.Trace.Requirements = append([]plan.RequirementTrace(nil), value.Trace.Requirements...)
+	value.Trace.Requirements = slices.Clone(value.Trace.Requirements)
 	for index := range value.Trace.Requirements {
-		value.Trace.Requirements[index].Tasks = append([]string(nil), value.Trace.Requirements[index].Tasks...)
+		value.Trace.Requirements[index].Tasks = slices.Clone(value.Trace.Requirements[index].Tasks)
 	}
-	value.Trace.Tasks = append([]plan.TaskTrace(nil), value.Trace.Tasks...)
+	value.Trace.Tasks = slices.Clone(value.Trace.Tasks)
 	for index := range value.Trace.Tasks {
 		value.Trace.Tasks[index].Requirements =
-			append([]plan.RequirementReference(nil), value.Trace.Tasks[index].Requirements...)
+			slices.Clone(value.Trace.Tasks[index].Requirements)
 	}
-	value.Diagnostics = append([]plan.Diagnostic(nil), value.Diagnostics...)
+	value.Diagnostics = slices.Clone(value.Diagnostics)
 	return value
 }
 
 func clonePlanSource(source plan.Source) plan.Source {
-	source.Bytes = append([]byte(nil), source.Bytes...)
+	source.Bytes = slices.Clone(source.Bytes)
 	return source
 }
 
 func clonePlanSections(sections []plan.Section) []plan.Section {
-	result := append([]plan.Section(nil), sections...)
+	result := slices.Clone(sections)
 	for index := range result {
-		result[index].Content = append([]byte(nil), result[index].Content...)
+		result[index].Content = slices.Clone(result[index].Content)
 	}
 	return result
 }

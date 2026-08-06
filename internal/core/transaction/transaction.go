@@ -18,6 +18,7 @@ package transaction
 
 import (
 	"bytes"
+	"cmp"
 	"crypto/sha256"
 	"encoding/hex"
 	"encoding/json"
@@ -27,7 +28,7 @@ import (
 	"os"
 	"path"
 	"path/filepath"
-	"sort"
+	"slices"
 	"strings"
 	"time"
 
@@ -238,9 +239,7 @@ func plan(request Request) (Manifest, error) {
 	}
 	// One deterministic order so the same plan always yields the same identity
 	// and the same replay sequence.
-	sort.Slice(manifest.Outputs, func(i, j int) bool {
-		return manifest.Outputs[i].Path < manifest.Outputs[j].Path
-	})
+	slices.SortFunc(manifest.Outputs, func(a, b Output) int { return cmp.Compare(a.Path, b.Path) })
 	for _, move := range request.Moves {
 		if err := validRelative(move.From); err != nil {
 			return Manifest{}, err
@@ -255,9 +254,7 @@ func plan(request Request) (Manifest, error) {
 		}
 		manifest.Moves = append(manifest.Moves, move)
 	}
-	sort.Slice(manifest.Moves, func(i, j int) bool {
-		return manifest.Moves[i].From < manifest.Moves[j].From
-	})
+	slices.SortFunc(manifest.Moves, func(a, b Move) int { return cmp.Compare(a.From, b.From) })
 	if request.Record != nil {
 		if err := request.Record.Validate(); err != nil {
 			return Manifest{}, refuse(CodeInvalid, "", "bound history record is invalid: "+err.Error(),
@@ -567,7 +564,7 @@ func inspectLocked(owner *corepath.Owner, now time.Time) ([]Pending, error) {
 		}
 		pending = append(pending, Pending{ID: id, Action: ActionRollback})
 	}
-	sort.Slice(pending, func(i, j int) bool { return pending[i].ID < pending[j].ID })
+	slices.SortFunc(pending, func(a, b Pending) int { return cmp.Compare(a.ID, b.ID) })
 	return pending, nil
 }
 

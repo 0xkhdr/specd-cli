@@ -25,9 +25,7 @@ func TestStartAfterReadOnlyContextBindsAttemptOnce(t *testing.T) {
 	if string(before) != string(afterContext) {
 		t.Fatal("context mutated state")
 	}
-	result, err := Start(root, "safe-change", "ready", manifest.StateRevision, StartOptions{
-		Actor: "agent:builder",
-	})
+	result, err := Start(root, "safe-change", "ready", manifest.StateRevision, "agent:builder")
 	if err != nil || result.AttemptID == "" ||
 		result.RevisionBefore != manifest.StateRevision ||
 		result.RevisionAfter != manifest.StateRevision+1 ||
@@ -39,9 +37,7 @@ func TestStartAfterReadOnlyContextBindsAttemptOnce(t *testing.T) {
 	if string(afterContext) == string(afterStart) {
 		t.Fatal("start did not persist attempt")
 	}
-	if _, err := Start(root, "safe-change", "ready", result.RevisionAfter, StartOptions{
-		Actor: "agent:builder",
-	}); err == nil {
+	if _, err := Start(root, "safe-change", "ready", result.RevisionAfter, "agent:builder"); err == nil {
 		t.Fatal("repeated start succeeded")
 	}
 }
@@ -59,7 +55,7 @@ func TestStartRefusesUnauthorizedAndStaleWithoutMutation(t *testing.T) {
 		{revision: 2, actor: ""},
 	}
 	for _, test := range tests {
-		if _, err := Start(root, "safe-change", "ready", test.revision, StartOptions{Actor: test.actor}); err == nil {
+		if _, err := Start(root, "safe-change", "ready", test.revision, test.actor); err == nil {
 			t.Fatalf("invalid start succeeded: %#v", test)
 		}
 		after, _ := os.ReadFile(statePath)
@@ -76,18 +72,14 @@ func TestStartRefusesDirtyAndNonFrontierWithoutAttempt(t *testing.T) {
 		if err := os.WriteFile(filepath.Join(root, "dirty.txt"), []byte("dirty\n"), 0o600); err != nil {
 			t.Fatal(err)
 		}
-		if _, err := Start(root, "safe-change", "ready", 2, StartOptions{
-			Actor: "agent:builder",
-		}); err == nil {
+		if _, err := Start(root, "safe-change", "ready", 2, "agent:builder"); err == nil {
 			t.Fatal("dirty start succeeded")
 		}
 	})
 	t.Run("non-frontier", func(t *testing.T) {
 		root := statusReadinessRoot(t)
 		startGit(t, root)
-		if _, err := Start(root, "safe-change", "waiting", 2, StartOptions{
-			Actor: "agent:builder",
-		}); err == nil {
+		if _, err := Start(root, "safe-change", "waiting", 2, "agent:builder"); err == nil {
 			t.Fatal("non-frontier start succeeded")
 		}
 	})

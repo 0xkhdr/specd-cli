@@ -4,7 +4,6 @@ import (
 	"encoding/json"
 	"fmt"
 	"slices"
-	"sort"
 
 	"github.com/0xkhdr/specd-cli/internal/core/failure"
 )
@@ -50,16 +49,16 @@ func (r *TaskActivityRefusal) Unwrap() error { return r.Refusal }
 
 // TaskActivities returns the complete, stable activity vocabulary.
 func TaskActivities() []TaskActivity {
-	return append([]TaskActivity(nil), taskActivities...)
+	return slices.Clone(taskActivities)
 }
 
 func (activity TaskActivity) Valid() bool {
 	return slices.Contains(taskActivities, activity)
 }
 
-// DecodeTaskActivity decodes one persisted state.tasks value. Missing entries
+// decodeTaskActivity decodes one persisted state.tasks value. Missing entries
 // are projected by ProjectTaskActivity and are not valid encoded values.
-func DecodeTaskActivity(raw json.RawMessage) (TaskActivity, error) {
+func decodeTaskActivity(raw json.RawMessage) (TaskActivity, error) {
 	var activity TaskActivity
 	if err := json.Unmarshal(raw, &activity); err != nil {
 		return "", fmt.Errorf("decode task activity: %w", err)
@@ -77,7 +76,7 @@ func ProjectTaskActivity(persisted map[string]json.RawMessage, taskID string) (T
 	if !present {
 		return TaskPending, nil
 	}
-	return DecodeTaskActivity(raw)
+	return decodeTaskActivity(raw)
 }
 
 // ProjectTaskActivities validates the complete persisted activity object
@@ -97,12 +96,12 @@ func ProjectTaskActivities(canonicalIDs []string, persisted map[string]json.RawM
 	for id := range persisted {
 		persistedIDs = append(persistedIDs, id)
 	}
-	sort.Strings(persistedIDs)
+	slices.Sort(persistedIDs)
 	for _, id := range persistedIDs {
 		if !known[id] {
 			return nil, invalidTaskActivity(id, "persisted activity names unknown task %q", id)
 		}
-		if _, err := DecodeTaskActivity(persisted[id]); err != nil {
+		if _, err := decodeTaskActivity(persisted[id]); err != nil {
 			return nil, invalidTaskActivity(id, "task %q: %v", id, err)
 		}
 	}
@@ -130,7 +129,7 @@ func NextTaskActivities(from TaskActivity) []TaskActivity {
 	if !from.Valid() {
 		return nil
 	}
-	return append([]TaskActivity(nil), taskActivityTransitions[from]...)
+	return slices.Clone(taskActivityTransitions[from])
 }
 
 func invalidTaskActivity(path, format string, args ...any) error {

@@ -1,13 +1,14 @@
 package core
 
 import (
+	"cmp"
 	"encoding/json"
 	"errors"
 	"fmt"
 	"io/fs"
 	"os"
 	"path/filepath"
-	"sort"
+	"slices"
 	"strings"
 	"time"
 
@@ -142,8 +143,8 @@ func archiveLocked(owner *corepath.Owner, change string, options ArchiveOptions)
 		})
 		names = append(names, output.Capability)
 	}
-	sort.Slice(accepted, func(i, j int) bool { return accepted[i].Capability < accepted[j].Capability })
-	sort.Strings(names)
+	slices.SortFunc(accepted, func(a, b record.SpecHash) int { return cmp.Compare(a.Capability, b.Capability) })
+	slices.Sort(names)
 
 	source, err := managedRelative(owner, changeRoot)
 	if err != nil {
@@ -259,7 +260,7 @@ func requireBoundEvidencePresent(owner *corepath.Owner, current state.State) err
 	if len(missing) == 0 {
 		return nil
 	}
-	sort.Strings(missing)
+	slices.Sort(missing)
 	return archiveFailure("archive_evidence", owner.Evidence(),
 		"evidence is missing for "+strings.Join(missing, ", "),
 		"restore evidence from version control")
@@ -275,7 +276,7 @@ func requireEveryTaskCompleted(current state.State) error {
 	if len(incomplete) == 0 {
 		return nil
 	}
-	sort.Strings(incomplete)
+	slices.Sort(incomplete)
 	return archiveFailure("archive_incomplete", "",
 		"tasks are not complete: "+strings.Join(incomplete, ", "),
 		"complete the remaining tasks before archiving")
@@ -314,6 +315,6 @@ func hashChangeFolder(changeRoot string) (string, error) {
 		return "", archiveFailure("archive_unsafe_source", changeRoot, err.Error(),
 			"restore the change folder from version control")
 	}
-	sort.Strings(rows)
+	slices.Sort(rows)
 	return hashBytes([]byte(strings.Join(rows, "\n"))), nil
 }

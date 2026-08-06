@@ -24,6 +24,36 @@ This file records what changed; that one records what has been proven.
   accordingly; driving the loop end to end from two callers at once is still not
   claimed.
 
+### Removed
+
+- The second renderer set in `internal/cmd` is gone: `RenderCheck`,
+  `RenderStatusText`, `RenderStatusJSON`, `RenderContextJSON`,
+  `RenderReportText`, and `RenderReportJSON` had no caller outside their own
+  tests, because every shipped surface already renders the one agent envelope.
+  The tests now assert against that envelope, so they exercise what users and
+  agents actually read.
+- `StatusResult.Production` and its `StatusProduction` type. Profile, policy
+  digest, assurance, review approvability, and deferred-domain eligibility
+  reached no surface from `status`; `report --kind status` and
+  `report --kind review` are the one owner of those projections. `status` no
+  longer builds a review packet or a friction projection it never emitted.
+
+### Changed
+
+- `cmd.Start` and `cmd.Complete` take the actor directly instead of a
+  single-field options struct, and `cmd.Start`, `cmd.Complete`, and
+  `cmd.Archive` no longer restate the empty-actor check. `core.StartTaskAttempt`,
+  `core.CompleteTask`, and `core.Archive` already refuse an empty actor before
+  any effect, and their refusal carries a code and one legal next action where
+  the duplicated check returned a bare error.
+- Standard library first: `sort` is gone in favour of `slices` and `cmp`
+  (`slices.Sort`, `slices.SortFunc`, `slices.SortStableFunc`, `cmp.Or`),
+  hand-rolled membership loops are `slices.Contains`/`slices.ContainsFunc`,
+  clone idioms are `slices.Clone`, and first-error selection is `cmp.Or`.
+- `record.AttemptIdentity`, `core.DecodeTaskActivity`,
+  `core.ApprovalStatusProjection`, and `evidence.KnownClass` are unexported;
+  each was only ever called from inside its own package.
+
 ## [0.3.0] — 2026-08-02
 
 ### Added

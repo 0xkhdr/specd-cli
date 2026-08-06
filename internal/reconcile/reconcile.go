@@ -9,11 +9,12 @@ package reconcile
 
 import (
 	"bytes"
+	"cmp"
 	"crypto/sha256"
 	"encoding/hex"
 	"errors"
 	"os"
-	"sort"
+	"slices"
 	"strings"
 
 	corepath "github.com/0xkhdr/specd-cli/internal/core/path"
@@ -437,14 +438,11 @@ func location(path string, raw []byte, offset int) plan.Location {
 }
 
 func sortDiagnostics(diagnostics []plan.Diagnostic) {
-	sort.SliceStable(diagnostics, func(i, j int) bool {
-		a, b := diagnostics[i], diagnostics[j]
-		if a.Location.Path != b.Location.Path {
-			return a.Location.Path < b.Location.Path
-		}
-		if a.Location.Offset != b.Location.Offset {
-			return a.Location.Offset < b.Location.Offset
-		}
-		return a.Code < b.Code
+	slices.SortStableFunc(diagnostics, func(a, b plan.Diagnostic) int {
+		return cmp.Or(
+			cmp.Compare(a.Location.Path, b.Location.Path),
+			cmp.Compare(a.Location.Offset, b.Location.Offset),
+			cmp.Compare(a.Code, b.Code),
+		)
 	})
 }

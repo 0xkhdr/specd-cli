@@ -7,7 +7,7 @@ import (
 	"io/fs"
 	"os"
 	"path/filepath"
-	"sort"
+	"slices"
 
 	"github.com/0xkhdr/specd-cli/internal/core/failure"
 	"github.com/0xkhdr/specd-cli/internal/core/lock"
@@ -55,7 +55,7 @@ func Template(name TemplateName) ([]byte, error) {
 	if err != nil {
 		return nil, fmt.Errorf("read embedded planning template %s: %w", name, err)
 	}
-	return append([]byte(nil), raw...), nil
+	return slices.Clone(raw), nil
 }
 
 type artifactTarget struct {
@@ -107,7 +107,7 @@ func WriteArtifacts(dir, capability string) ([]string, error) {
 			return created, err
 		}
 	}
-	sort.Strings(created)
+	slices.Sort(created)
 	return created, nil
 }
 
@@ -179,7 +179,7 @@ func Scaffold(owner *corepath.Owner, change, capability string) ([]string, error
 	if err != nil {
 		return created, err
 	}
-	sort.Strings(created)
+	slices.Sort(created)
 	return created, nil
 }
 

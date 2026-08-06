@@ -1,6 +1,7 @@
 package core
 
 import (
+	"cmp"
 	"crypto/sha256"
 	"encoding/hex"
 	"encoding/json"
@@ -9,7 +10,6 @@ import (
 	"os"
 	"path/filepath"
 	"slices"
-	"sort"
 	"strings"
 	"time"
 
@@ -128,7 +128,7 @@ func Approve(root, change string, intent ApproveIntent) (ApprovalRecord, error) 
 		}
 		currentCovered, coverageErr := currentApprovalCoveredPaths(changeRoot)
 		again, err := ComputeApprovalIdentity(changeRoot, covered)
-		sort.Strings(covered)
+		slices.Sort(covered)
 		if coverageErr != nil || !slices.Equal(covered, currentCovered) {
 			return failure.New("approval_drift", owner.Root(), "", "covered artifact set changed during approval", "rerun check, then approve fresh content")
 		}
@@ -208,7 +208,7 @@ func currentApprovalCoveredPaths(changeRoot string) ([]string, error) {
 		}
 		covered = append(covered, filepath.ToSlash(filepath.Join("specs", entry.Name(), "spec.md")))
 	}
-	sort.Strings(covered)
+	slices.Sort(covered)
 	return covered, nil
 }
 
@@ -235,7 +235,7 @@ func approvalIdentityFromPlan(changeRoot string, authored plan.Change) (Approval
 			Path: relative, Hash: hex.EncodeToString(hash.Sum(nil)),
 		})
 	}
-	sort.Slice(artifacts, func(i, j int) bool { return artifacts[i].Path < artifacts[j].Path })
+	slices.SortFunc(artifacts, func(a, b ApprovalArtifact) int { return cmp.Compare(a.Path, b.Path) })
 	return ApprovalIdentity{Artifacts: artifacts, AggregateHash: aggregateApprovalHash(artifacts)}, nil
 }
 

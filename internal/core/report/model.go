@@ -6,8 +6,9 @@
 package report
 
 import (
+	"cmp"
 	"fmt"
-	"sort"
+	"slices"
 
 	"github.com/0xkhdr/specd-cli/internal/core"
 	"github.com/0xkhdr/specd-cli/internal/core/evidence"
@@ -449,11 +450,8 @@ func (truth Truth) events() ([]Event, error) {
 			Kind: string(item.Kind), ID: item.ID, Actor: item.Actor, Timestamp: item.Timestamp,
 		})
 	}
-	sort.SliceStable(events, func(left, right int) bool {
-		if events[left].Revision != events[right].Revision {
-			return events[left].Revision < events[right].Revision
-		}
-		return events[left].Sequence < events[right].Sequence
+	slices.SortStableFunc(events, func(a, b Event) int {
+		return cmp.Or(cmp.Compare(a.Revision, b.Revision), cmp.Compare(a.Sequence, b.Sequence))
 	})
 	for index, event := range events {
 		want := uint64(0)
