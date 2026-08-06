@@ -181,7 +181,8 @@ Report this honestly. An agent that tells a user its file scope was *enforced*
 when the label says `advisory` is overstating a security property.
 
 The opt-in production profile does not raise host assurance and is experimental
-in the current [release decision](../release/release-decision.md).
+in the current [release decision](../release/release-decision.md). Both levels
+come from the typed maturity registry projected by `report --kind status`.
 
 ## Rules for an agent integration
 

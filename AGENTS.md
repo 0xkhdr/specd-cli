@@ -20,7 +20,9 @@ Go, standard library only, zero runtime dependencies, one static binary.
 3. [`release/surface-inventory.md`](release/surface-inventory.md) — the one
    ownership mapping. Every exported symbol maps to one exercised journey, one
    protected invariant, or one named external contract.
-4. Source and tests for the domain being changed.
+4. [`ARCHITECTURE.md`](ARCHITECTURE.md) — code layers, contract owners,
+   durability, trust boundaries, and the tests that enforce each rule.
+5. Source and tests for the domain being changed.
 
 ## Vocabulary
 

@@ -29,6 +29,11 @@ and [security model](SECURITY.md). Host assurance is `advisory` unless the host
 provides containment: specd detects out-of-scope writes but does not sandbox the
 process that made them.
 
+These levels come from the typed maturity registry described in
+[Architecture](ARCHITECTURE.md#3-one-owner-rules), are projected by
+`report --kind status`, and are checked against this summary by release
+qualification.
+
 ## Install
 
 Requires Go 1.26 or newer:
@@ -115,9 +120,10 @@ each claim.
 
 ## Contributing
 
-Read [AGENTS.md](AGENTS.md) and the [contributor guide](docs/contributing.md)
-before changing the project. The full handoff check is one command, and it is
-the local projection of `.github/workflows/ci.yml`:
+Read [AGENTS.md](AGENTS.md), [Architecture](ARCHITECTURE.md), and the
+[contributor guide](docs/contributing.md) before changing the project. The full
+handoff check is one command, and it is the local projection of
+`.github/workflows/ci.yml`:
 
 ```bash
 make ci

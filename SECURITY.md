@@ -68,6 +68,11 @@ meaning anything.
 
 These are the guarantees a bypass in would be a vulnerability:
 
+Their published levels come from `internal/core/maturity.go`, are projected by
+`report --kind status`, and are checked against this document by
+`TestMaturityGateBites`. The evidence boundary remains the
+[release decision](release/release-decision.md).
+
 - **Approval cannot be self-granted.** The human route is derived from a termios
   ioctl on stdin, so only a real controlling terminal derives it and every other
   stdin derives agent. Any path that lets an agent-routed invocation pass

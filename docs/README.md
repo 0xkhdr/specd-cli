@@ -16,10 +16,13 @@ Start with:
    [gate limits](../release/gate-limits.md), and
    [Security](../SECURITY.md) — decide whether the current platform and
    assurance boundary fit your use.
+4. [Architecture](../ARCHITECTURE.md) — see how the code enforces that boundary.
 
 Current boundary: the base loop is released and proven end to end on
 linux/amd64. The production profile remains experimental. Host scope assurance
-is advisory unless the host supplies containment.
+is advisory unless the host supplies containment. These levels are projected
+from the typed maturity registry by `report --kind status` and checked here by
+release qualification.
 
 ## Use specd day to day
 
@@ -45,7 +48,8 @@ completion.
 ## Contribute to specd
 
 Read the repository [agent guide](../AGENTS.md), then
-[Contributing](contributing.md). They cover the binding design rules, narrow and
+[Architecture](../ARCHITECTURE.md), then [Contributing](contributing.md). They
+cover the binding design rules, code shape, narrow and
 full checks, generated files, operation registry, release gates, and surface
 ownership.
 
@@ -71,6 +75,7 @@ Repository policy and history:
 | Refusal recovery | [Troubleshooting](troubleshooting.md) |
 | Commands and flags | generated [Operations](operations.md) |
 | Codebase changes | [Contributing](contributing.md) |
+| Code shape and layering | [Architecture](../ARCHITECTURE.md) |
 
 If documentation disagrees with source, source wins and the documentation is a
 bug. Do not hand-edit `operations.md`; regenerate it from the operation
