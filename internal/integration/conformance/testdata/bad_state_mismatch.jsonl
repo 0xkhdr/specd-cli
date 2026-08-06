@@ -1,0 +1,1 @@
+{"schema":1,"journey":"01","operation":"complete","actor":"agent","task":"task","exit":0,"before":{"change":"sample","exists":true,"lifecycle":"approved","revision":2,"tasks":{"task":"in_progress"},"evidence":{"task":"stale"}},"after":{"change":"sample","exists":true,"lifecycle":"approved","revision":3,"tasks":{"task":"completed"}}}

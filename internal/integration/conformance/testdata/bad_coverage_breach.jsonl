@@ -1,0 +1,1 @@
+{"schema":1,"journey":"01","operation":"status","actor":"agent","exit":0,"before":{"change":"sample","exists":true,"lifecycle":"approved","revision":2},"after":{"change":"sample","exists":true,"lifecycle":"approved","revision":2}}

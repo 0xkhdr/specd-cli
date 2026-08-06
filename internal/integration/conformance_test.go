@@ -1,9 +1,11 @@
 package integration
 
 import (
+	"bytes"
 	"encoding/json"
 	"errors"
 	"fmt"
+	"math/rand"
 	"os"
 	"os/exec"
 	"path/filepath"
@@ -44,6 +46,40 @@ type conformanceStep struct {
 	After      conformanceModel `json:"after"`
 	Refusal    string           `json:"refusal,omitempty"`
 	NextAction string           `json:"next_action,omitempty"`
+	ImplBug    string           `json:"impl_bug,omitempty"`
+}
+
+type conformanceCoverage struct {
+	Operations []string
+	Journeys   []string
+	Refusal    bool
+}
+
+type conformanceRule struct {
+	actors     string
+	lifecycles string
+	kind       string
+}
+
+// conformanceRules restates the executable operation contract without using
+// production transition, readiness, or evidence helpers. A registry operation
+// missing here is a coverage breach, not a permissive default.
+var conformanceRules = map[string]conformanceRule{
+	"init":     {"agent,human", "", "unchanged"},
+	"new":      {"agent,human", "", "new"},
+	"check":    {"agent,human", "planning,approved,executing,reconciling,archived", "unchanged"},
+	"approve":  {"human", "planning", "approve"},
+	"status":   {"agent,human", "planning,approved,executing,reconciling,archived", "unchanged"},
+	"next":     {"agent,human", "planning,approved,executing,reconciling,archived", "unchanged"},
+	"context":  {"agent,human", "approved", "unchanged"},
+	"start":    {"agent,human", "approved", "start"},
+	"verify":   {"agent,human", "approved", "verify"},
+	"complete": {"agent,human", "approved", "complete"},
+	"review":   {"agent,human", "approved", "unchanged"},
+	"sync":     {"human", "approved,reconciling", "sync"},
+	"archive":  {"agent,human", "reconciling", "archive"},
+	"report":   {"agent,human", "planning,approved,executing,reconciling,archived", "unchanged"},
+	"friction": {"agent,human", "planning,approved,executing,reconciling,archived", "unchanged"},
 }
 
 type traceCollector struct{ steps []conformanceStep }
@@ -79,7 +115,18 @@ func (pending pendingConformance) finish(code int, stdout string) {
 	change := pending.change
 	pending.step.Exit = code
 	var document map[string]any
-	_ = json.Unmarshal([]byte(stdout), &document)
+	jsonOutput := json.Unmarshal([]byte(stdout), &document) == nil
+	textOutput := strings.Contains(stdout, "operation: "+pending.step.Operation+"\n") &&
+		strings.Contains(stdout, "exit:")
+	if !jsonOutput && !textOutput {
+		pending.step.ImplBug = "operation produced no valid result envelope"
+	}
+	if jsonOutput {
+		operation, _ := document["operation"].(string)
+		if operation != pending.step.Operation {
+			pending.step.ImplBug = "result envelope operation does not match invocation"
+		}
+	}
 	if data, _ := document["data"].(map[string]any); data != nil {
 		if change == "" {
 			change, _ = data["change"].(string)
@@ -245,7 +292,13 @@ func TestConformance(t *testing.T) {
 			required = append(required, operation.ID)
 		}
 	}
-	if err := checkConformance(collector.steps, required); err != nil {
+	journeys := make([]string, 14)
+	for index := range journeys {
+		journeys[index] = fmt.Sprintf("%02d", index+1)
+	}
+	if err := checkConformance(collector.steps, conformanceCoverage{
+		Operations: required, Journeys: journeys, Refusal: true,
+	}); err != nil {
 		t.Fatal(err)
 	}
 }
@@ -270,19 +323,22 @@ func TestConformanceBites(t *testing.T) {
 	dependency.Before.Evidence = map[string]string{"task": "applicable"}
 	dependency.Before.Dependencies = map[string][]string{"task": {"prior"}}
 	dependency.Before.Tasks["prior"] = "pending"
+	implBug := base
+	implBug.ImplBug = "missing envelope"
 
 	for name, testCase := range map[string]struct {
 		steps    []conformanceStep
-		required []string
+		coverage conformanceCoverage
 		want     string
 	}{
-		"illegal transition": {[]conformanceStep{illegal}, nil, "IllegalTransition"},
-		"state mismatch":     {[]conformanceStep{mismatch}, nil, "StateMismatch"},
-		"coverage breach":    {[]conformanceStep{base}, []string{"next"}, "CoverageBreach"},
-		"dependency breach":  {[]conformanceStep{dependency}, nil, "StateMismatch"},
+		"illegal transition": {[]conformanceStep{illegal}, conformanceCoverage{}, "IllegalTransition"},
+		"state mismatch":     {[]conformanceStep{mismatch}, conformanceCoverage{}, "StateMismatch"},
+		"coverage breach":    {[]conformanceStep{base}, conformanceCoverage{Operations: []string{"next"}}, "CoverageBreach"},
+		"dependency breach":  {[]conformanceStep{dependency}, conformanceCoverage{}, "StateMismatch"},
+		"implementation bug": {[]conformanceStep{implBug}, conformanceCoverage{}, "CoverageBreach"},
 	} {
 		t.Run(name, func(t *testing.T) {
-			err := checkConformance(testCase.steps, testCase.required)
+			err := checkConformance(testCase.steps, testCase.coverage)
 			if err == nil || !strings.Contains(err.Error(), testCase.want) {
 				t.Fatalf("got %v, want %s", err, testCase.want)
 			}
@@ -290,15 +346,134 @@ func TestConformanceBites(t *testing.T) {
 	}
 }
 
-func checkConformance(steps []conformanceStep, required []string) error {
+func TestConformanceGeneratedSequences(t *testing.T) {
+	random := rand.New(rand.NewSource(20260806))
+	lifecycles := []string{"planning", "approved", "executing", "reconciling", "archived"}
+	reads := []string{"check", "status", "next", "report"}
+	for sequence := 0; sequence < 1000; sequence++ {
+		lifecycle := lifecycles[random.Intn(len(lifecycles))]
+		model := conformanceModel{Change: "generated", Exists: true, Lifecycle: lifecycle, Revision: uint64(random.Intn(20) + 1)}
+		step := conformanceStep{
+			Schema: 1, Journey: "generated", Operation: reads[random.Intn(len(reads))], Actor: "agent",
+			Before: model, After: model,
+		}
+		if err := checkConformance([]conformanceStep{step}, conformanceCoverage{}); err != nil {
+			t.Fatalf("legal sequence %d: %v", sequence, err)
+		}
+
+		step.Operation = "context"
+		if lifecycle == "approved" {
+			step.Before.Lifecycle, step.After.Lifecycle = "planning", "planning"
+		}
+		err := checkConformance([]conformanceStep{step}, conformanceCoverage{})
+		if err == nil || !strings.Contains(err.Error(), "IllegalTransition") {
+			t.Fatalf("illegal sequence %d: got %v", sequence, err)
+		}
+	}
+}
+
+func TestConformanceFixtures(t *testing.T) {
+	base := conformanceStep{
+		Schema: 1, Journey: "01", Operation: "status", Actor: "agent",
+		Before: conformanceModel{Change: "sample", Exists: true, Lifecycle: "approved", Revision: 2},
+		After:  conformanceModel{Change: "sample", Exists: true, Lifecycle: "approved", Revision: 2},
+	}
+	illegal := base
+	illegal.Operation, illegal.Actor = "approve", "agent"
+	illegal.Before.Lifecycle, illegal.Before.Revision = "planning", 1
+	mismatch := base
+	mismatch.Operation, mismatch.Task = "complete", "task"
+	mismatch.Before.Tasks = map[string]string{"task": "in_progress"}
+	mismatch.Before.Evidence = map[string]string{"task": "stale"}
+	mismatch.After.Tasks = map[string]string{"task": "completed"}
+	mismatch.After.Revision = 3
+
+	for name, testCase := range map[string]struct {
+		steps    []conformanceStep
+		coverage conformanceCoverage
+		want     string
+	}{
+		"good.jsonl":                   {[]conformanceStep{base}, conformanceCoverage{}, ""},
+		"bad_illegal_transition.jsonl": {[]conformanceStep{illegal}, conformanceCoverage{}, "IllegalTransition"},
+		"bad_state_mismatch.jsonl":     {[]conformanceStep{mismatch}, conformanceCoverage{}, "StateMismatch"},
+		"bad_coverage_breach.jsonl":    {[]conformanceStep{base}, conformanceCoverage{Operations: []string{"next"}}, "CoverageBreach"},
+	} {
+		t.Run(name, func(t *testing.T) {
+			path := filepath.Join("conformance", "testdata", name)
+			assertConformanceFixture(t, path, conformanceJSONL(t, testCase.steps))
+			err := checkConformance(readConformanceFixture(t, path), testCase.coverage)
+			if testCase.want == "" && err != nil {
+				t.Fatal(err)
+			}
+			if testCase.want != "" && (err == nil || !strings.Contains(err.Error(), testCase.want)) {
+				t.Fatalf("got %v, want %s", err, testCase.want)
+			}
+		})
+	}
+}
+
+func readConformanceFixture(t *testing.T, path string) []conformanceStep {
+	t.Helper()
+	raw, err := os.ReadFile(path)
+	if err != nil {
+		t.Fatal(err)
+	}
+	var steps []conformanceStep
+	for index, line := range bytes.Split(bytes.TrimSpace(raw), []byte{'\n'}) {
+		var step conformanceStep
+		if err := json.Unmarshal(line, &step); err != nil {
+			t.Fatalf("fixture %s line %d: %v", path, index+1, err)
+		}
+		steps = append(steps, step)
+	}
+	return steps
+}
+
+func conformanceJSONL(t *testing.T, steps []conformanceStep) []byte {
+	t.Helper()
+	var out bytes.Buffer
+	for _, step := range steps {
+		raw, err := json.Marshal(step)
+		if err != nil {
+			t.Fatal(err)
+		}
+		out.Write(raw)
+		out.WriteByte('\n')
+	}
+	return out.Bytes()
+}
+
+func assertConformanceFixture(t *testing.T, path string, got []byte) {
+	t.Helper()
+	if os.Getenv("SPECD_WRITE_CONFORMANCE_FIXTURES") == "1" {
+		if err := os.WriteFile(path, got, 0o644); err != nil {
+			t.Fatal(err)
+		}
+		return
+	}
+	want, err := os.ReadFile(path)
+	if err != nil {
+		t.Fatalf("missing fixture %s (refresh with SPECD_WRITE_CONFORMANCE_FIXTURES=1): %v", path, err)
+	}
+	if !bytes.Equal(got, want) {
+		t.Fatalf("fixture %s is stale; refresh with SPECD_WRITE_CONFORMANCE_FIXTURES=1", path)
+	}
+}
+
+func checkConformance(steps []conformanceStep, coverage conformanceCoverage) error {
 	seenOperations, seenJourneys := map[string]bool{}, map[string]bool{}
+	seenRefusal := false
 	for index, step := range steps {
 		if step.Schema != 1 {
 			return fmt.Errorf("StateMismatch step %d: schema %d", index, step.Schema)
 		}
 		seenOperations[step.Operation] = true
 		seenJourneys[step.Journey] = true
+		if step.ImplBug != "" {
+			return fmt.Errorf("CoverageBreach step %d: %s", index, step.ImplBug)
+		}
 		if step.Refusal != "" {
+			seenRefusal = true
 			if strings.TrimSpace(step.NextAction) == "" {
 				return fmt.Errorf("StateMismatch step %d: refusal %s has no next action", index, step.Refusal)
 			}
@@ -317,49 +492,74 @@ func checkConformance(steps []conformanceStep, required []string) error {
 			return fmt.Errorf("step %d %s: %w", index, step.Operation, err)
 		}
 	}
-	for _, operation := range required {
+	for _, operation := range coverage.Operations {
+		if _, exists := conformanceRules[operation]; !exists {
+			return fmt.Errorf("CoverageBreach: operation %s has no independent rule", operation)
+		}
 		if !seenOperations[operation] {
 			return fmt.Errorf("CoverageBreach: operation %s emitted no step", operation)
 		}
 	}
-	for i := 1; i <= 14; i++ {
-		journey := fmt.Sprintf("%02d", i)
+	for _, journey := range coverage.Journeys {
 		if !seenJourneys[journey] {
 			return fmt.Errorf("CoverageBreach: journey %s emitted no step", journey)
 		}
+	}
+	if coverage.Refusal && !seenRefusal {
+		return errors.New("CoverageBreach: no refusal step was exercised")
 	}
 	return nil
 }
 
 func checkConformanceTransition(step conformanceStep) error {
-	if (step.Operation == "approve" || step.Operation == "sync") && step.Actor != "human" {
-		return errors.New("IllegalTransition: human operation used agent route")
+	rule, exists := conformanceRules[step.Operation]
+	if !exists {
+		return fmt.Errorf("CoverageBreach: operation %s has no independent rule", step.Operation)
+	}
+	if !csvContains(rule.actors, step.Actor) {
+		return errors.New("IllegalTransition: operation used an illegal actor route")
+	}
+	if rule.lifecycles != "" && (!step.Before.Exists || !csvContains(rule.lifecycles, step.Before.Lifecycle)) {
+		return fmt.Errorf("IllegalTransition: %s is not legal from %s", step.Operation, step.Before.Lifecycle)
 	}
 	if step.After.Revision < step.Before.Revision {
 		return errors.New("StateMismatch: revision decreased")
 	}
-	writesRevision := slices.Contains([]string{"new", "approve", "start", "complete", "sync", "archive"}, step.Operation)
-	if writesRevision && step.After.Revision != step.Before.Revision+1 {
-		return fmt.Errorf("StateMismatch: revision %d -> %d", step.Before.Revision, step.After.Revision)
-	}
-	if !writesRevision && step.Before.Exists && step.After.Exists && step.After.Revision != step.Before.Revision {
-		return errors.New("StateMismatch: non-transition operation moved revision")
-	}
-	switch step.Operation {
+	switch rule.kind {
+	case "unchanged":
+		if !sameConformanceModel(step.Before, step.After) {
+			return errors.New("StateMismatch: observation operation changed modeled state")
+		}
 	case "new":
 		if step.Before.Exists || step.After.Lifecycle != "planning" {
 			return errors.New("IllegalTransition: new did not create planning state")
+		}
+		if step.After.Revision != 1 {
+			return errors.New("StateMismatch: new did not create revision 1")
 		}
 	case "approve":
 		if step.Before.Lifecycle != "planning" || step.After.Lifecycle != "approved" {
 			return errors.New("IllegalTransition: approval lifecycle")
 		}
+		if step.After.Revision != step.Before.Revision+1 {
+			return errors.New("StateMismatch: approval did not advance one revision")
+		}
 	case "start":
-		if step.Before.Lifecycle != "approved" || step.After.Tasks[step.Task] != "in_progress" {
+		if !slices.Contains([]string{"", "pending", "failed"}, step.Before.Tasks[step.Task]) ||
+			step.After.Tasks[step.Task] != "in_progress" {
 			return errors.New("IllegalTransition: start activity")
 		}
+		if step.After.Revision != step.Before.Revision+1 {
+			return errors.New("StateMismatch: start did not advance one revision")
+		}
+	case "verify":
+		if step.After.Revision != step.Before.Revision || step.Before.Tasks[step.Task] != "in_progress" ||
+			step.After.Tasks[step.Task] != "in_progress" || step.After.Evidence[step.Task] != "applicable" {
+			return errors.New("StateMismatch: verification changed state or ran without an active attempt")
+		}
 	case "complete":
-		if step.Before.Evidence[step.Task] != "applicable" || step.After.Tasks[step.Task] != "completed" {
+		if step.Before.Tasks[step.Task] != "in_progress" || step.Before.Evidence[step.Task] != "applicable" ||
+			step.After.Tasks[step.Task] != "completed" {
 			return errors.New("StateMismatch: completion lacks passing evidence or activity")
 		}
 		for _, dependency := range step.Before.Dependencies[step.Task] {
@@ -367,16 +567,33 @@ func checkConformanceTransition(step conformanceStep) error {
 				return errors.New("StateMismatch: completion preceded a dependency")
 			}
 		}
+		if step.After.Revision != step.Before.Revision+1 {
+			return errors.New("StateMismatch: completion did not advance one revision")
+		}
 	case "sync":
-		if step.Before.Lifecycle != "approved" || step.After.Lifecycle != "reconciling" {
+		if step.After.Lifecycle != "reconciling" {
 			return errors.New("IllegalTransition: sync lifecycle")
+		}
+		wantRevision := step.Before.Revision
+		if step.Before.Lifecycle == "approved" {
+			wantRevision++
+		}
+		if step.After.Revision != wantRevision {
+			return errors.New("StateMismatch: sync revision")
 		}
 	case "archive":
 		if step.Before.Lifecycle != "reconciling" || step.After.Lifecycle != "archived" {
 			return errors.New("IllegalTransition: archive lifecycle")
 		}
+		if step.After.Revision != step.Before.Revision+1 {
+			return errors.New("StateMismatch: archive did not advance one revision")
+		}
 	}
 	return nil
+}
+
+func csvContains(values, value string) bool {
+	return slices.Contains(strings.Split(values, ","), value)
 }
 
 func sameConformanceModel(a, b conformanceModel) bool {

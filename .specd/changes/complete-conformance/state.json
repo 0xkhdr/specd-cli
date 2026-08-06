@@ -3,7 +3,7 @@
   "change": "complete-conformance",
   "stage": "approved",
   "condition": "active",
-  "revision": 2,
+  "revision": 4,
   "approvals": [
     {
       "schema_version": 1,
@@ -42,7 +42,18 @@
       "assurance": "advisory"
     }
   ],
-  "tasks": {},
+  "tasks": {
+    "C1": "completed"
+  },
   "createdBy": "07d247ccacbda07465d2df5c7de7bd8301296ddcde701a0af2aac770f192b6be",
-  "lastTransition": "ad0a6419f0a7ac0e906ad96b4ef3a762590321e9afb0fe5d6d33c26fa4512821"
+  "lastTransition": "50046caccb8c7cea4b8feaff24dbeb2a3b9674a47d3ce4367fa70c369739f463",
+  "extensions": {
+    "completions": {
+      "C1": {
+        "attempt": "06e273bf7c1b245f8bfe42c2596660c98c9b9025244b0d2b26282136331ef5d3",
+        "evidence": "1702c69c6a408848820a35178b0ceed53409324ac97f2602354a23cd94f7206f",
+        "history": "50046caccb8c7cea4b8feaff24dbeb2a3b9674a47d3ce4367fa70c369739f463"
+      }
+    }
+  }
 }
