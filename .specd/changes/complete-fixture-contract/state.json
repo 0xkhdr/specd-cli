@@ -1,0 +1,48 @@
+{
+  "schemaVersion": 1,
+  "change": "complete-fixture-contract",
+  "stage": "approved",
+  "condition": "active",
+  "revision": 2,
+  "approvals": [
+    {
+      "schema_version": 1,
+      "id": "approval:9713625e690e3917:1",
+      "change": "complete-fixture-contract",
+      "gate": "planning_to_approved",
+      "lifecycle_from": "planning",
+      "lifecycle_to": "approved",
+      "approver": "0xkhdr@gmail.com",
+      "actor_class": "human",
+      "artifacts": [
+        {
+          "path": "design.md",
+          "hash": "31a1bd450f646697718862915d58c023ddff49f77986d7bc7689c8bc6972ff3d"
+        },
+        {
+          "path": "proposal.md",
+          "hash": "678baf9db59d29d73a56bd7fdd3ee35c9674400278d652a87d06fa38e326ae7f"
+        },
+        {
+          "path": "specs/release-assurance/spec.md",
+          "hash": "95338256aa22724ccfd267ab74eae302bbaee83cde580c34e99dc7792de4f5ea"
+        },
+        {
+          "path": "tasks.md",
+          "hash": "48b8d80f8dc47a3981ccef5cf96389d8ee694377265f2980e130c95869cd01f6"
+        }
+      ],
+      "aggregate_hash": "9713625e690e3917d4fc0a58152a8585cea534559ce378ee0139e77345903a86",
+      "registry_version": "core-v2",
+      "policy_digest": "ddc8b3ab149139c731d50ab1e80ae554a4d73d469ed683d99ac790b76c966040",
+      "revision_before": 1,
+      "revision_after": 2,
+      "timestamp": "2026-08-06T16:47:39.932884222Z",
+      "reason": "reviewed and approved the adversarial fixture coverage plan",
+      "assurance": "advisory"
+    }
+  ],
+  "tasks": {},
+  "createdBy": "ef26df5195da3da7b45082ed8d6926c1be7f45919d05689e815f9a85888fc3d9",
+  "lastTransition": "16a75e749adc99b9a193f0b7e8983714b2f9ee4b763fe62f32c89ea42c211465"
+}
