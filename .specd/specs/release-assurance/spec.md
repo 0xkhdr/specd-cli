@@ -105,3 +105,11 @@ action, and that action MUST NOT be the operation that produced the refusal.
 #### Scenario: Recovery does not name the failing operation
 - **WHEN** a state-loading operation refuses an unreadable state file
 - **THEN** the next action names a different, legal step rather than rerunning the same command
+
+### Requirement: Managed-name documentation parity
+The project MUST document every category of managed path name that
+`path.ValidateSegment` refuses as reserved.
+
+#### Scenario: Windows device name is evaluated on any host
+- **WHEN** a reader chooses a managed name using the layout or troubleshooting documentation
+- **THEN** the documentation identifies Windows device names as reserved on every platform and directs the reader to choose another name
