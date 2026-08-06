@@ -22,6 +22,7 @@ const CompletionSchemaVersion = 1
 const SyncSchemaVersion = 1
 const ArchiveSchemaVersion = 1
 const FrictionSchemaVersion = 1
+const ReopenedSchemaVersion = 1
 
 type Family string
 type Kind string
@@ -38,6 +39,7 @@ const (
 	KindSynced         Kind   = "synced"
 	KindArchived       Kind   = "archived"
 	KindFriction       Kind   = "friction"
+	KindReopened       Kind   = "reopened"
 )
 
 type Record struct {
@@ -160,6 +162,22 @@ type FrictionPayload struct {
 	EvidenceSet      string `json:"evidence_set"`
 }
 
+// ReopenedPayload binds the revocation of one approved execution plan. Earlier
+// approval, attempt, completion, and evidence records remain append-only.
+type ReopenedPayload struct {
+	SchemaVersion  int    `json:"schema_version"`
+	Change         string `json:"change"`
+	Actor          string `json:"actor"`
+	Reason         string `json:"reason"`
+	LifecycleFrom  string `json:"lifecycle_from"`
+	LifecycleTo    string `json:"lifecycle_to"`
+	ApprovalID     string `json:"approval_id"`
+	AttemptID      string `json:"attempt_id,omitempty"`
+	ObservedHEAD   string `json:"observed_head"`
+	RevisionBefore uint64 `json:"revision_before"`
+	RevisionAfter  uint64 `json:"revision_after"`
+}
+
 func Revision(value uint64) *uint64 { return &value }
 
 func New(r Record) (Record, error) {
@@ -269,6 +287,18 @@ func (r Record) Validate() error {
 		}
 		if payload.Change != r.Change || payload.Actor != r.Actor {
 			return errors.New("friction payload does not match history envelope")
+		}
+	}
+	if r.Kind == KindReopened {
+		payload, err := DecodeReopenedPayload(r.Payload)
+		if err != nil {
+			return fmt.Errorf("reopened payload: %w", err)
+		}
+		if payload.Change != r.Change || payload.Actor != r.Actor ||
+			r.ExpectedRevision == nil || r.ResultingRevision == nil ||
+			payload.RevisionBefore != *r.ExpectedRevision ||
+			payload.RevisionAfter != *r.ResultingRevision {
+			return errors.New("reopened payload does not match history envelope")
 		}
 	}
 	want, err := Identity(r)
@@ -398,6 +428,32 @@ func DecodeFrictionPayload(raw json.RawMessage) (FrictionPayload, error) {
 	return value, value.Validate()
 }
 
+func NewReopenedPayload(value ReopenedPayload) (ReopenedPayload, error) {
+	value.SchemaVersion = ReopenedSchemaVersion
+	return value, value.Validate()
+}
+
+func (value ReopenedPayload) Validate() error {
+	if value.SchemaVersion != ReopenedSchemaVersion || value.Change == "" ||
+		strings.TrimSpace(value.Actor) == "" || strings.TrimSpace(value.Reason) == "" ||
+		value.LifecycleFrom != "approved" || value.LifecycleTo != "planning" ||
+		strings.TrimSpace(value.ApprovalID) == "" ||
+		!validHex(value.ObservedHEAD, 40, 64) ||
+		value.AttemptID != "" && !validHex(value.AttemptID, sha256.Size*2) ||
+		value.RevisionBefore == 0 || value.RevisionAfter != value.RevisionBefore+1 {
+		return errors.New("reopened binding is malformed")
+	}
+	return nil
+}
+
+func DecodeReopenedPayload(raw json.RawMessage) (ReopenedPayload, error) {
+	var value ReopenedPayload
+	if err := decodePayload(raw, &value); err != nil {
+		return ReopenedPayload{}, err
+	}
+	return value, value.Validate()
+}
+
 // validSpecHashes keeps accepted-spec references unique, ordered, and safe.
 // requireOutputs is false for archive, which may record a change that touched
 // no capability at all.
@@ -512,7 +568,7 @@ func validateFamilyKind(r Record) error {
 	case r.Family == FamilyHistory &&
 		(r.Kind == KindApproved || r.Kind == KindTaskTransition ||
 			r.Kind == KindAttempt || r.Kind == KindCompletion ||
-			r.Kind == KindSynced || r.Kind == KindArchived):
+			r.Kind == KindSynced || r.Kind == KindArchived || r.Kind == KindReopened):
 		if r.ExpectedRevision == nil || r.ResultingRevision == nil ||
 			*r.ResultingRevision != *r.ExpectedRevision+1 {
 			return errors.New("history/approved requires one forward revision transition")

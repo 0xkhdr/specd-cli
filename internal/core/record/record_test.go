@@ -192,6 +192,39 @@ func TestFrictionRecordIsAnObservationWithoutTransition(t *testing.T) {
 	}
 }
 
+func TestReopenedRecordRequiresExactRevocationBinding(t *testing.T) {
+	payload, err := NewReopenedPayload(ReopenedPayload{
+		Change: "safe-change", Actor: "agent:builder", Reason: "repair plan",
+		LifecycleFrom: "approved", LifecycleTo: "planning",
+		ApprovalID: "approval:bound:1", AttemptID: strings.Repeat("a", 64),
+		ObservedHEAD: strings.Repeat("b", 40), RevisionBefore: 3, RevisionAfter: 4,
+	})
+	if err != nil {
+		t.Fatal(err)
+	}
+	raw, _ := json.Marshal(payload)
+	reopened, err := New(Record{
+		Family: FamilyHistory, Kind: KindReopened, Change: "safe-change",
+		ExpectedRevision: Revision(3), ResultingRevision: Revision(4),
+		Timestamp: "2026-07-30T00:00:00Z", Actor: "agent:builder", Payload: raw,
+	})
+	if err != nil || reopened.Validate() != nil {
+		t.Fatalf("reopened record = %#v, %v", reopened, err)
+	}
+	for _, malformed := range []json.RawMessage{
+		json.RawMessage(`{"change":"safe-change"}`),
+		json.RawMessage(strings.Replace(string(raw), `"lifecycle_to":"planning"`, `"lifecycle_to":"archived"`, 1)),
+	} {
+		if _, err := New(Record{
+			Family: FamilyHistory, Kind: KindReopened, Change: "safe-change",
+			ExpectedRevision: Revision(3), ResultingRevision: Revision(4),
+			Timestamp: "2026-07-30T00:00:00Z", Actor: "agent:builder", Payload: malformed,
+		}); err == nil {
+			t.Fatal("malformed reopened binding accepted")
+		}
+	}
+}
+
 func TestReplayTailAndStrictCorruption(t *testing.T) {
 	dir := t.TempDir()
 	path := filepath.Join(dir, "history.jsonl")
