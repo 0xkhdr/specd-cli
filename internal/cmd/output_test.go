@@ -14,6 +14,7 @@ import (
 	"github.com/0xkhdr/specd-cli/internal/core/evidence"
 	"github.com/0xkhdr/specd-cli/internal/core/failure"
 	"github.com/0xkhdr/specd-cli/internal/core/gates"
+	"github.com/0xkhdr/specd-cli/internal/core/record"
 	"github.com/0xkhdr/specd-cli/internal/core/state"
 	"github.com/0xkhdr/specd-cli/internal/plan"
 )
@@ -107,6 +108,14 @@ func fixtures() map[string]Outcome {
 		"complete-success": {Operation: "complete", Root: fixtureRoot, Value: core.Completion{
 			SchemaVersion: 1, Change: fixtureChange, TaskID: fixtureTask, AttemptID: "A1",
 			EvidenceID: "ev-000008", RevisionBefore: 6, RevisionAfter: 7, HistoryID: "h-000009",
+		}},
+		"reopen-success": {Operation: "reopen", Root: fixtureRoot, Value: core.ReopenResult{
+			ReopenedPayload: record.ReopenedPayload{
+				SchemaVersion: 1, Change: fixtureChange, Actor: "agent:builder", Reason: "repair plan",
+				LifecycleFrom: "approved", LifecycleTo: "planning", ApprovalID: "approval:bound:1",
+				AttemptID: fixtureDigest, ObservedHEAD: fixtureHead, RevisionBefore: 4, RevisionAfter: 5,
+			},
+			HistoryID: fixtureDigest,
 		}},
 		"check-failed": {Operation: "check", Value: core.CheckResult{
 			Root: fixtureRoot, Change: fixtureChange, StateRevision: 4,

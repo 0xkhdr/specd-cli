@@ -36,20 +36,21 @@ func TestOperationDispatch(t *testing.T) {
 		before := revisionOf(t, root, "sample-loop")
 
 		cases := map[string][]string{
-			"no operation":         {},
-			"unknown operation":    {"resume", "sample-loop"},
-			"reserved operation":   {"sync", "sample-loop"},
-			"unknown flag":         {"status", "sample-loop", "--verbose"},
-			"flag without value":   {"status", "sample-loop", "--root"},
-			"repeated flag":        {"status", "sample-loop", "--root", "a", "--root", "b"},
-			"invalid flag value":   {"complete", "sample-loop", "edit-sample", "--revision", "soon"},
-			"missing required":     {"complete", "sample-loop", "edit-sample"},
-			"too few arguments":    {"context", "sample-loop"},
-			"too many arguments":   {"status", "sample-loop", "extra"},
-			"empty selector":       {"status", "  "},
-			"ambiguous root":       {"init", root, "--root", root},
-			"lifecycle mismatch":   {"complete", "sample-loop", "edit-sample", "--revision", "1"},
-			"agent asks for human": {"approve", "sample-loop"},
+			"no operation":          {},
+			"unknown operation":     {"resume", "sample-loop"},
+			"reserved operation":    {"sync", "sample-loop"},
+			"unknown flag":          {"status", "sample-loop", "--verbose"},
+			"flag without value":    {"status", "sample-loop", "--root"},
+			"repeated flag":         {"status", "sample-loop", "--root", "a", "--root", "b"},
+			"invalid flag value":    {"complete", "sample-loop", "edit-sample", "--revision", "soon"},
+			"missing required":      {"complete", "sample-loop", "edit-sample"},
+			"reopen missing reason": {"reopen", "sample-loop", "--revision", "1"},
+			"too few arguments":     {"context", "sample-loop"},
+			"too many arguments":    {"status", "sample-loop", "extra"},
+			"empty selector":        {"status", "  "},
+			"ambiguous root":        {"init", root, "--root", root},
+			"lifecycle mismatch":    {"complete", "sample-loop", "edit-sample", "--revision", "1"},
+			"agent asks for human":  {"approve", "sample-loop"},
 		}
 		for name, args := range cases {
 			t.Run(name, func(t *testing.T) {

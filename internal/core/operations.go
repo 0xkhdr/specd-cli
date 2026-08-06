@@ -197,6 +197,27 @@ var operations = []Operation{
 		Example: "specd approve safe-create --approver me@example.com --reason reviewed",
 	},
 	{
+		ID: "reopen", Summary: "Revoke execution authority and return an approved change to planning.",
+		Actor: ActorEither, Effect: EffectStateWrite,
+		Lifecycles:   []Lifecycle{LifecycleApproved},
+		RequiresRoot: true, RequiresChange: true,
+		AuthoritySource: AuthorityActor, ScopeSource: ScopeChange,
+		Arguments: []OperationArgument{{Name: "change", Required: true, Description: "Approved change to return to planning."}},
+		Flags: flags(
+			OperationFlag{
+				Name: "--revision", Type: "uint", Required: true,
+				Description: "State revision observed before reopening.",
+			},
+			OperationFlag{
+				Name: "--reason", Type: "string", Required: true,
+				Description: "Why execution authority is being revoked.",
+			},
+		),
+		Exits:      exits("reopening was refused or could not be recorded"),
+		ResultType: "reopen_result", AgentVisible: true, Executable: true,
+		Example: "specd reopen safe-create --revision 4 --reason repair-plan",
+	},
+	{
 		ID: "status", Summary: "Report lifecycle, approval, readiness, and next action for a change.",
 		Actor: ActorEither, Effect: EffectRead, Lifecycles: allLifecycles(),
 		RequiresRoot: true, RequiresChange: true,

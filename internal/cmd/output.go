@@ -201,6 +201,20 @@ func projectValue(v *view, value any, exit int) int {
 		v.set("aggregate_hash", result.AggregateHash)
 		v.next = operationNext("next", "run specd next "+result.Change,
 			map[string]string{"change": result.Change})
+	case core.ReopenResult:
+		v.selectors("", result.Change, "", result.RevisionAfter)
+		v.set("actor", result.Actor)
+		v.set("lifecycle_from", result.LifecycleFrom)
+		v.set("lifecycle_to", result.LifecycleTo)
+		v.set("approval_id", result.ApprovalID)
+		if result.AttemptID != "" {
+			v.set("attempt", result.AttemptID)
+		}
+		v.set("observed_head", result.ObservedHEAD)
+		v.set("revision_before", result.RevisionBefore)
+		v.set("history_id", result.HistoryID)
+		v.next = operationNext("check", "repair the planning artifacts and run specd check "+result.Change,
+			map[string]string{"change": result.Change})
 	case StatusResult:
 		projectStatus(v, result)
 	case NextResult:

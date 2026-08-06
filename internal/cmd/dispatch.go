@@ -109,6 +109,10 @@ var handlers = map[string]func(context.Context, invocation) (any, error){
 			Reason:   value[string](in, "--reason"),
 		})
 	},
+	"reopen": func(_ context.Context, in invocation) (any, error) {
+		return Reopen(in.root, in.arg("change"), value[uint64](in, "--revision"),
+			value[string](in, "--reason"), in.actor)
+	},
 	"status": func(_ context.Context, in invocation) (any, error) {
 		return Status(in.root, in.arg("change"))
 	},

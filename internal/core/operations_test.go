@@ -9,7 +9,7 @@ import (
 func TestOperationRegistry(t *testing.T) {
 	t.Run("canonical set is exact and ordered", func(t *testing.T) {
 		want := []string{
-			"init", "new", "check", "approve", "status", "next",
+			"init", "new", "check", "approve", "reopen", "status", "next",
 			"context", "start", "verify", "complete", "review", "sync", "archive",
 			"report", "friction",
 		}
@@ -108,6 +108,11 @@ func TestOperationRegistry(t *testing.T) {
 		complete, _ := OperationByID("complete")
 		if !complete.AppliesTo("approved") || complete.AppliesTo("planning") {
 			t.Fatal("complete applies to approved only")
+		}
+		reopen, _ := OperationByID("reopen")
+		if !reopen.AppliesTo("approved") || reopen.AppliesTo("planning") ||
+			reopen.Actor == ActorHuman || !reopen.AgentVisible {
+			t.Fatal("reopen must revoke approved authority through an agent-callable route")
 		}
 		init, _ := OperationByID("init")
 		if !init.AppliesTo("archived") {
