@@ -1,0 +1,48 @@
+{
+  "schemaVersion": 1,
+  "change": "complete-conformance",
+  "stage": "approved",
+  "condition": "active",
+  "revision": 2,
+  "approvals": [
+    {
+      "schema_version": 1,
+      "id": "approval:6d36296242b65cbe:1",
+      "change": "complete-conformance",
+      "gate": "planning_to_approved",
+      "lifecycle_from": "planning",
+      "lifecycle_to": "approved",
+      "approver": "0xkhdr@gmail.com",
+      "actor_class": "human",
+      "artifacts": [
+        {
+          "path": "design.md",
+          "hash": "79d5211a5435171bd1417e0b35106911cb5cc4166c907889a54eb722793ed1f7"
+        },
+        {
+          "path": "proposal.md",
+          "hash": "cfc9c39cf370e70c4640da979e28a500c0e2516ab47c925f6d48540104df64b3"
+        },
+        {
+          "path": "specs/release-assurance/spec.md",
+          "hash": "fb3aa0543dcca3a1e209e8d617b2fce46e70e016f4d090a29c1900aeb8e88c99"
+        },
+        {
+          "path": "tasks.md",
+          "hash": "65a21a673af764a568f7da2afe4149bb740d7edb35d096f9b7903fde6bf9c674"
+        }
+      ],
+      "aggregate_hash": "6d36296242b65cbeba865eba6448c0a5386f91f0ddfcd90e66d31beab8b8a3b9",
+      "registry_version": "core-v2",
+      "policy_digest": "ddc8b3ab149139c731d50ab1e80ae554a4d73d469ed683d99ac790b76c966040",
+      "revision_before": 1,
+      "revision_after": 2,
+      "timestamp": "2026-08-06T16:12:50.787777796Z",
+      "reason": "reviewed and approved the conformance plan",
+      "assurance": "advisory"
+    }
+  ],
+  "tasks": {},
+  "createdBy": "07d247ccacbda07465d2df5c7de7bd8301296ddcde701a0af2aac770f192b6be",
+  "lastTransition": "ad0a6419f0a7ac0e906ad96b4ef3a762590321e9afb0fe5d6d33c26fa4512821"
+}
