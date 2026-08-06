@@ -197,7 +197,7 @@ var operations = []Operation{
 		Example: "specd approve safe-create --approver me@example.com --reason reviewed",
 	},
 	{
-		ID: "reopen", Summary: "Revoke execution authority and return an approved change to planning.",
+		ID: "reopen", Summary: "Revoke execution authority and return a change to planning.",
 		Actor: ActorEither, Effect: EffectStateWrite,
 		Lifecycles:   []Lifecycle{LifecycleApproved},
 		RequiresRoot: true, RequiresChange: true,

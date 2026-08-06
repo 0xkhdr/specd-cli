@@ -104,7 +104,7 @@ Examples are display data. They are never parsed, expanded, or executed.
 | fact | value |
 |---|---|
 | id | reopen |
-| summary | Revoke execution authority and return an approved change to planning. |
+| summary | Revoke execution authority and return a change to planning. |
 | usage | specd reopen <change> [--root <root>] [--json] --revision <revision> --reason <reason> |
 | actor | either |
 | effect | state_write |
