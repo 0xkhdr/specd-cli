@@ -1,9 +1,9 @@
 {
   "schemaVersion": 1,
   "change": "phase-4-documentation",
-  "stage": "approved",
+  "stage": "archived",
   "condition": "active",
-  "revision": 8,
+  "revision": 10,
   "approvals": [
     {
       "schema_version": 1,
@@ -48,7 +48,7 @@
     "P4-03": "completed"
   },
   "createdBy": "8574d05081f6ab46de743d96da6f144cb9f0122b562cde038bcbc2fd4ba4fe9f",
-  "lastTransition": "ceb511af7978b3d308a6440de1833f09031dffc49122e34c69efbe1f1fa64d57",
+  "lastTransition": "da9cf90168aed8f79999be185d29043665f730246de05b86b8b74d80b76f36ca",
   "extensions": {
     "completions": {
       "P4-01": {
