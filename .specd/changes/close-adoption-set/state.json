@@ -1,11 +1,48 @@
 {
   "schemaVersion": 1,
   "change": "close-adoption-set",
-  "stage": "planning",
+  "stage": "approved",
   "condition": "active",
-  "revision": 1,
-  "approvals": [],
+  "revision": 2,
+  "approvals": [
+    {
+      "schema_version": 1,
+      "id": "approval:fdc298f87480f53d:1",
+      "change": "close-adoption-set",
+      "gate": "planning_to_approved",
+      "lifecycle_from": "planning",
+      "lifecycle_to": "approved",
+      "approver": "0xkhdr@gmail.com",
+      "actor_class": "human",
+      "artifacts": [
+        {
+          "path": "design.md",
+          "hash": "39056dbc7be781794383fc181ef25b5682fd9c1d0092e816887096e07cffb234"
+        },
+        {
+          "path": "proposal.md",
+          "hash": "1db6cfd4d3be7f184333a1ad04a56e67fc4fc34bbec33f2a66ef02b8d744cd43"
+        },
+        {
+          "path": "specs/release-assurance/spec.md",
+          "hash": "56c32e558da91ab5d192d80664f1615b42eecff346c8658d084366810110345a"
+        },
+        {
+          "path": "tasks.md",
+          "hash": "0eca80a0a30b064c7e78d49b61f5318e97bc74682841549c627dbe6f85f72a1d"
+        }
+      ],
+      "aggregate_hash": "fdc298f87480f53d99d62f8f26adb4f0b0fdfba636d302df8487e2bbec1c546c",
+      "registry_version": "core-v2",
+      "policy_digest": "ddc8b3ab149139c731d50ab1e80ae554a4d73d469ed683d99ac790b76c966040",
+      "revision_before": 1,
+      "revision_after": 2,
+      "timestamp": "2026-08-06T20:42:29.028316721Z",
+      "reason": "reviewed the maturity gate and state refusal plan; both defects are real and the fix stays inside existing gates",
+      "assurance": "advisory"
+    }
+  ],
   "tasks": {},
   "createdBy": "4c0fdec186f158a5857703db270a9f635624b75122c9d4fd27731bce046d6fd4",
-  "lastTransition": "4c0fdec186f158a5857703db270a9f635624b75122c9d4fd27731bce046d6fd4"
+  "lastTransition": "730611e473f13482ac6edaf81133f145a4125246929d1e1eeeffd0eeaae1c9af"
 }
