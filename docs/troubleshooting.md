@@ -73,7 +73,7 @@ placeholder text is a finding.
 | `plan_invalid` | `tasks.md` doesn't parse, or the graph isn't a DAG | repair tasks, run `check` |
 | `task_unknown` | the task id isn't canonical | choose a task `status` reports |
 | `scaffold_failed` | templates couldn't be written | repair the path, retry |
-| `check_state` | the change's state won't decode | choose a change with valid state |
+| `check_state` | the change's state file is missing or unreadable — any operation that loads state, not only `check` | choose a change with valid state |
 | `check_registry` / `check_policy` | gate registry or policy metadata is wrong | use the canonical default |
 
 Cheapest lesson in this file: **`files` and `depends-on` split on `;`, not

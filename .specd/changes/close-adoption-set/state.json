@@ -3,7 +3,7 @@
   "change": "close-adoption-set",
   "stage": "approved",
   "condition": "active",
-  "revision": 2,
+  "revision": 4,
   "approvals": [
     {
       "schema_version": 1,
@@ -42,7 +42,18 @@
       "assurance": "advisory"
     }
   ],
-  "tasks": {},
+  "tasks": {
+    "C1": "completed"
+  },
   "createdBy": "4c0fdec186f158a5857703db270a9f635624b75122c9d4fd27731bce046d6fd4",
-  "lastTransition": "730611e473f13482ac6edaf81133f145a4125246929d1e1eeeffd0eeaae1c9af"
+  "lastTransition": "becf1705a1c5153ffab5694d1ce569b9d33bc9631a913810dde192d0c794b99f",
+  "extensions": {
+    "completions": {
+      "C1": {
+        "attempt": "d8f818a9a9acff076ea7b1232034426fc6e48100590edb4d2fcd94e714ab17cd",
+        "evidence": "da529bc42a974ed8f9133ddde80a4185d6d49502da43103052ad9b17092a05a0",
+        "history": "becf1705a1c5153ffab5694d1ce569b9d33bc9631a913810dde192d0c794b99f"
+      }
+    }
+  }
 }

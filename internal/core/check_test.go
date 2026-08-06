@@ -4,6 +4,7 @@ import (
 	"os"
 	"path/filepath"
 	"reflect"
+	"strings"
 	"testing"
 
 	"github.com/0xkhdr/specd-cli/internal/core/gates"
@@ -138,5 +139,35 @@ func writeCheckFile(t *testing.T, path string, raw []byte) {
 	t.Helper()
 	if err := os.WriteFile(path, raw, 0o600); err != nil {
 		t.Fatal(err)
+	}
+}
+
+// TestUnreadableStateRefusesOnEveryLoaderBite constructs the state an abandoned
+// change directory leaves behind — the directory exists, `state.json` does not —
+// and requires every loader to refuse with the same code and a next action that
+// is not the command that just failed. A refusal naming its own operation is a
+// dead end, which the fail-closed contract exists to prevent.
+func TestUnreadableStateRefusesOnEveryLoaderBite(t *testing.T) {
+	root := checkRoot(t, true)
+	if err := os.Remove(filepath.Join(root, ".specd", "changes", "safe-change", "state.json")); err != nil {
+		t.Fatal(err)
+	}
+	loaders := map[string]func() error{
+		"check": func() error {
+			_, err := AssembleCheck(root, "safe-change", DefaultPolicyDigest())
+			return err
+		},
+		"status": func() error {
+			_, err := LoadReadinessSnapshot(root, "safe-change")
+			return err
+		},
+	}
+	for name, load := range loaders {
+		t.Run(name, func(t *testing.T) {
+			refusal := assertActionableRefusal(t, load(), "check_state")
+			if strings.Contains(refusal.Next, "specd "+name) {
+				t.Fatalf("%s refusal recovers by rerunning itself: %q", name, refusal.Next)
+			}
+		})
 	}
 }
