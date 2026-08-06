@@ -3,7 +3,7 @@
   "change": "reopen-approved-change",
   "stage": "approved",
   "condition": "active",
-  "revision": 7,
+  "revision": 14,
   "approvals": [
     {
       "schema_version": 1,
@@ -76,9 +76,45 @@
       "timestamp": "2026-08-06T23:01:11.071293037Z",
       "reason": "Reviewed repaired task scope",
       "assurance": "advisory"
+    },
+    {
+      "schema_version": 1,
+      "id": "approval:78b447e8b67ccc02:13",
+      "change": "reopen-approved-change",
+      "gate": "planning_to_approved",
+      "lifecycle_from": "planning",
+      "lifecycle_to": "approved",
+      "approver": "0xkhdr@gmail.com",
+      "actor_class": "human",
+      "artifacts": [
+        {
+          "path": "design.md",
+          "hash": "7fd3c01b67c69a7544630c14fd177c3b1899471b35f524d6f8308e18eb644225"
+        },
+        {
+          "path": "proposal.md",
+          "hash": "8b7e5634353d6b26c7dca5a7098a4275465e720964616c15d4e6c10428dcded3"
+        },
+        {
+          "path": "specs/lifecycle-recovery/spec.md",
+          "hash": "f761193d8b78254eb4e34a04532b097dcfa4fb051be436e12f515ccefb1dd10a"
+        },
+        {
+          "path": "tasks.md",
+          "hash": "855e2fdb6ae78bdc9d1fdd9c916ce1a476e7203305af703f15a93c68c4c583d9"
+        }
+      ],
+      "aggregate_hash": "78b447e8b67ccc02c64ef80df522a4d9e89c62b770a9abab730c93276e75e8c5",
+      "registry_version": "core-v2",
+      "policy_digest": "ddc8b3ab149139c731d50ab1e80ae554a4d73d469ed683d99ac790b76c966040",
+      "revision_before": 13,
+      "revision_after": 14,
+      "timestamp": "2026-08-06T23:31:42.22232697Z",
+      "reason": "Reviewed guidance-safe registry repair",
+      "assurance": "advisory"
     }
   ],
   "tasks": {},
   "createdBy": "63b82c5e100472b0924677f6d834a50fbd88f9e53736084bfa948e4ec2b207e9",
-  "lastTransition": "bec4ca7f1ab3f406160f4df8cb5a105c00b1a2c8f08480d0db0ec29c17712862"
+  "lastTransition": "0a9f74488282877f0041bc92ae9541e9337a65c5c264396a483f2fa62d00be0f"
 }
