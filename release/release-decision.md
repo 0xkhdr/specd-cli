@@ -265,7 +265,25 @@ checkout instead of weighing testimony.
    task starts and its scope refuses every real file it needs. Combined with
    limitation 7, the defect cost a full rebuild of the change. The plan gate
    sees the declared paths and could refuse one that cannot exist.
-9. **Runtime conformance observes the journey driver, not production decision
+9. **An approved plan cannot be repaired; approval is content-bound and the
+   lifecycle is one-way.** Observed on 2026-08-06 while planning
+   `close-adoption-set`: a task's declared verification was authored with a
+   Markdown-escaped `\|` inside a `go test -run` pattern, which Go's regexp
+   reads as a literal pipe. `go test` matched nothing and exited 0; `verify`
+   correctly refused the vacuous run rather than recording it as evidence. Every
+   route to fix the plan is then shut. Editing `tasks.md` makes approval stale,
+   which is correct — approval covers bytes, and restoring them restores it —
+   but `check` refuses because the lifecycle is no longer `planning`, `approve`
+   refuses for the same reason, and `context` refuses on the stale approval. No
+   operation returns an approved change to planning, and none abandons it, so
+   the only exits are restoring the exact approved bytes or discarding the
+   change outside the harness and spending a second human approval. `status`
+   meanwhile advises rerunning check and obtaining fresh approval — a next
+   action neither command will accept, which is the same defect limitation 7
+   names in the attempt path. Two of the three cases now known (7, 8, and this
+   one) are authoring mistakes the plan gate could refuse before approval is
+   spent; this one is also a missing lifecycle route.
+10. **Runtime conformance observes the journey driver, not production decision
    seams.** All fifteen executable operations are independently modeled and
    observed across the fourteen retained journeys, but behavior outside those
    executions is not traced. The 1,000 legal and 1,000 illegal generated steps
