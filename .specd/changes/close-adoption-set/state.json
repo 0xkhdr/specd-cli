@@ -1,0 +1,11 @@
+{
+  "schemaVersion": 1,
+  "change": "close-adoption-set",
+  "stage": "planning",
+  "condition": "active",
+  "revision": 1,
+  "approvals": [],
+  "tasks": {},
+  "createdBy": "4c0fdec186f158a5857703db270a9f635624b75122c9d4fd27731bce046d6fd4",
+  "lastTransition": "4c0fdec186f158a5857703db270a9f635624b75122c9d4fd27731bce046d6fd4"
+}
