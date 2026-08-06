@@ -114,11 +114,11 @@ each claim.
 ## Contributing
 
 Read [AGENTS.md](AGENTS.md) and the [contributor guide](docs/contributing.md)
-before changing the project. The full handoff check is:
+before changing the project. The full handoff check is one command, and it is
+the local projection of `.github/workflows/ci.yml`:
 
 ```bash
-go test ./... -race -count=1
-go vet ./...
+make ci
 ```
 
 New runtime dependencies and unowned public surface fail the release gate.

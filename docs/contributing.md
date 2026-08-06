@@ -10,9 +10,30 @@ This page is the practical version of it.
 
 ```bash
 go build -o specd ./cmd/specd
-go test ./... -race -count=1
-go vet ./...
+make ci
 ```
+
+`make ci` runs formatting, `go vet`, the empty-require-set check, a
+`govulncheck` scan, the raced suite, and the `--version`/`--help` smoke. It is
+the local projection of `.github/workflows/ci.yml`: a gate added to one is
+added to the other in the same commit. CI still calls the commands directly, so
+a failure there names the gate and the `windows-latest` leg needs no `make`.
+
+Other targets: `make docs` regenerates the operations document, `make fmt`
+formats in place, `make check-offline` is `make check` without the scan that
+needs network. On a host without `make`, the raw commands are listed in
+[`../AGENTS.md`](../AGENTS.md) §Checks.
+
+Optional git hooks, installed only when you ask for them:
+
+```bash
+make hooks   # git config core.hooksPath .githooks
+```
+
+`pre-commit` formats staged Go files and re-stages them — it repairs rather
+than rejects. `pre-push` runs `go vet` and the suite without `-race`. Both
+files open with the list of places they deliberately diverge from CI; a new
+divergence gets a line there in the same commit.
 
 Standard library only. `go.mod` having an empty require set is a **release
 gate**, not a preference. If you think you need a dependency, you need a smaller
@@ -162,10 +183,7 @@ The `docs/` set is nine hand-written pages plus one generated. Rules:
 
 ## Before you hand off
 
-- the narrow test for what you changed, then `go test ./... -race -count=1`;
-- `go vet ./...`;
-- `gofmt` clean (the release gate checks it without shelling out, so run it
-  yourself first);
+- the narrow test for what you changed, then `make ci`;
 - generated files regenerated, not edited;
 - `release/surface-inventory.md` updated if you added or removed surface;
 - assumptions, deliberate simplifications, and any mismatch between docs, source,

@@ -94,12 +94,28 @@ State, evidence, and task markers are harness-owned. Never hand-edit
 ## Checks
 
 ```bash
-go test ./... -race -count=1 && go vet ./...
+make ci     # the full gate: formatting, vet, empty require set, advisories,
+            # the raced suite, and the --version/--help smoke
+make docs   # regenerate the operations document after a registry change
+make hooks  # opt in to .githooks (pre-commit formats, pre-push vets and tests)
+```
 
-# regenerate the operations document after a registry change
+`make ci` is the local projection of `.github/workflows/ci.yml`; if a gate is
+added to one, it is added to the other in the same commit. On a platform or
+shell without `make`, run the same commands directly:
+
+```bash
+gofmt -l .
+go vet ./...
+go test ./... -race -count=1
+go run ./cmd/specd --version && go run ./cmd/specd --help
+test -z "$(go list -m all | tail -n +2)"
+go run golang.org/x/vuln/cmd/govulncheck@latest ./...
+
 SPECD_WRITE_OPERATION_DOCS=1 go test ./internal/core -run TestOperationProjectionParity
 ```
 
+`make vuln` needs network; `make check-offline` is `make check` without it.
 `go.mod` having an empty require set is a release gate. Run the focused check
 during iteration, the full suite before handing off. Do not add a framework or
 dependency for a one-off check.

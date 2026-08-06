@@ -2,7 +2,7 @@
 
 | Pattern | Phase | Effort | Risk | Status |
 | --- | --- | --- | --- | --- |
-| [P12](../patterns.md#p12--every-rule-names-its-enforcement-and-forbids-the-escape-hatch) | 1 | small | low | not applied |
+| [P12](../patterns.md#p12--every-rule-names-its-enforcement-and-forbids-the-escape-hatch) | 1 | small | low | applied 2026-08-06 |
 
 ## Why
 

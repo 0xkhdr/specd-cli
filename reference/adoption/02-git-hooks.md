@@ -2,7 +2,7 @@
 
 | Pattern | Phase | Effort | Risk | Status |
 | --- | --- | --- | --- | --- |
-| [P2](../patterns.md#p2--cheap-and-auto-fixing-at-commit-fast-and-verifying-at-push) | 1 | small | low | not applied |
+| [P2](../patterns.md#p2--cheap-and-auto-fixing-at-commit-fast-and-verifying-at-push) | 1 | small | low | applied 2026-08-06 |
 
 ## Why
 

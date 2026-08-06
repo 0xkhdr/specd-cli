@@ -2,7 +2,7 @@
 
 | Pattern | Phase | Effort | Risk | Status |
 | --- | --- | --- | --- | --- |
-| [P1](../patterns.md#p1--one-command-reproduces-ci) | 1 | small | low | not applied |
+| [P1](../patterns.md#p1--one-command-reproduces-ci) | 1 | small | low | applied 2026-08-06 |
 
 ## Why
 
@@ -111,6 +111,25 @@ Deliberately break each gate one at a time (add a stray space, `import "fmt"`
 without use, add a `require` line to `go.mod`) and confirm `make ci` fails on
 that gate and names it. A `Makefile` that cannot fail is a `Makefile` nobody
 needs.
+
+## Applied notes (2026-08-06)
+
+Two deviations from the change set above, both deliberate:
+
+- `deps-empty` checks `go list -m all`'s exit status before its output. Running
+  the acceptance breakage found that the version in this doc — and the identical
+  one already in `.github/workflows/ci.yml` — passed when `go list` *failed*: a
+  failing `go list` prints nothing, and nothing satisfied `test -z`. A `go.mod`
+  with a require line and no `go.sum` entry, which is exactly the state a newly
+  added dependency is in, was accepted. The workflow was fixed in the same
+  commit, so the projection still matches.
+- `make check` includes `vuln` (adoption 04), which needs network.
+  `make check-offline` is the same list without it, so a host with no network
+  still has a runnable gate.
+
+Every gate was verified to bite: a stray space fails `fmt-check` and names the
+file, an unused-format-verb call fails `vet`, and a require line fails
+`deps-empty` both with and without a resolvable `go.sum`.
 
 ## Do not
 

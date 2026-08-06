@@ -17,6 +17,10 @@ jobs:
   # and an attestation is finding out too late.
   contract:
     runs-on: ubuntu-latest
+    # A job that has stopped making progress should fail fast rather than hold
+    # a runner for the six-hour default. Sized to roughly twice observed
+    # runtime.
+    timeout-minutes: 5
     permissions:
       contents: read
     steps:
@@ -39,6 +43,7 @@ jobs:
       matrix:
         os: [ubuntu-latest, ubuntu-24.04-arm, macos-latest, windows-latest]
     runs-on: ${{ matrix.os }}
+    timeout-minutes: 20
     permissions:
       contents: read
     steps:
@@ -53,6 +58,7 @@ jobs:
   publish:
     needs: gates
     runs-on: ubuntu-latest
+    timeout-minutes: 20
     permissions:
       contents: write # create the release and upload assets
       id-token: write # OIDC token the attestation is signed against

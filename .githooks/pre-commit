@@ -1,0 +1,20 @@
+#!/bin/sh
+# Cheap and auto-fixing. Formats staged Go files and re-stages them. It never
+# rejects work it can repair itself.
+#
+# Deliberate deviations from .github/workflows/ci.yml, accepted rather than
+# worked around:
+#   - formats only staged files, while CI checks the whole tree. A commit that
+#     leaves an unrelated file unformatted is caught at push and in CI.
+#   - runs no test, no vet, no build. Those are pre-push and CI.
+# Any future divergence gets a line here in the same commit, or these hooks
+# become a second, drifting source of truth.
+set -e
+
+staged="$(git diff --cached --name-only --diff-filter=ACM -- '*.go')"
+[ -n "$staged" ] || exit 0
+
+# shellcheck disable=SC2086
+gofmt -l -w $staged
+# shellcheck disable=SC2086
+git add $staged

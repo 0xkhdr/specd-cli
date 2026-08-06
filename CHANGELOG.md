@@ -12,6 +12,30 @@ This file records what changed; that one records what has been proven.
 
 ### Added
 
+- One command reproduces the gate: `make ci` is the local projection of
+  `.github/workflows/ci.yml` — formatting, `go vet`, the empty-require-set
+  check, a `govulncheck` scan, the raced suite, and the `--version`/`--help`
+  smoke. A gate added to one is added to the other in the same commit. CI still
+  calls the commands directly, so a failure names the gate and the
+  `windows-latest` leg needs no `make`. `make hooks` opts in to `.githooks`,
+  where `pre-commit` formats staged Go files and re-stages them and `pre-push`
+  runs `go vet` and the suite; both files list where they deliberately diverge
+  from CI. Installing them stays a consented action — nothing else writes a
+  contributor's git config.
+- `release/tag-contract.sh --self-check` now runs on every push and pull
+  request instead of only inside the release workflow on a tag push. The gate
+  that decides whether a tag may consume a release was previously discovered
+  broken while cutting one.
+- `govulncheck` runs as its own CI job, so an advisory reachable from called
+  code is distinguishable from a test failure at a glance. Zero runtime
+  dependencies is not zero advisories: specd links the standard library and is
+  built by a pinned toolchain. It runs via `go run` and leaves the require set
+  empty. `SECURITY.md` states the three legal resolutions for a finding and
+  refuses a fourth.
+- Every CI and release job now carries `timeout-minutes`, and
+  `.github/CODEOWNERS` routes review for the paths the suite trusts rather than
+  checks.
+
 - Contention between callers is now proven rather than argued.
   `TestConcurrentCallersOneRoot` races six real `specd` processes against one
   root: a contested task transition elects exactly one caller and every loser
@@ -53,6 +77,15 @@ This file records what changed; that one records what has been proven.
 - `record.AttemptIdentity`, `core.DecodeTaskActivity`,
   `core.ApprovalStatusProjection`, and `evidence.KnownClass` are unexported;
   each was only ever called from inside its own package.
+
+### Fixed
+
+- The empty-require-set check in CI passed when `go list -m all` failed. A
+  failing `go list` prints nothing, and nothing read as "no dependencies", so a
+  `go.mod` with a require line and no matching `go.sum` entry — the state a
+  freshly added dependency is in — was accepted. The check now asserts the exit
+  status before the output, in CI and in `make deps-empty` alike. Found by
+  deliberately breaking the gate rather than by trusting it.
 
 ## [0.3.0] — 2026-08-02
 

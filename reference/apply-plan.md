@@ -7,7 +7,7 @@ Sequencing, dependencies, and the definition of done for the adoption set.
 Items within a phase are independent and may be applied in any order or in
 parallel. Items in a later phase assume the earlier phases landed.
 
-### Phase 1 — Make the gate reproducible (small, low risk)
+### Phase 1 — Make the gate reproducible (small, low risk) — applied 2026-08-06
 
 | Item | Depends on | Deliverable |
 | --- | --- | --- |
