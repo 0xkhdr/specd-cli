@@ -1,0 +1,448 @@
+# specd CLI — agent usability feedback
+
+Recorded from one real session: planning and starting a portfolio/blog build in
+this repository (`laravel-demo`, Laravel 13, PHP 8.3) using `specd` v0.4.0 from
+`~/go/bin/specd`, driven end to end by an agent (Claude Code).
+
+The session got as far as: two changes created, one approved and stranded, one
+approved and executing, task T1 written and building, and `verify` blocked by a
+defect that no amount of correct planning can route around.
+
+Everything below is something actually hit, in order, with the exact output.
+Findings are ranked by how much agent time they cost.
+
+---
+
+## F1 — `verify` treats every gitignored file as an in-scope violation
+
+**Severity: blocking. This makes `specd verify` unusable in any repository with
+vendored dependencies.**
+
+### What happened
+
+`specd verify portfolio-site T1 0b666b2d…` failed with a 1.3 MB
+`scope_outside` list naming thousands of paths, opening with:
+
+```
+scope_outside: .env, bootstrap/cache/packages.php, bootstrap/cache/services.php,
+database/database.sqlite, node_modules/.bin/clean-orphaned-assets, …
+```
+
+and closing with:
+
+```
+…vendor/webmozart/assert/src/PsalmPlugin.php; next: revise the plan and obtain
+fresh human approval
+```
+
+Every one of those paths predates the attempt. `vendor/`, `.env`,
+`bootstrap/cache/`, and `database/database.sqlite` existed at the clean baseline
+`b1ae775` that `start` itself bound. `git status --porcelain` was clean at
+`start` and showed 9 entries at `verify`, none of them `vendor/` or
+`node_modules/`.
+
+### Root cause
+
+`internal/core/scope.go:264`, `deriveScopeChanges`:
+
+```go
+raw, err := gitRaw(root, "diff", "--name-status", "-z", "--find-renames", baseline, "--")
+// …
+untracked, err := gitRaw(root, "ls-files", "--others", "--exclude-standard", "-z")
+for _, rawPath := range bytes.Split(untracked, []byte{0}) {
+    changes = append(changes, gitScopeChange{Kind: "A", Path: normalized})
+}
+ignored, err := gitRaw(root, "ls-files", "--others", "--ignored", "--exclude-standard", "-z")
+for _, rawPath := range bytes.Split(ignored, []byte{0}) {
+    changes = append(changes, gitScopeChange{Kind: "A", Path: normalized})
+}
+```
+
+The first call is baseline-relative and correct. The second and third are not:
+`git ls-files --others` reports current working-tree state with no reference to
+`baseline`, and every result is appended as `Kind: "A"` — an addition
+attributed to this attempt. A file that git was explicitly told to ignore, and
+that has sat in the tree since before the change existed, is therefore reported
+as something the agent just created outside its declared scope.
+
+### Why an agent cannot work around it
+
+- Declaring `vendor/**` or `node_modules/**` in a task's `files` column is not
+  possible (see F5 — directory paths are rejected as unbounded) and would be
+  wrong even if it were.
+- The paths cannot be removed: `vendor/` is required to run PHP, and
+  `node_modules/` is required for the very `npm run build` that T1 declares as
+  its verification command.
+- The suggested next action, "revise the plan and obtain fresh human approval",
+  cannot help, because no plan can declare these files.
+
+The result is a hard stop with no legal move. This is the single most costly
+issue in the session.
+
+### Suggested fix
+
+Drop the `--ignored` pass entirely. A file git is configured to ignore is not
+evidence of a scope violation; it is explicitly declared uninteresting by the
+repository. If ignored files must be tracked, make both listings
+baseline-relative — compare against the set that existed at `baseline` and
+report only the difference.
+
+Note `internal/core/scope_test.go:194` already carries a comment reasoning about
+ignored files not being violations, which suggests the intent is to tolerate
+them and the enumeration is an oversight rather than a design choice.
+
+### Related: an ordinary install is indistinguishable from an attack
+
+`npm install` legitimately writes ~2000 files under `node_modules/`. Any task
+whose verification is a build or a test run will produce untracked build output
+(`public/build/`, `.phpunit.cache/`, lockfiles). Scope checking needs a concept
+of "generated output" or it will fight every real toolchain.
+
+---
+
+## F2 — Approval is a one-way door, and any edit after it strands the change
+
+**Severity: high. Cost one entire change, permanently.**
+
+### What happened
+
+`nothing-portfolio` was planned, passed `check` with 0 findings, and a human
+approved it:
+
+```
+gate: planning_to_approved
+lifecycle_from: planning
+lifecycle_to: approved
+aggregate_hash: 96854d6a2f4f91488ab2d702ebe6fd2d00cebff9058f75a26f3603ef8e2832e1
+```
+
+The first `specd context nothing-portfolio T1` after approval revealed that the
+task's declared scope had been parsed wrong (F3). Correcting `tasks.md` — a
+purely mechanical separator fix that changed no requirement, no acceptance
+criterion, and no verification command — invalidated the approval:
+
+```
+approval_current: false
+stage: approved
+next: human_handoff — "rerun check, then obtain fresh human approval"
+```
+
+That instruction cannot be followed. Both operations it implies refuse:
+
+```
+$ specd check nothing-portfolio
+error: change lifecycle is not planning
+
+$ specd approve nothing-portfolio
+error lifecycle_unsupported: approve applies to lifecycle planning, not "approved";
+fix: run specd status nothing-portfolio
+```
+
+And `status` responds by repeating the impossible instruction. A closed loop.
+
+`docs/operations.md` confirms it is structural, not a bug: `approve` declares
+`lifecycles | planning`, and the palette contains no operation that returns a
+change from `approved` to `planning` — no cancel, no reopen, no amend, no
+withdraw. `archive` requires a reconciled change, which one with zero completed
+tasks can never be.
+
+### Why this hurts agents specifically
+
+The defect in the approved plan was **only observable after approval**.
+`context` is gated to `lifecycles | approved`, so `allowed_write_paths` — the
+one field that shows how the harness actually parsed the `files` column —
+cannot be inspected while the plan is still fixable. The workflow guarantees
+that a class of planning error is discovered exactly one step after the last
+moment it could be corrected.
+
+The recovery cost was: abandon `nothing-portfolio`, create `portfolio-site`,
+copy three byte-identical artifacts across, apply the fix, and spend a second
+human approval. The stranded change remains in `.specd/changes/` forever,
+`approved` and unbuildable, because nothing in the palette can retire it.
+
+### Suggested fixes, in order of value
+
+1. **Add a reopen or amend operation.** `specd reopen <change>` returning
+   `approved` to `planning` and clearing approval. Human-only if that preserves
+   the trust model — the point is that the door exists at all.
+2. **Let `check` run in `approved`.** It is a read operation and already
+   declares `lifecycles | planning, approved, executing, reconciling, archived`
+   in `docs/operations.md`, yet returned "change lifecycle is not planning".
+   Documentation and behaviour disagree.
+3. **Surface the parse in `check`.** If `check` echoed the resolved
+   `allowed_write_paths` per task, every separator and path-shape error would
+   surface before approval, while it is still free to fix. This alone would
+   have prevented the entire loss.
+4. **Add a cancel or abandon operation** so a stranded change can be retired
+   rather than accumulating.
+
+---
+
+## F3 — Multi-value table columns split on `;`, and this is undiscoverable
+
+**Severity: high. Direct cause of F2's loss.**
+
+### What happened
+
+The scaffold at `tasks.md` shows a single-valued example row:
+
+```
+| T1 | builder | internal/example.go | | sample/Requirement: <requirement> | `<verification>` | <acceptance> |
+```
+
+Nothing indicates what separates multiple files, multiple dependencies, or
+multiple requirement references. Comma is the natural guess in a table whose
+cells are prose. Comma is wrong. The separator is semicolon.
+
+Comma-separated values produced three different error messages, none of which
+names the separator:
+
+```
+tasks.md 8 error dependency T4, T5 is not a stable task id
+tasks.md 6 error task T4 cites unknown requirement portfolio/Requirement: Article
+  source of truth, portfolio/Requirement: Draft articles are unpublished, …
+spec.md 11 error portfolio/Requirement: Article source of truth has no implementing task
+```
+
+The third is the most misleading: the requirement *is* claimed by a task, but
+the malformed cell silently dropped every reference past the first, so the
+traceability gate reported the requirement as unclaimed. The error points at
+`spec.md`, which is correct, while the actual defect is in `tasks.md`.
+
+The `files` column was the worst case, because it **fails silently**. Commas
+there produce no `check` finding at all. `check` returned 0 findings and the
+human approved. Only `context` revealed the truth:
+
+```json
+"allowed_write_paths": [
+  "package.json, vite.config.js, resources/css/app.css, resources/js/app.js, public/fonts/.gitkeep"
+]
+```
+
+One element. A single path whose name contains commas and spaces, matching no
+file on disk. Every write in that task would have been out of scope. The plan
+passed every gate and was unbuildable.
+
+### Suggested fixes
+
+1. **Validate the `files` column like the others.** A path containing `", "` is
+   never a real path; reject it with a message naming the separator.
+2. **Name the separator in the scaffold.** A comment line, or a scaffold row
+   showing two files: `| T1 | builder | a.go; b.go | | … |`.
+3. **Name the separator in every error message.** "dependency `T4, T5` is not a
+   stable task id" should read "…; multiple values separate with `;`".
+4. **Accept commas** where no legal value contains one. Task ids and file paths
+   qualify.
+
+---
+
+## F4 — Angle brackets anywhere in prose are read as scaffold placeholders
+
+**Severity: medium. Costs one round trip per occurrence.**
+
+`design.md` was rejected with:
+
+```
+design 27 error Interfaces section contains scaffold placeholder text
+```
+
+The Interfaces section was fully written. The trigger was two fragments of
+ordinary technical prose inside inline code spans:
+
+```
+`array<string>`
+`<html data-theme>`
+```
+
+The placeholder detector matches `<...>` regardless of context, including inside
+backticks. Both had to be reworded to "a list of strings" and "the `data-theme`
+attribute of the root `html` element" — losing precision to satisfy a lint.
+
+This is a real constraint for any technical design document. Generics, HTML
+elements, type parameters, and shell placeholders all use angle brackets
+naturally.
+
+### Suggested fixes
+
+1. Skip content inside backticks and fenced code blocks.
+2. Match only the literal scaffold tokens the generator emits, rather than the
+   general shape `<word>`.
+3. Report the exact offending line. The finding pointed at line 27, the section
+   heading area; the actual text was at lines 53 and 72. For a long section this
+   is a search, not a fix.
+
+---
+
+## F5 — Directory paths in `files` are rejected, with no way to express a
+## broad-touch task
+
+**Severity: medium.**
+
+```
+tasks.md 7 error task file path resources/views/sections/ is unsafe or unbounded
+tasks.md 11 error task file path resources/views/ is unsafe or unbounded
+```
+
+Rejecting unbounded scope is correct and defensible. But the consequence is that
+a task legitimately touching many files — an accessibility pass across every
+page, a design-token sweep — must enumerate each one at planning time, before
+any of them exist. T9 grew from `resources/views/` to nine explicit paths, all
+guesses about files that later tasks will create. Any name that turns out
+different requires a `tasks.md` edit, which after approval means F2.
+
+Worth noting the failure is compound: when a row contained an invalid path, its
+**requirement references were also dropped**, producing phantom "has no
+implementing task" findings for requirements that were correctly claimed. One
+bad cell invalidated the whole row silently.
+
+### Suggested fixes
+
+1. Allow a bounded glob: `resources/views/**/*.blade.php` is scoped, checkable,
+   and does not require clairvoyance.
+2. Allow a directory with an explicit depth or extension bound.
+3. Report row-level errors without discarding the row's other columns.
+
+---
+
+## F6 — `approve` refuses the `!` passthrough, which reads as the human terminal
+
+**Severity: low, but confusing the first time.**
+
+Running the documented command through Claude Code's `!` prefix — which executes
+in the user's own shell — was refused:
+
+```
+error human_approval_required: approve is human-only and cannot use an
+agent-capable route; fix: hand off approval to a human terminal
+```
+
+The refusal is arguably correct: the route is agent-adjacent even though a human
+typed it. But "hand off approval to a human terminal" does not explain that a
+human-typed command in an agent-hosted shell still counts as an agent route.
+The user had already approved successfully from their own terminal minutes
+earlier, so the distinction was invisible.
+
+### Suggested fix
+
+Say what makes a route agent-capable. Something like: "detected an
+agent-hosted shell (`CLAUDE_CODE` in environment); run this in a terminal not
+launched by an agent."
+
+---
+
+## F7 — `verify` ignores `--json` on failure and dumps unbounded output
+
+**Severity: medium. Actively hostile to agent context windows.**
+
+```
+$ specd verify portfolio-site T1 0b666b2d… --json
+# not JSON — parse error at line 1 column 1
+```
+
+The `--json` flag was honoured by every other operation in the session
+(`new`, `check`, `status`, `next`, `context`, `start`) and silently ignored by
+`verify` on failure. An agent parsing the machine-readable contract gets a
+parse error and has to re-run blind.
+
+The failure output was **1.3 MB** on one line, listing thousands of paths. For
+an agent this is either a truncated read or a large fraction of the context
+window spent on a list where the first ten entries convey the entire finding.
+
+### Suggested fixes
+
+1. Honour `--json` on all paths, including failures. `verify` already declares
+   `--json` in its usage string.
+2. Cap enumerations. Report the first N with a total: `scope_outside: 2073
+   paths, first 10: …`.
+3. Group by prefix. `vendor/ (1841), node_modules/ (2064), .env` is
+   immediately diagnosable; a flat 1.3 MB list is not.
+4. `--output-limit` exists as a `verify` flag but did not bound this. Either it
+   does not apply to scope findings, or it needs a default.
+
+---
+
+## F8 — Scaffold placeholders are unhelpfully generic
+
+**Severity: low.**
+
+The generated `tasks.md` row is:
+
+```
+| T1 | builder | internal/example.go | | sample/Requirement: <requirement> | `<verification>` | <acceptance> |
+```
+
+`internal/example.go` and `sample/Requirement:` are Go-project idioms in a
+harness that is language-agnostic. In a PHP repository they read as noise. More
+importantly the row demonstrates none of the format's actual rules: no multiple
+values, so no separator; no dependency, so no id format; no real verification
+command shape.
+
+### Suggested fix
+
+A two-row scaffold demonstrating multi-value cells and a dependency edge teaches
+the entire format in the place the author is already looking:
+
+```
+| T1 | builder | src/a.php; src/b.php | | cap/Requirement: One; cap/Requirement: Two | `make test` | Observable result. |
+| T2 | builder | src/c.php | T1 | cap/Requirement: Three | `make lint` | Observable result. |
+```
+
+---
+
+## What worked well
+
+Worth recording, because the friction above is all in the surface and none of it
+in the model:
+
+- **The artifact separation is right.** Proposal, design, spec, tasks each
+  answer a distinct question, and being forced through all four produced a
+  materially better plan than jumping to code. The non-goals section in
+  particular captured decisions — no database, no admin panel, no GSAP — that
+  would otherwise have been re-litigated later.
+- **Requirement-to-task traceability is genuinely valuable.** The "has no
+  implementing task" gate caught real gaps, and knowing every requirement is
+  claimed by a task with an exact verification command is a strong property.
+- **Refusals name one next action.** Even the ones that were wrong pointed
+  somewhere specific. This is much better than a stack trace.
+- **`next.kind = "human_handoff"` is unambiguous.** The agent knew exactly where
+  its authority ended, with no temptation to work around it.
+- **The frontier projection is useful.** `frontier: ["T1", "T4"]` immediately
+  communicated that two independent chains existed.
+- **Machine-readable output is well designed** where it is emitted — stable
+  `schema` field, consistent `next`/`exit` envelopes, hashes for approval and
+  manifest. F7 is a gap in coverage, not in design.
+
+---
+
+## Priority order
+
+| # | Finding | Severity | Fix cost |
+|---|---|---|---|
+| F1 | Gitignored files counted as scope violations | Blocking | Small — drop the `--ignored` pass |
+| F2 | No path back from `approved` to `planning` | High | Medium — new operation |
+| F3 | `;` separator undiscoverable; `files` fails silently | High | Small — validate and document |
+| F7 | `--json` ignored on `verify` failure; unbounded dump | Medium | Small |
+| F5 | Directory paths rejected; row errors discard the row | Medium | Medium |
+| F4 | Angle brackets in prose flagged as placeholders | Medium | Small |
+| F8 | Scaffold teaches none of the format's rules | Low | Trivial |
+| F6 | Agent-route refusal does not explain itself | Low | Trivial |
+
+F1 and F3 together account for nearly all the wasted effort in this session.
+Both are small fixes. F1 blocks all execution; F3 combined with F2 destroyed a
+complete, approved plan.
+
+---
+
+## Session state at time of writing
+
+- `nothing-portfolio` — `approved`, `approval_current: false`, 9 tasks pending,
+  unbuildable, unretirable. Superseded.
+- `portfolio-site` — `approved` at revision 2, aggregate hash
+  `1edc15499a56484281c637e970060e7be5842af48058b11e5295abba0d3fc86a`.
+  T1 attempt `0b666b2dbc1ba8cdc904f28e12f5c917ca3d4312b511dfd5c61ed51a366ae3a2`
+  open against baseline `b1ae775`, `verify` failed on F1.
+- T1's work is complete on disk and builds clean: `package.json`,
+  `vite.config.js`, `resources/css/app.css`, `resources/js/app.js`,
+  `public/fonts/.gitkeep`. `npm run build` emits 9.94 kB CSS with zero
+  third-party origins. The three woff2 binaries are absent — they fall outside
+  T1's declared paths, which permit only `public/fonts/.gitkeep`.

@@ -1,0 +1,48 @@
+{
+  "schemaVersion": 1,
+  "change": "reopen-approved-change",
+  "stage": "approved",
+  "condition": "active",
+  "revision": 2,
+  "approvals": [
+    {
+      "schema_version": 1,
+      "id": "approval:88878e2ba91e7828:1",
+      "change": "reopen-approved-change",
+      "gate": "planning_to_approved",
+      "lifecycle_from": "planning",
+      "lifecycle_to": "approved",
+      "approver": "0xkhdr@gmail.com",
+      "actor_class": "human",
+      "artifacts": [
+        {
+          "path": "design.md",
+          "hash": "7fd3c01b67c69a7544630c14fd177c3b1899471b35f524d6f8308e18eb644225"
+        },
+        {
+          "path": "proposal.md",
+          "hash": "8b7e5634353d6b26c7dca5a7098a4275465e720964616c15d4e6c10428dcded3"
+        },
+        {
+          "path": "specs/lifecycle-recovery/spec.md",
+          "hash": "f761193d8b78254eb4e34a04532b097dcfa4fb051be436e12f515ccefb1dd10a"
+        },
+        {
+          "path": "tasks.md",
+          "hash": "92995da097c22062f5c9b8c3f2c03a712335ba9898ad49336fb679dd5364aee0"
+        }
+      ],
+      "aggregate_hash": "88878e2ba91e78286d92308d41069c37637d34187a78fee138cb79e024fdb609",
+      "registry_version": "core-v2",
+      "policy_digest": "ddc8b3ab149139c731d50ab1e80ae554a4d73d469ed683d99ac790b76c966040",
+      "revision_before": 1,
+      "revision_after": 2,
+      "timestamp": "2026-08-06T22:28:49.160181702Z",
+      "reason": "Reviewed recovery design and task scope",
+      "assurance": "advisory"
+    }
+  ],
+  "tasks": {},
+  "createdBy": "63b82c5e100472b0924677f6d834a50fbd88f9e53736084bfa948e4ec2b207e9",
+  "lastTransition": "478941a5c4b21d0a43fff1555a429d3339211cb65adf4f7a5faf3e34e02cd057"
+}
