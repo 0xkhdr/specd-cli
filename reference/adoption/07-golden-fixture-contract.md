@@ -142,11 +142,10 @@ diff, the generator and the comparison disagree and one of them is wrong.
 
 ## Deferred
 
-An automatic fixture-coverage gate ("every invariant has a `bad_*` fixture,
-enforced by a test that reads the directory"). Worth adding once the naming
-convention has settled — do it as part of
-[adoption 09](09-model-conformance.md), where the invariant list already has to
-exist as data.
+Full generated `.specd` root snapshots. Release journey inputs are authored,
+and generating them would blur input with expected output. The automatic
+fixture-coverage gate is no longer deferred: `TestReleaseFixtureContract`
+discovers the tree and compares it with the protected invariant list.
 
 ## Acceptance note — 2026-08-06
 
@@ -155,3 +154,13 @@ names `SPECD_WRITE_PLAN_FIXTURES=1` on drift. Fixture READMEs define
 `good_<case>` and `bad_<invariant>_<violation>`. Existing journey directories
 remain authored inputs: no write switch was added because regenerating authored
 Markdown would erase the distinction between input and expected output.
+
+`TestReleaseFixtureContract` now consumes one good case and nine adversarial
+cases covering all eight protected invariants. Each adversarial case drives a
+real CLI or core refusal route and compares the exact refusal code and recovery
+instruction. Directory discovery fails on dead or malformed named fixtures,
+and coverage fails when a protected invariant has no case. Verified with:
+
+```bash
+go test ./internal/integration -run 'TestReleaseFixtureContract|TestReleaseQualification|TestSurfaceOwnership' -count=1
+```

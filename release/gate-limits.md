@@ -47,9 +47,12 @@ unscanned document agrees, or a dated observation remains current forever.
 ## all fourteen required journeys retained
 
 Establishes: runner contains fourteen journeys whose names overlap the required
-list.
-Does not establish: a journey still asserts its named behavior. A gutted
-journey can retain its name.
+list. Separately, `TestReleaseFixtureContract` discovers one good and nine
+adversarial release cases, covers all eight protected invariants, and compares
+each refusal's exact code and recovery instruction.
+Does not establish: a journey still asserts every behavior implied by its name,
+that every possible refusal has a fixture, or that the hand-written fixture
+scenario and expectation are independently correct.
 
 ## runtime trace conformance
 

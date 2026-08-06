@@ -3,7 +3,7 @@
   "change": "complete-fixture-contract",
   "stage": "approved",
   "condition": "active",
-  "revision": 4,
+  "revision": 6,
   "approvals": [
     {
       "schema_version": 1,
@@ -43,16 +43,22 @@
     }
   ],
   "tasks": {
-    "F1": "completed"
+    "F1": "completed",
+    "F2": "completed"
   },
   "createdBy": "ef26df5195da3da7b45082ed8d6926c1be7f45919d05689e815f9a85888fc3d9",
-  "lastTransition": "7ee9218aa8ac4cb9c70c35c23dc8167464691f2fbea231a275988d2a4e9dd865",
+  "lastTransition": "43afa10dcdc7b84da4790c248f3d3291855d77fb2689f0dc3d3f979a2f227ad3",
   "extensions": {
     "completions": {
       "F1": {
         "attempt": "cb9e4c5844a29359b51e65e871ac0eac09e226c838d4ee7b03f4a5505079b796",
         "evidence": "959aed770426ce4491d7eb954942024a2550719ecfcc0140da9ddba1d19d9442",
         "history": "7ee9218aa8ac4cb9c70c35c23dc8167464691f2fbea231a275988d2a4e9dd865"
+      },
+      "F2": {
+        "attempt": "2b0daa5967d0150d7b2d7d0d9e189aa13f252e8ea02052782a63750be8cbab65",
+        "evidence": "657cd0232b77c6d34a402707cf6c5fc13e9f630caaa2b3c4d25ac22aab4e11ee",
+        "history": "43afa10dcdc7b84da4790c248f3d3291855d77fb2689f0dc3d3f979a2f227ad3"
       }
     }
   }

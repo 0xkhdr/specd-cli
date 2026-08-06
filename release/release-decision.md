@@ -61,6 +61,11 @@ fail-closed refusal carrying exactly one legal next action, and each recovery
 proves old-or-new durable bytes with no invented evidence, completion, approval,
 sync, or archive.
 
+`TestReleaseFixtureContract` discovers one good and nine adversarial committed
+cases. The adversarial set covers all eight protected foundation invariants;
+each case drives a real CLI or core refusal route and compares its exact code
+and recovery instruction. Missing, malformed, or unread named fixtures fail.
+
 `TestConformance` separately judges actor, lifecycle, revision, task,
 dependency, and evidence projections for every executable operation.
 `TestConformanceBites`, four byte-stable fixtures, and fixed-seed generated
@@ -79,7 +84,7 @@ Mechanically asserted by `TestReleaseQualification` from repository facts:
 | no broken link in the user documentation | every relative inline link in `README.md` and `docs/*.md` resolved against the filesystem |
 | generated guidance parity | `generate.Render` is deterministic and names every agent-visible executable operation |
 | maturity claims complete and consistent | every platform, profile, guarantee, and explicitly unclaimed coverage boundary has one typed, dated evidence row; primary user and security summaries agree with it |
-| all fourteen required journeys retained | required list is `requiredJourneys` in `release_test.go`, retained list parsed from the runner |
+| all fourteen required journeys retained | required list is `requiredJourneys` in `release_test.go`, retained list is parsed from the runner, and a separate discovered fixture contract covers all eight protected invariants |
 | runtime trace conformance | every executable registry operation has an independent rule and an observed bounded step, all fourteen journeys are observed, malformed output fails closed, and four typed fixtures replay byte-for-byte |
 | no unowned surface | pending-deletion table of `release/surface-inventory.md` must be empty |
 | no dead vocabulary in the user and agent surface | guidance template, generated operations document, and registry help scanned |

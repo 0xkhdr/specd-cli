@@ -86,6 +86,9 @@ The set is complete when all of these are true:
 - Every parser listed in [06](adoption/06-fuzz-and-property-tests.md) has a fuzz
   target with a committed seed corpus, and any crash found is committed as a
   regression corpus entry.
+- Every protected foundation invariant has a discovered `bad_*` release
+  fixture that drives its refusal route and asserts the exact refusal code and
+  recovery instruction; no named fixture is unread.
 - `release/gate-limits.md` has a section for every gate in
   `release/release-decision.md`, and adding a gate without its section fails the
   build.
