@@ -84,14 +84,12 @@ this test recurses into it:
 | --- | --- |
 | `go test ./... -race -count=1` | observed green on linux/amd64, linux/arm64, darwin/arm64, and windows/amd64, 2026-08-01 |
 | `go vet ./...` | observed green on linux/amd64, linux/arm64, darwin/arm64, and windows/amd64, 2026-08-01 |
-| `release/tag-contract.sh --self-check` | observed green on a linux/amd64 developer host, 2026-08-06. Added to the `repo` job so it runs on every push and pull request rather than only inside the release workflow on a tag push; not yet observed in a CI run |
-| no advisory reachable from called code (`govulncheck`) | observed green on a linux/amd64 developer host, 2026-08-06. Added as the `vulnerabilities` job on every push and pull request; not yet observed in a CI run |
+| `release/tag-contract.sh --self-check` | observed green in the `repo` job on ubuntu-latest, 2026-08-06, and on a linux/amd64 developer host the same day. Runs on every push and pull request now, not only inside the release workflow on a tag push |
+| no advisory reachable from called code (`govulncheck`) | observed green in the `vulnerabilities` job on ubuntu-latest, 2026-08-06, and on a linux/amd64 developer host the same day. Runs on every push and pull request |
 
 All four are run by `.github/workflows/ci.yml` on every push and pull request,
 alongside the formatting and empty-require checks. That makes the observation
 repeatable by anyone reading the run log instead of trusting the dates above.
-The first two have run there; the last two were added on 2026-08-06 and their
-first CI observation lands with the first push of that commit.
 
 What those last two gates do not catch. The tag-contract self-check asserts the
 script's own accept/reject logic against a synthetic repository; it does not
