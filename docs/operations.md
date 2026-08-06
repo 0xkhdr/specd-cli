@@ -99,6 +99,29 @@ Examples are display data. They are never parsed, expanded, or executed.
 | executable | true |
 | example | specd approve safe-create --approver me@example.com --reason reviewed |
 
+## reopen
+
+| fact | value |
+|---|---|
+| id | reopen |
+| summary | Revoke execution authority and return an approved change to planning. |
+| usage | specd reopen <change> [--root <root>] [--json] --revision <revision> --reason <reason> |
+| actor | either |
+| effect | state_write |
+| lifecycles | approved |
+| requiresRoot | true |
+| requiresChange | true |
+| requiresTask | false |
+| authoritySource | actor_identity |
+| scopeSource | change |
+| arguments | <change> Approved change to return to planning. |
+| flags | --root (string) Select the project root holding .specd.; --json (bool) Emit the machine-readable result document.; --revision (uint, required) State revision observed before reopening.; --reason (string, required) Why execution authority is being revoked. |
+| exits | 0 success: operation succeeded; 1 failure: reopening was refused or could not be recorded; 2 refusal: usage error or fail-closed refusal |
+| resultType | reopen_result |
+| agentVisible | true |
+| executable | true |
+| example | specd reopen safe-create --revision 4 --reason repair-plan |
+
 ## status
 
 | fact | value |
