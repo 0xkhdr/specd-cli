@@ -53,8 +53,15 @@ jobs:
       # its own accept/reject behavior against a synthetic repository, so this
       # runs with no tag present and no release in flight. Finding this broken
       # while cutting a release is finding out too late.
-      - name: release tag contract self-check
-        run: sh release/tag-contract.sh --self-check
+      - name: release contract self-checks
+        run: |
+          sh release/tag-contract.sh --self-check
+          sh release/prepare.sh --self-check
+
+      # Compilation and panic-freedom only. Shared-runner timings are too noisy
+      # to be a useful threshold; dated observations live in release/scale.md.
+      - name: benchmarks compile and run
+        run: go test ./... -run '^$' -bench . -benchtime 1x
 
       # Seed corpora run in every ordinary suite leg. One Ubuntu-only burst per
       # boundary explores beyond them for bounded time; it is an observation,

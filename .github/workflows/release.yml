@@ -6,6 +6,12 @@ name: release
 on:
   push:
     tags: ["v*"]
+  workflow_dispatch:
+    inputs:
+      version:
+        description: Existing immutable tag version, without v
+        required: true
+        type: string
 
 permissions:
   contents: read
@@ -29,8 +35,18 @@ jobs:
           # The tag object itself has to be here, not just the commit it points
           # at, or the annotated-tag clause has nothing to read.
           fetch-depth: 0
+          ref: ${{ github.event_name == 'workflow_dispatch' && format('refs/tags/v{0}', inputs.version) || github.ref }}
+      - name: retry is an existing matching tag
+        if: github.event_name == 'workflow_dispatch'
+        env:
+          VERSION: ${{ inputs.version }}
+        run: |
+          test "${GITHUB_REF}" = "refs/tags/v${VERSION}" || {
+            echo "dispatch must be started from refs/tags/v${VERSION}"; exit 1;
+          }
+          test "$(git cat-file -t "v${VERSION}")" = tag
       - run: sh release/tag-contract.sh --self-check
-      - run: sh release/tag-contract.sh "${GITHUB_REF_NAME}"
+      - run: sh release/tag-contract.sh "${{ github.event_name == 'workflow_dispatch' && format('v{0}', inputs.version) || github.ref_name }}"
 
   # A tag can point at any commit, including one CI never saw, so the suite runs
   # again here rather than trusting the branch build. It runs on every platform

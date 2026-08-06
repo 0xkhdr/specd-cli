@@ -2,7 +2,7 @@
 
 | Pattern | Phase | Effort | Risk | Status |
 | --- | --- | --- | --- | --- |
-| [P10](../patterns.md#p10--release-is-a-pr-tagging-is-automated-dispatch-is-retry-only) | 3 | medium | medium | not applied |
+| [P10](../patterns.md#p10--release-is-a-pr-tagging-is-automated-dispatch-is-retry-only) | 3 | medium | medium | applied 2026-08-06 |
 
 ## Why
 

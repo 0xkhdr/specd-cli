@@ -13,7 +13,8 @@ go build -o specd ./cmd/specd
 make ci
 ```
 
-`make ci` runs formatting, `go vet`, the empty-require-set check, a
+`make ci` runs formatting, `go vet`, the empty-require-set check, release
+contract self-checks, benchmark panic-freedom, bounded fuzz bursts, a
 `govulncheck` scan, the raced suite, and the `--version`/`--help` smoke. It is
 the local projection of `.github/workflows/ci.yml`: a gate added to one is
 added to the other in the same commit. CI still calls the commands directly, so
@@ -63,6 +64,7 @@ mechanically from repository facts. All of them must stay green:
 | generated docs parity | `docs/operations.md` byte-compared with `core.RenderOperationDocs` |
 | generated guidance parity | `generate.Render` deterministic, names every agent-visible executable operation |
 | all fourteen journeys retained | `requiredJourneys` in `release_test.go` compared with the runner's cases |
+| runtime trace conformance | every executable operation and retained journey emits a bounded step checked by an independent test-local model |
 | no unowned surface | pending-deletion table in `release/surface-inventory.md` must be empty |
 | no dead vocabulary | guidance template, operations doc, and registry help scanned |
 | no network or LLM path in the deterministic core | imports parsed for `core`, `plan`, `reconcile`, `generate`, `agentjson`, `context` |
@@ -180,6 +182,29 @@ The `docs/` set is nine hand-written pages plus one generated. Rules:
 | `.github/workflows/` | platform matrix, race tests, vet, and release publication |
 | `.specd/` | specd's own managed root; specd plans its changes here, like any other project |
 | `release/` | release decision and surface inventory |
+
+## Cutting a release
+
+Write the release notes under `## [Unreleased]`, then prepare the reviewable
+metadata from a clean `main` checkout:
+
+```bash
+make release-prep VERSION=x.y.z
+gh pr create --base main --head release/x.y.z --title "Release vx.y.z"
+```
+
+The preparation script promotes the human-written notes, creates the release
+branch and commit, and creates no tag. Merging that same-repository PR is the
+human gate; `.github/workflows/auto-tag.yml` checks the prospective contract and
+creates one annotated `vx.y.z` tag on the merge commit.
+
+The default GitHub token used by auto-tag does not trigger the publishing
+workflow. Start `release.yml` manually from the existing tag and supply the
+matching version. The workflow refuses a branch ref or mismatched version, so
+manual dispatch is retry-only and can never publish from `main`.
+
+A published tag is immutable. Never move or delete it; supersede a bad release
+with a new version.
 
 ## Before you hand off
 

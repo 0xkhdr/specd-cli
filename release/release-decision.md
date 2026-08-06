@@ -73,6 +73,7 @@ Mechanically asserted by `TestReleaseQualification` from repository facts:
 | no broken link in the user documentation | every relative inline link in `README.md` and `docs/*.md` resolved against the filesystem |
 | generated guidance parity | `generate.Render` is deterministic and names every agent-visible executable operation |
 | all fourteen required journeys retained | required list is `requiredJourneys` in `release_test.go`, retained list parsed from the runner |
+| runtime trace conformance | every executable registry operation and all fourteen journeys emit a bounded step checked against an independent test-local transition model |
 | no unowned surface | pending-deletion table of `release/surface-inventory.md` must be empty |
 | no dead vocabulary in the user and agent surface | guidance template, generated operations document, and registry help scanned |
 | no network or LLM path in the deterministic core | imports of `internal/core`, `internal/plan`, `internal/reconcile`, `internal/generate`, `internal/agentjson`, `internal/context` parsed |
@@ -86,19 +87,20 @@ this test recurses into it:
 | `go test ./... -race -count=1` | observed green on linux/amd64, linux/arm64, darwin/arm64, and windows/amd64, 2026-08-01 |
 | `go vet ./...` | observed green on linux/amd64, linux/arm64, darwin/arm64, and windows/amd64, 2026-08-01 |
 | bounded fuzz burst | path containment, ledger replay, and task parsing each explored for 60 seconds on a linux/amd64 developer host, 2026-08-06; the same burst now runs in the Ubuntu `repo` job on every push and pull request |
-| `release/tag-contract.sh --self-check` | observed green in the `repo` job on ubuntu-latest, 2026-08-06, and on a linux/amd64 developer host the same day. Runs on every push and pull request now, not only inside the release workflow on a tag push |
+| growth benchmarks compile and run | four growth paths ran with `-benchtime 1x` on a linux/amd64 developer host, 2026-08-06; dated measurements are in `release/scale.md`, while CI checks compilation and panic-freedom rather than noisy timing thresholds |
+| release contract self-checks | `release/tag-contract.sh` and `release/prepare.sh` observed green on a linux/amd64 developer host, 2026-08-06; both run in the Ubuntu `repo` job on every push and pull request |
 | no advisory reachable from called code (`govulncheck`) | observed green in the `vulnerabilities` job on ubuntu-latest, 2026-08-06, and on a linux/amd64 developer host the same day. Runs on every push and pull request |
 
 [Gate limits](gate-limits.md) records what each green row does not establish.
 
-All five are run by `.github/workflows/ci.yml` on every push and pull request,
+All six are run by `.github/workflows/ci.yml` on every push and pull request,
 alongside the formatting and empty-require checks. That makes the observation
 repeatable by anyone reading the run log instead of trusting the dates above.
 
-What those last two gates do not catch. The tag-contract self-check asserts the
-script's own accept/reject logic against a synthetic repository; it does not
-assert that the release workflow calls the script correctly, and it runs only
-on `ubuntu-latest`. `govulncheck` reports advisories reachable from called code
+What the release-contract and advisory gates do not catch. The contract
+self-checks assert the scripts' accept/reject logic against synthetic
+repositories; they do not prove a merged PR creates a tag, and they run only on
+`ubuntu-latest`. `govulncheck` reports advisories reachable from called code
 in the standard library and the toolchain — with an empty require set there is
 nothing else for it to read — so it says nothing about a defect in specd's own
 logic, and its verdict is only as current as the advisory database on the day
@@ -190,7 +192,11 @@ checkout instead of weighing testimony.
 2. **Three traversals are three traversals.** The base loop is proven end to end
    by a two-task change on 2026-07-31 and three-task changes on 2026-08-01 and
    2026-08-02, all in one root on one platform. It is not proven at scale or
-   over long-lived changes. Contention is narrower than it was:
+   over long-lived changes. Four growth paths are now measured on one named
+   machine in [`scale.md`](scale.md): readiness reaches an observed wall at
+   10,000 independent tasks and ledger replay at 100,000 records costs about
+   1.49 seconds and 1.17 GB of allocations. These are observations, not
+   supported limits. Contention is narrower than it was:
    `TestConcurrentCallersOneRoot` races six real `specd` processes against one
    root and asserts that a contested transition elects exactly one caller while
    every loser fails closed on a named refusal with one legal next action, and
@@ -218,15 +224,16 @@ checkout instead of weighing testimony.
    of trusting its operator. What it does not establish is duration or
    contention: it ran on linux/amd64, in one root, across a few hours, with no
    second caller.
-6. **The release machinery has been driven through the loop once; the release
-   itself still has not.** `release-contract-gate` traversed the whole loop in
+6. **The release machinery has been driven through the loop once; the new
+   release-PR path itself still has not.** `release-contract-gate` traversed the whole loop in
    this root on 2026-08-02 and changed the release workflow: three tasks, each
    started, verified against real evidence, and completed, with the plan and
    every task in the published Git history. That answers the part of this
    limitation that said the machinery had never gone through its own harness.
-   What it does not answer is the release: cutting a tag, publishing binaries,
-   and writing this record are still ordinary edits, not a change under
-   `.specd/`, and the loop has never driven one.
+   Merging `release/<version>` now creates the annotated tag mechanically, and
+   publication can only be retried against that existing immutable tag. What
+   this does not answer is a real release through that new path: no release PR
+   has yet been merged and published with it.
 7. **An attempt is bound to one commit and only `complete` releases it.**
    `release-contract-gate` was planned three times before it ran. `start` binds
    an attempt to the commit HEAD was at, and the scope check counts uncommitted
@@ -381,8 +388,8 @@ boundary is written down here honestly. What a user gets is: a working base
 loop, fourteen journeys replayed on every platform a binary ships for, an
 audited surface, a suite that passes on three operating systems and two
 architectures, and one traversal they can re-derive from a checkout. What a
-user does not get is proof at scale, under concurrent callers, over a
-long-lived change, or that the loop has been driven through a real change
+user does not get is a supported scale limit, load measurement under concurrent
+callers, proof over a long-lived change, or proof that the loop has been driven through a real change
 anywhere but linux/amd64. Anyone relying on this beyond that boundary is
 relying on something no gate in this repository asserts.
 
@@ -394,10 +401,9 @@ release changes one on-disk path — a change's lock moved out of the folder
 `archive` renames — which no root reads and no migration needs, but which an
 older root's `.specd/.gitignore` does not cover. Next: drive a real change
 through the loop on macOS, Windows, or linux/arm64 rather than inferring the
-platform from a green suite; put this repository's own release machinery
-through the loop, which is the part that never has been; exercise two
-concurrent callers against one root; and run a change that stays open across
-many commits. Record friction through `specd friction` when a deferred domain
+platform from a green suite; cut the first release through the release-PR path;
+exercise two concurrent callers against one root; and run a change that stays
+open across many commits. Record friction through `specd friction` when a deferred domain
 blocks real work — D14 has a route, this root has zero records, so the
 threshold remains honestly unmet and every deferred domain stays blocked.
 Revisit this record on the first of those results, and re-decide rather than

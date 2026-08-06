@@ -2,7 +2,7 @@
 
 | Pattern | Phase | Effort | Risk | Status |
 | --- | --- | --- | --- | --- |
-| [P9](../patterns.md#p9--a-capacity-claim-needs-an-executable-model) | 3 | medium | low | not applied |
+| [P9](../patterns.md#p9--a-capacity-claim-needs-an-executable-model) | 3 | medium | low | applied 2026-08-06 |
 
 ## Why
 

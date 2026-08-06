@@ -99,7 +99,8 @@ State, evidence, and task markers are harness-owned. Never hand-edit
 
 ```bash
 make ci     # the full gate: formatting, vet, empty require set, advisories,
-            # the raced suite, and the --version/--help smoke
+            # release contracts, benchmark panic-freedom, fuzz bursts, the
+            # raced suite, and the --version/--help smoke
 make docs   # regenerate the operations document after a registry change
 make hooks  # opt in to .githooks (pre-commit formats, pre-push vets and tests)
 ```
@@ -115,6 +116,9 @@ go test ./... -race -count=1
 go run ./cmd/specd --version && go run ./cmd/specd --help
 test -z "$(go list -m all | tail -n +2)"
 go run golang.org/x/vuln/cmd/govulncheck@latest ./...
+sh release/tag-contract.sh --self-check
+sh release/prepare.sh --self-check
+go test ./... -run '^$' -bench . -benchtime 1x
 
 SPECD_WRITE_OPERATION_DOCS=1 go test ./internal/core -run TestOperationProjectionParity
 ```

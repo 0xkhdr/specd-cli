@@ -32,7 +32,7 @@ Apply 05 before 06: fuzz targets assert refusal shape, and 05 is where that
 assertion style is established. Apply 08 last in the phase — it documents what
 the others do not catch.
 
-### Phase 3 — Close the claims specd's own documents leave open (large)
+### Phase 3 — Close the claims specd's own documents leave open (large) — applied 2026-08-06
 
 | Item | Depends on | Deliverable |
 | --- | --- | --- |

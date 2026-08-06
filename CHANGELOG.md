@@ -12,6 +12,12 @@ This file records what changed; that one records what has been proven.
 
 ### Added
 
+- Phase 3 hardening adds an independent test-local runtime conformance model
+  over all fourteen journeys and every executable operation, four executable
+  growth benchmarks with dated results in `release/scale.md`, and a release-PR
+  flow where merging `release/<version>` mechanically creates an immutable
+  annotated tag. Publication remains a retry-only manual dispatch against that
+  existing tag.
 - Phase 2 release proof: every foundation invariant has an actionable bite
   assertion; native fuzz targets cover path containment, ledger replay, state
   decode, and all planning parser families; task transitions have a fixed-seed

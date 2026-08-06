@@ -11,6 +11,7 @@
 # owner of parsing the section it publishes.
 #
 #   sh release/tag-contract.sh v0.3.0
+#   sh release/tag-contract.sh --prospective v0.3.0
 #   sh release/tag-contract.sh --self-check
 set -eu
 
@@ -26,16 +27,31 @@ check() {
 		refused=1
 	fi
 
+	check_changelog "$tag" || refused=1
+
+	return "$refused"
+}
+
+check_changelog() {
+	tag="$1"
+	if ! printf '%s\n' "$tag" | awk '/^v[0-9]+\.[0-9]+\.[0-9]+$/ { valid = 1 } END { exit !valid }'; then
+		echo "tag $tag is not v<major>.<minor>.<patch>: choose a semantic version"
+		return 1
+	fi
+
 	# Versions are digits and dots, so escaping the dots is the whole quoting
 	# problem: unescaped, 0.3.0 would also match a heading for 0x3y0.
 	version="${tag#v}"
 	escaped="$(printf '%s' "$version" | sed 's/\./\\./g')"
-	if ! grep -q "^## \[$escaped]" CHANGELOG.md; then
-		echo "CHANGELOG.md has no section for $version: write one before tagging"
-		refused=1
-	fi
-
-	return "$refused"
+	awk -v heading="## [$version]" '
+		$0 == heading || index($0, heading " ") == 1 { found = 1; next }
+		found && /^## \[/ { exit }
+		found && $0 !~ /^[[:space:]]*$/ { body = 1 }
+		END { exit !(found && body) }
+	' CHANGELOG.md || {
+		echo "CHANGELOG.md has no non-empty section for $version: write one before tagging"
+		return 1
+	}
 }
 
 # Builds a repository the clauses can be run against, because the workflow this
@@ -84,7 +100,11 @@ self_check() {
 
 	expect "annotated tag with a section is accepted" v1.0.0 0 ""
 	expect "lightweight tag is refused" v2.0.0 1 "is not an annotated tag"
-	expect "missing changelog section is refused" v3.0.0 1 "no section for 3.0.0"
+	expect "missing changelog section is refused" v3.0.0 1 "no non-empty section for 3.0.0"
+	if ! (cd "$work" && check_changelog v1.0.0); then
+		echo "FAIL prospective tag with a section was refused"
+		failures=$((failures + 1))
+	fi
 
 	if [ "$failures" -ne 0 ]; then
 		echo "$failures self-check failure(s)"
@@ -98,8 +118,18 @@ if [ "${1:-}" = --self-check ]; then
 	exit 0
 fi
 
+if [ "${1:-}" = --prospective ]; then
+	if [ $# -ne 2 ]; then
+		echo "usage: tag-contract.sh --prospective <tag>" >&2
+		exit 2
+	fi
+	check_changelog "$2"
+	echo "prospective tag contract holds for $2"
+	exit 0
+fi
+
 if [ $# -ne 1 ]; then
-	echo "usage: tag-contract.sh <tag> | --self-check" >&2
+	echo "usage: tag-contract.sh <tag> | --prospective <tag> | --self-check" >&2
 	exit 2
 fi
 

@@ -43,6 +43,16 @@ list.
 Does not establish: a journey still asserts its named behavior. A gutted
 journey can retain its name.
 
+## runtime trace conformance
+
+Establishes: executions in all fourteen journeys emitted bounded state steps,
+every executable operation was reached, and the steps matched an independent
+test-local transition model. Full limits and the next ratchet are in
+`internal/integration/conformance/LIMITS.md`.
+Does not establish: exhaustive sequences, correctness of the hand-written
+model, persistence internals, concurrency, or behavior outside the executions
+that ran.
+
 ## no unowned surface
 
 Establishes: live inventoried surface has an owner row and dead rows are
@@ -82,11 +92,12 @@ on platforms not named as supported.
 Establishes: configured `go vet` analyzers found no issue in current packages.
 Does not establish: broader static analysis, runtime correctness, or security.
 
-## release/tag-contract.sh --self-check
+## release contract self-checks
 
-Establishes: tag contract accepts and rejects its synthetic cases on Ubuntu.
-Does not establish: release workflow calls it correctly or other shells behave
-identically.
+Establishes: tag and preparation contracts accept and reject their synthetic
+cases on Ubuntu, and preparation creates a branch and commit but no tag.
+Does not establish: a merged PR creates a tag, publication succeeds, or other
+shells behave identically.
 
 ## no advisory reachable from called code (`govulncheck`)
 
@@ -101,6 +112,13 @@ Establishes: three high-risk targets explored generated inputs for 60 seconds
 on one Ubuntu runner.
 Does not establish: exhaustive inputs, deterministic discoveries, other
 platform behavior, or coverage of every fuzz target beyond committed seeds.
+
+## growth benchmarks compile and run
+
+Establishes: the four benchmark families compile and complete once without a
+panic on the runner. Dated manual measurements live in `release/scale.md`.
+Does not establish: a timing threshold, supported maximum, another machine's
+behavior, concurrency under load, or long-lived-change behavior.
 
 ## Cross-cutting limits
 

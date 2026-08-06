@@ -2,7 +2,7 @@
 
 | Pattern | Phase | Effort | Risk | Status |
 | --- | --- | --- | --- | --- |
-| [P4](../patterns.md#p4--the-checker-must-be-independent-of-the-thing-it-checks), [P5](../patterns.md#p5--coverage-breach-fails-closed) | 3 | large | medium | not applied |
+| [P4](../patterns.md#p4--the-checker-must-be-independent-of-the-thing-it-checks), [P5](../patterns.md#p5--coverage-breach-fails-closed) | 3 | large | medium | applied 2026-08-06 |
 
 This is the largest item in the reference set and the one with the highest
 ceiling. Do not start it before [05](05-mutation-bite-tests.md),

@@ -3,11 +3,11 @@
 # has to resolve a Makefile, and so the Windows leg needs no make at all.
 # If a gate is added to the workflow, it is added here in the same commit.
 
-.PHONY: ci check test fuzz vet fmt fmt-check deps-empty vuln smoke docs hooks
+.PHONY: ci check test fuzz benchmarks vet fmt fmt-check deps-empty vuln smoke docs hooks release-contracts release-prep
 
-ci: check fuzz test smoke
+ci: check fuzz benchmarks test smoke
 
-check: fmt-check vet deps-empty vuln
+check: fmt-check vet deps-empty release-contracts vuln
 
 test:
 	go test ./... -race -count=1
@@ -18,6 +18,11 @@ fuzz:
 	go test ./internal/core/path -run '^$$' -fuzz '^FuzzChangePathContainment$$' -fuzztime 60s
 	go test ./internal/core/record -run '^$$' -fuzz '^FuzzRecordLedger$$' -fuzztime 60s
 	go test ./internal/plan -run '^$$' -fuzz '^FuzzParseTasks$$' -fuzztime 60s
+
+# Compile and execute every growth benchmark once. Shared runners are too noisy
+# for timing thresholds; dated measurements live in release/scale.md.
+benchmarks:
+	go test ./... -run '^$$' -bench . -benchtime 1x
 
 vet:
 	go vet ./...
@@ -45,11 +50,15 @@ vuln:
 
 # `check` without the one gate that requires network.
 .PHONY: check-offline
-check-offline: fmt-check vet deps-empty
+check-offline: fmt-check vet deps-empty release-contracts
 
 smoke:
 	go run ./cmd/specd --version
 	go run ./cmd/specd --help
+
+release-contracts:
+	sh release/tag-contract.sh --self-check
+	sh release/prepare.sh --self-check
 
 # Regenerate the operations document after an operation-registry change.
 docs:
@@ -59,3 +68,7 @@ docs:
 # target rewrites a contributor's git config.
 hooks:
 	git config core.hooksPath .githooks
+
+release-prep:
+	@test -n "$(VERSION)" || { echo "usage: make release-prep VERSION=x.y.z"; exit 2; }
+	sh release/prepare.sh "$(VERSION)"

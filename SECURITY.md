@@ -36,6 +36,10 @@ gh attestation verify specd_linux_amd64 --repo 0xkhdr/specd-cli
 Workflow dependencies are pinned to commit SHAs rather than mutable tags, so a
 compromised upstream tag cannot silently enter a release build.
 
+Published tags are immutable: no workflow or operator moves or deletes one. A
+bad release is superseded by a new version; a false claim is additionally
+retracted in `go.mod`, following the `v0.1.0` precedent.
+
 Every push and pull request is also scanned by `govulncheck` for advisories
 reachable from code specd actually calls. That covers the Go standard library
 and the toolchain, which is the whole of specd's dependency surface; it does

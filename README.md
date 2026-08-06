@@ -16,7 +16,9 @@ specd is released at `v0.3.0` and remains a young `0.x` project. The base loop
 is proven end to end on linux/amd64. On linux/arm64, macOS, and Windows the
 suite and all fourteen release journeys are green and gate every release, but
 no change has been driven through the loop by hand there. The production
-profile is experimental; scale and long-lived changes are not yet proven.
+profile is experimental. Core growth paths have dated
+[scale observations](release/scale.md), including a readiness wall at 10,000
+tasks; long-lived changes are not yet proven.
 Contention between concurrent callers against one root is proven — one caller
 wins a contested transition, losers fail closed, and the shared history ledger
 replays clean — but driving the loop end to end from two callers at once is
