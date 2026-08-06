@@ -36,9 +36,42 @@ gh attestation verify specd_linux_amd64 --repo 0xkhdr/specd-cli
 Workflow dependencies are pinned to commit SHAs rather than mutable tags, so a
 compromised upstream tag cannot silently enter a release build.
 
+Published tags are immutable: no workflow or operator moves or deletes one. A
+bad release is superseded by a new version; a false claim is additionally
+retracted in `go.mod`, following the `v0.1.0` precedent.
+
+Every push and pull request is also scanned by `govulncheck` for advisories
+reachable from code specd actually calls. That covers the Go standard library
+and the toolchain, which is the whole of specd's dependency surface; it does
+not cover a defect in specd's own logic for which no advisory exists.
+
+## Handling a vulnerability finding
+
+specd has an empty `go.mod` require set, so a finding is an advisory against
+the standard library or the toolchain. It has exactly three legal resolutions:
+
+1. **Bump the toolchain.** Most standard-library advisories are fixed by a Go
+   patch release. Update `go-version` in both workflows and the `go` directive
+   in `go.mod` together.
+2. **Remove the call path.** If specd's use of the affected symbol is
+   incidental, delete it.
+3. **Record an accepted risk**, only if neither of the above is possible. It
+   goes in [`release/release-decision.md`](release/release-decision.md) as a
+   red gate, carrying the advisory ID, the exact call path, why it is not
+   exploitable in specd's threat model, and the condition that removes it.
+
+There is no fourth option, and specifically no suppression file and no
+allowlist flag. A suppression with no reason and no expiry is how a gate stops
+meaning anything.
+
 ## What specd defends
 
 These are the guarantees a bypass in would be a vulnerability:
+
+Their published levels come from `internal/core/maturity.go`, are projected by
+`report --kind status`, and are checked against this document by
+`TestMaturityGateBites`. The evidence boundary remains the
+[release decision](release/release-decision.md).
 
 - **Approval cannot be self-granted.** The human route is derived from a termios
   ioctl on stdin, so only a real controlling terminal derives it and every other

@@ -84,9 +84,7 @@ func TestScopeRejectsOutsideDeleteRenameSymlinkAndManaged(t *testing.T) {
 			beforeState, _ := os.ReadFile(statePath)
 			beforeEvidence, _ := os.ReadFile(evidencePath)
 			_, err := CheckScope(root, "safe-change", "T1", attempt.ID)
-			if !failure.IsCode(err, test.code) {
-				t.Fatalf("error = %v, want %s", err, test.code)
-			}
+			assertActionableRefusal(t, err, test.code)
 			for _, path := range test.paths {
 				if !strings.Contains(err.Error(), path) {
 					t.Fatalf("error %q missing %q", err, path)

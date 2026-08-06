@@ -66,10 +66,18 @@ func ValidateSegment(segment string) error {
 	if !segmentPattern.MatchString(segment) {
 		return failure.New("unsafe_segment", "", segment, "name must be lowercase kebab-case", "choose another name")
 	}
-	if _, found := reserved[segment]; found {
+	if _, found := reserved[segment]; found || windowsDeviceName(segment) {
 		return failure.New("reserved_segment", "", segment, "name is reserved for managed state", "choose another name")
 	}
 	return nil
+}
+
+func windowsDeviceName(segment string) bool {
+	if segment == "con" || segment == "prn" || segment == "aux" || segment == "nul" {
+		return true
+	}
+	return len(segment) == 4 && (strings.HasPrefix(segment, "com") || strings.HasPrefix(segment, "lpt")) &&
+		segment[3] >= '1' && segment[3] <= '9'
 }
 
 func (o *Owner) Root() string     { return o.root }

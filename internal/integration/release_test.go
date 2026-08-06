@@ -32,7 +32,8 @@ import (
 )
 
 const (
-	decisionDoc = "release/release-decision.md"
+	decisionDoc   = "release/release-decision.md"
+	gateLimitsDoc = "release/gate-limits.md"
 )
 
 // requiredJourneys are the fourteen journeys the release requires the runner to
@@ -113,10 +114,12 @@ func TestReleaseQualification(t *testing.T) {
 		gateDocsParity(t),
 		gateDocLinks(t),
 		gateGuidanceParity(t),
+		gateMaturityClaims(t),
 		gateJourneys(t),
 		gateUnownedSurface(t),
 		gateVocabulary(t),
 		gateDeterministicCore(t),
+		gateLimitsComplete(t),
 	}
 	for _, name := range observedGates {
 		gates = append(gates, gate{name: name, observed: true})
@@ -352,6 +355,9 @@ func gateDocLinks(t *testing.T) gate {
 	t.Helper()
 	g := gate{name: "no broken link in the user documentation"}
 	pages := []string{"README.md"}
+	if _, err := os.Stat(filepath.Join(repoDir, "ARCHITECTURE.md")); err == nil {
+		pages = append(pages, "ARCHITECTURE.md")
+	}
 	entries, err := os.ReadDir(filepath.Join(repoDir, "docs"))
 	if err != nil {
 		t.Fatalf("read docs: %v", err)
@@ -381,6 +387,200 @@ func gateDocLinks(t *testing.T) gate {
 		g.blocker = "unresolvable documentation links: " + strings.Join(broken, ", ")
 	}
 	return g
+}
+
+func gateMaturityClaims(t *testing.T) gate {
+	t.Helper()
+	docs := map[string]string{
+		"README.md":      readRepoFile(t, "README.md"),
+		"SECURITY.md":    readRepoFile(t, "SECURITY.md"),
+		"docs/README.md": readRepoFile(t, "docs/README.md"),
+		decisionDoc:      readRepoFile(t, decisionDoc),
+	}
+	g := gate{name: "maturity claims complete and consistent"}
+	if problems := checkMaturityClaims(core.MaturityClaims(), docs); len(problems) > 0 {
+		g.blocker = strings.Join(problems, "; ")
+	}
+	return g
+}
+
+func checkMaturityClaims(claims []core.MaturityClaim, docs map[string]string) []string {
+	required := []string{
+		"platform/linux/amd64", "platform/linux/arm64", "platform/darwin/arm64", "platform/windows/amd64",
+		"profile/default", "profile/production", "guarantee/approval", "guarantee/evidence",
+		"guarantee/scope", "guarantee/atomicity", "guarantee/fail-closed", "guarantee/path-containment",
+		"guarantee/host-assurance", "coverage/concurrent-end-to-end",
+	}
+	levels := map[string]bool{"proven": true, "gated": true, "experimental": true, "unclaimed": true, "advisory": true, "enforced": true}
+	seen := map[string]string{}
+	var problems []string
+	for _, claim := range claims {
+		id := claim.Category + "/" + claim.Subject
+		level := string(claim.Maturity)
+		if level != "" && claim.Assurance != "" {
+			problems = append(problems, id+" has both maturity and assurance")
+			continue
+		}
+		if level == "" {
+			level = string(claim.Assurance)
+		}
+		if seen[id] != "" {
+			problems = append(problems, id+" is duplicated")
+		}
+		seen[id] = level
+		if !levels[level] {
+			problems = append(problems, id+" has invalid level "+level)
+		}
+		if !regexp.MustCompile(`^\d{4}-\d{2}-\d{2}$`).MatchString(claim.Observed) || strings.TrimSpace(claim.Evidence) == "" {
+			problems = append(problems, id+" has no dated evidence")
+		}
+		path := strings.Split(claim.Evidence, "#")[0]
+		if _, err := os.Stat(filepath.Join(repoDir, path)); err != nil {
+			problems = append(problems, id+" evidence does not resolve")
+		}
+	}
+	for _, id := range required {
+		if seen[id] == "" {
+			problems = append(problems, id+" is missing")
+		}
+	}
+	checks := []struct{ path, prefix, id string }{
+		{"README.md", "the base loop is ", "platform/linux/amd64"},
+		{"README.md", "the production profile is ", "profile/production"},
+		{"README.md", "host assurance is ", "guarantee/host-assurance"},
+		{"SECURITY.md", "host assurance is ", "guarantee/host-assurance"},
+		{"docs/README.md", "the base loop is released and ", "platform/linux/amd64"},
+		{"docs/README.md", "the production profile remains ", "profile/production"},
+		{"docs/README.md", "host scope assurance is ", "guarantee/host-assurance"},
+	}
+	for _, check := range checks {
+		normalized := strings.ToLower(strings.Join(strings.Fields(docs[check.path]), " "))
+		prefix := strings.ToLower(check.prefix)
+		start := strings.Index(normalized, prefix)
+		if start < 0 {
+			problems = append(problems, check.path+" omits "+check.id)
+			continue
+		}
+		word := strings.Trim(strings.Fields(normalized[start+len(prefix):])[0], "`.,;:")
+		if word != seen[check.id] {
+			problems = append(problems, check.path+" claims "+check.id+"="+word+", registry says "+seen[check.id])
+		}
+	}
+	problems = append(problems, platformProblems(seen, claims, docs[decisionDoc])...)
+	return problems
+}
+
+// platformProblems judges the platform rows against the one authored tier list
+// and the one dated suite observation in release/release-decision.md. The prose
+// checks above cannot cover these rows without restating each platform's level
+// in a second authored place, so the document is parsed instead: it stays the
+// only place the claim is written, and the registry stays a projection of it.
+//
+// Without this, upgrading a gated platform to proven in the registry alone —
+// a published claim no observation backs — left the whole suite green.
+func platformProblems(seen map[string]string, claims []core.MaturityClaim, decision string) []string {
+	var problems []string
+	supported, found := supportedPlatformParagraph(decision)
+	if !found {
+		return []string{decisionDoc + " has no supported platform paragraph"}
+	}
+	observed, found := observedSuiteDate(decision)
+	if !found {
+		return []string{decisionDoc + " has no dated suite observation"}
+	}
+	for id, level := range seen {
+		subject, isPlatform := strings.CutPrefix(id, "platform/")
+		if !isPlatform {
+			continue
+		}
+		switch listed := strings.Contains(supported, subject); {
+		case listed && level != "proven":
+			problems = append(problems, id+" is "+level+", "+decisionDoc+" supports it")
+		case !listed && level == "proven":
+			problems = append(problems, id+" claims proven, "+decisionDoc+" does not support it")
+		}
+	}
+	for _, claim := range claims {
+		if claim.Category == "platform" && claim.Observed != observed {
+			problems = append(problems, "platform/"+claim.Subject+" is dated "+claim.Observed+
+				", the suite was observed on "+observed)
+		}
+	}
+	slices.Sort(problems)
+	return problems
+}
+
+// supportedPlatformParagraph returns the bolded "Supported." paragraph of the
+// platform section. Everything after the blank line that ends it — including
+// the tier that only replays journeys — is deliberately excluded, because that
+// tier's prose names the supported platform too.
+func supportedPlatformParagraph(decision string) (string, bool) {
+	_, after, found := strings.Cut(decision, "**Supported.**")
+	if !found {
+		return "", false
+	}
+	paragraph, _, _ := strings.Cut(after, "\n\n")
+	return paragraph, true
+}
+
+// observedSuiteDate reads the date from the raced-suite row of the observed CI
+// facts table. That run is what a platform claim rests on, so a claim dated
+// anything else is dated by hand rather than by an observation.
+func observedSuiteDate(decision string) (string, bool) {
+	date := regexp.MustCompile(`\d{4}-\d{2}-\d{2}`)
+	for _, line := range strings.Split(decision, "\n") {
+		if !strings.HasPrefix(line, "| `"+observedGates[0]+"` |") {
+			continue
+		}
+		if dates := date.FindAllString(line, -1); len(dates) > 0 {
+			return dates[len(dates)-1], true
+		}
+	}
+	return "", false
+}
+
+func TestMaturityGateBites(t *testing.T) {
+	claims := core.MaturityClaims()
+	claims[0].Observed = ""
+	if problems := checkMaturityClaims(claims, map[string]string{}); !slices.ContainsFunc(problems, func(problem string) bool {
+		return strings.Contains(problem, "has no dated evidence")
+	}) {
+		t.Fatalf("missing evidence did not bite: %v", problems)
+	}
+	docs := map[string]string{
+		"README.md":      "The base loop is proven. The production profile is proven. Host assurance is advisory.",
+		"SECURITY.md":    "Host assurance is advisory.",
+		"docs/README.md": "The base loop is released and proven. The production profile remains experimental. Host scope assurance is advisory.",
+	}
+	if problems := checkMaturityClaims(core.MaturityClaims(), docs); !slices.ContainsFunc(problems, func(problem string) bool {
+		return strings.Contains(problem, "profile/production=proven")
+	}) {
+		t.Fatalf("contradictory documentation did not bite: %v", problems)
+	}
+	repository := map[string]string{decisionDoc: readRepoFile(t, decisionDoc)}
+	upgraded := core.MaturityClaims()
+	gated := slices.IndexFunc(upgraded, func(claim core.MaturityClaim) bool {
+		return claim.Category == "platform" && claim.Maturity == core.MaturityGated
+	})
+	if gated < 0 {
+		t.Fatal("no gated platform claim to upgrade")
+	}
+	upgraded[gated].Maturity = core.MaturityProven
+	if problems := checkMaturityClaims(upgraded, repository); !slices.ContainsFunc(problems, func(problem string) bool {
+		return strings.Contains(problem, "platform/"+upgraded[gated].Subject+" claims proven")
+	}) {
+		t.Fatalf("unobserved platform upgrade did not bite: %v", problems)
+	}
+	redated := core.MaturityClaims()
+	platform := slices.IndexFunc(redated, func(claim core.MaturityClaim) bool {
+		return claim.Category == "platform"
+	})
+	redated[platform].Observed = "2030-01-01"
+	if problems := checkMaturityClaims(redated, repository); !slices.ContainsFunc(problems, func(problem string) bool {
+		return strings.Contains(problem, "the suite was observed on")
+	}) {
+		t.Fatalf("hand-dated platform claim did not bite: %v", problems)
+	}
 }
 
 // gateDeterministicCore refuses any network, TLS, or subprocess import inside
@@ -455,6 +655,42 @@ func checkDecision(t *testing.T, gates []gate, red map[string]string) {
 	if decision != "release" && len(red) == 0 {
 		t.Logf("%s: every gate is green and the decision is %q", decisionDoc, decision)
 	}
+}
+
+func gateLimitsComplete(t *testing.T) gate {
+	t.Helper()
+	g := gate{name: "gate limits complete"}
+	decision := readRepoFile(t, decisionDoc)
+	start := strings.Index(decision, "## Release gates")
+	if start < 0 {
+		g.blocker = "Release gates section is missing"
+		return g
+	}
+	section := decision[start:]
+	if end := strings.Index(section[len("## Release gates"):], "\n## "); end >= 0 {
+		section = section[:len("## Release gates")+end]
+	}
+	limits := readRepoFile(t, gateLimitsDoc)
+	seen := map[string]bool{}
+	for _, line := range strings.Split(section, "\n") {
+		if !strings.HasPrefix(line, "|") {
+			continue
+		}
+		cells := strings.Split(strings.Trim(line, "|"), "|")
+		name := strings.Trim(strings.TrimSpace(cells[0]), "`")
+		if name == "gate" || strings.HasPrefix(name, "---") || name == "" || seen[name] {
+			continue
+		}
+		seen[name] = true
+		if !strings.Contains(limits, "## "+name+"\n") {
+			g.blocker = "gate " + name + " has no limits heading"
+			return g
+		}
+	}
+	if len(seen) == 0 {
+		g.blocker = "no gate rows parsed from " + decisionDoc
+	}
+	return g
 }
 
 // --------------------------------------------------------------------- helpers

@@ -102,6 +102,7 @@ func statusFacts(model report.StatusModel, eligibility []core.FrictionEligibilit
 		fact("profile", model.Profile),
 		fact("policy_digest", model.PolicyDigest),
 		fact("assurance", model.Assurance),
+		fact("maturity_claims", maturityRows(core.MaturityClaims())),
 		fact("approval_current", fmt.Sprint(model.ApprovalCurrent)),
 		fact("approval_reason", model.ApprovalReason),
 		fact("artifacts", artifactRows(model.Artifacts)),
@@ -113,6 +114,19 @@ func statusFacts(model report.StatusModel, eligibility []core.FrictionEligibilit
 		fact("empty", fmt.Sprint(model.Empty)),
 		fact("inconsistency", inconsistencyRow(model.Inconsistency)),
 	}
+}
+
+func maturityRows(claims []core.MaturityClaim) string {
+	out := make([]string, 0, len(claims))
+	for _, claim := range claims {
+		level := string(claim.Maturity)
+		if level == "" {
+			level = string(claim.Assurance)
+		}
+		out = append(out, fmt.Sprintf("%s/%s=%s observed=%s evidence=%s",
+			claim.Category, claim.Subject, level, claim.Observed, claim.Evidence))
+	}
+	return rows(out)
 }
 
 func proofFacts(model report.ProofModel) []ReportFact {

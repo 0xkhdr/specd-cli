@@ -160,8 +160,10 @@ reviewer identity"* (`internal/core/evidence/production.go:246`). An agent
 cannot review itself any more than it can approve itself.
 
 Review is part of the opt-in production profile. That profile is experimental
-and carries no production assurance in the current release decision. Review is
-not required by the default loop and does not substitute for either human gate.
+and carries no production assurance in the current release decision. Its level
+comes from the typed maturity registry projected by `report --kind status`.
+Review is not required by the default loop and does not substitute for either
+human gate.
 
 ## Reports authorize nothing
 

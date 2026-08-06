@@ -1,0 +1,42 @@
+name: auto-tag
+
+on:
+  pull_request:
+    types: [closed]
+    branches: [main]
+
+permissions:
+  contents: read
+
+jobs:
+  tag:
+    if: >
+      github.event.pull_request.merged == true &&
+      startsWith(github.event.pull_request.head.ref, 'release/') &&
+      github.event.pull_request.head.repo.full_name == github.repository
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          ref: ${{ github.event.pull_request.merge_commit_sha }}
+          fetch-depth: 0
+      - name: prospective tag contract
+        env:
+          HEAD_REF: ${{ github.event.pull_request.head.ref }}
+        run: |
+          version="${HEAD_REF#release/}"
+          sh release/tag-contract.sh --self-check
+          sh release/tag-contract.sh --prospective "v${version}"
+          test "$(git cat-file -t HEAD)" = commit
+      - name: create immutable annotated tag
+        env:
+          HEAD_REF: ${{ github.event.pull_request.head.ref }}
+        run: |
+          version="${HEAD_REF#release/}"
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git tag -a "v${version}" -m "v${version}"
+          git push origin "v${version}"

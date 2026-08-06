@@ -1,0 +1,1 @@
+{"schema":1,"invariant":"atomicity","scenario":"atomicity_torn_write","refusal":"transaction_conflict","next":"retry the operation so the pending transaction is resolved"}

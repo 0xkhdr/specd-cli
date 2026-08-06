@@ -1,0 +1,1 @@
+{"schema":1,"invariant":"staleness","scenario":"staleness_revision_moved","refusal":"stale_revision","next":"run status and retry from revision 2"}

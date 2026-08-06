@@ -56,6 +56,20 @@ func TestAgentGuidance(t *testing.T) {
 		}
 	})
 
+	t.Run("projects every maturity claim", func(t *testing.T) {
+		for _, claim := range core.MaturityClaims() {
+			level := string(claim.Maturity)
+			if level == "" {
+				level = string(claim.Assurance)
+			}
+			for _, text := range []string{claim.Category + "/" + claim.Subject, level, claim.Observed, claim.Evidence} {
+				if !strings.Contains(first.Body, text) {
+					t.Errorf("guidance omits %s claim value %q", claim.Subject, text)
+				}
+			}
+		}
+	})
+
 	t.Run("mentions only agent callable operations", func(t *testing.T) {
 		callable := map[string]bool{}
 		for _, operation := range core.Operations() {

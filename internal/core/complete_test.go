@@ -36,17 +36,15 @@ func TestCompleteConsumesExactEvidenceOnce(t *testing.T) {
 		bindings["T1"].HistoryID != current.LastTransition {
 		t.Fatalf("state/bindings = %#v / %#v / %v / %v", current, bindings, activityErr, bindingErr)
 	}
-	if _, err := CompleteTask(root, "safe-change", completeRequest(3)); !failure.IsCode(err, "stale_revision") {
-		t.Fatalf("replay = %v", err)
-	}
+	_, err = CompleteTask(root, "safe-change", completeRequest(3))
+	assertActionableRefusal(t, err, "stale_revision")
 }
 
 func TestCompleteRequiresCurrentProofAndExactScope(t *testing.T) {
 	t.Run("no proof", func(t *testing.T) {
 		root, _, _ := completeRoot(t, false)
-		if _, err := CompleteTask(root, "safe-change", completeRequest(3)); !failure.IsCode(err, "complete_evidence") {
-			t.Fatalf("error = %v", err)
-		}
+		_, err := CompleteTask(root, "safe-change", completeRequest(3))
+		assertActionableRefusal(t, err, "complete_evidence")
 	})
 	t.Run("outside scope", func(t *testing.T) {
 		root, _, _ := completeRoot(t, true)

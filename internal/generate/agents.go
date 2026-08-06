@@ -31,6 +31,8 @@ type guidanceOperation struct {
 	ID, Summary, Usage, Effect, Example string
 }
 
+type guidanceClaim struct{ ID, Level, Observed, Evidence string }
+
 // Render projects the agent-visible registry through the shared prose template.
 // It is deterministic: registry order, no clock, no environment, no network.
 func Render() (Guidance, error) {
@@ -47,11 +49,23 @@ func Render() (Guidance, error) {
 			Effect: string(operation.Effect), Example: operation.Example,
 		})
 	}
+	claims := make([]guidanceClaim, 0, len(core.MaturityClaims()))
+	for _, claim := range core.MaturityClaims() {
+		level := string(claim.Maturity)
+		if level == "" {
+			level = string(claim.Assurance)
+		}
+		claims = append(claims, guidanceClaim{
+			ID: claim.Category + "/" + claim.Subject, Level: level,
+			Observed: claim.Observed, Evidence: claim.Evidence,
+		})
+	}
 	var out bytes.Buffer
 	if err := guidance.Execute(&out, struct {
 		Version    int
 		Operations []guidanceOperation
-	}{Version: facts.SchemaVersion, Operations: rows}); err != nil {
+		Claims     []guidanceClaim
+	}{Version: facts.SchemaVersion, Operations: rows, Claims: claims}); err != nil {
 		return Guidance{}, failure.New("guidance_render", "", "", err.Error(),
 			"repair internal/generate/agents.tmpl and regenerate the guidance")
 	}

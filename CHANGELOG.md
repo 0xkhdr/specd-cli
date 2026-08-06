@@ -10,7 +10,64 @@ This file records what changed; that one records what has been proven.
 
 ## [Unreleased]
 
+### Fixed
+
+- A change directory with no `state.json` — what an abandoned or half-created
+  change leaves behind — refused with a raw filesystem error whose recovery
+  action was `run specd status <change>`, the command that had just failed.
+  Every operation that loads state now refuses `check_state` with one legal next
+  action, because the refusal moved into the single reader of the state file
+  instead of being restated by one caller.
+- The maturity registry was decoration for every claim no summary sentence
+  named: upgrading a gated platform to `proven` — a published claim with no
+  observation behind it — kept the whole suite green. Platform levels are now
+  checked against the supported tier stated in `release/release-decision.md`,
+  and every platform claim must carry the date of the raced-suite observation
+  recorded there, so a level or a date cannot move alone.
+
 ### Added
+
+- Phase 4 completes the hardening adoption set: `ARCHITECTURE.md` maps code
+  layers and every design rule to its enforcing test; a typed core registry
+  projects dated maturity and assurance claims into agent guidance and status
+  reports with a release-gate bite test; contributor policy now includes the
+  merge boundary, agent-authored change responsibility, three extension
+  cookbooks, and real failure-shaped gotchas.
+- Phase 3 hardening adds an independent test-local runtime conformance model
+  over all fourteen journeys and every executable operation, four executable
+  growth benchmarks with dated results in `release/scale.md`, and a release-PR
+  flow where merging `release/<version>` mechanically creates an immutable
+  annotated tag. Publication remains a retry-only manual dispatch against that
+  existing tag.
+- Phase 2 release proof: every foundation invariant has an actionable bite
+  assertion; native fuzz targets cover path containment, ledger replay, state
+  decode, and all planning parser families; task transitions have a fixed-seed
+  property check; plan output has an explicit byte golden; and
+  `release/gate-limits.md` records every gate's blind spots. CI and `make ci`
+  run bounded fuzz bursts for the three highest-risk boundaries.
+- One command reproduces the gate: `make ci` is the local projection of
+  `.github/workflows/ci.yml` — formatting, `go vet`, the empty-require-set
+  check, a `govulncheck` scan, the raced suite, and the `--version`/`--help`
+  smoke. A gate added to one is added to the other in the same commit. CI still
+  calls the commands directly, so a failure names the gate and the
+  `windows-latest` leg needs no `make`. `make hooks` opts in to `.githooks`,
+  where `pre-commit` formats staged Go files and re-stages them and `pre-push`
+  runs `go vet` and the suite; both files list where they deliberately diverge
+  from CI. Installing them stays a consented action — nothing else writes a
+  contributor's git config.
+- `release/tag-contract.sh --self-check` now runs on every push and pull
+  request instead of only inside the release workflow on a tag push. The gate
+  that decides whether a tag may consume a release was previously discovered
+  broken while cutting one.
+- `govulncheck` runs as its own CI job, so an advisory reachable from called
+  code is distinguishable from a test failure at a glance. Zero runtime
+  dependencies is not zero advisories: specd links the standard library and is
+  built by a pinned toolchain. It runs via `go run` and leaves the require set
+  empty. `SECURITY.md` states the three legal resolutions for a finding and
+  refuses a fourth.
+- Every CI and release job now carries `timeout-minutes`, and
+  `.github/CODEOWNERS` routes review for the paths the suite trusts rather than
+  checks.
 
 - Contention between callers is now proven rather than argued.
   `TestConcurrentCallersOneRoot` races six real `specd` processes against one
@@ -53,6 +110,17 @@ This file records what changed; that one records what has been proven.
 - `record.AttemptIdentity`, `core.DecodeTaskActivity`,
   `core.ApprovalStatusProjection`, and `evidence.KnownClass` are unexported;
   each was only ever called from inside its own package.
+
+### Fixed
+
+- Windows device names such as `con`, `nul`, `com1`, and `lpt9` are refused as
+  managed path segments on every platform, keeping accepted names portable.
+- The empty-require-set check in CI passed when `go list -m all` failed. A
+  failing `go list` prints nothing, and nothing read as "no dependencies", so a
+  `go.mod` with a require line and no matching `go.sum` entry — the state a
+  freshly added dependency is in — was accepted. The check now asserts the exit
+  status before the output, in CI and in `make deps-empty` alike. Found by
+  deliberately breaking the gate rather than by trusting it.
 
 ## [0.3.0] — 2026-08-02
 

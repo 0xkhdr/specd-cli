@@ -1,0 +1,16 @@
+#!/bin/sh
+# Fast and verifying. No overlap with pre-commit: formatting was already fixed
+# there, so this runs the checks that catch what formatting cannot.
+#
+# Deliberate deviations from .github/workflows/ci.yml, accepted rather than
+# worked around:
+#   - -race is omitted. A raced suite takes minutes on some hosts; the
+#     four-platform matrix is where the race detector earns its cost.
+#   - no govulncheck. It needs network and an advisory fetch on every push is a
+#     hook contributors learn to skip, and a skipped hook enforces nothing.
+#   - no build or --version smoke. Builds are CI-only.
+# Any future divergence gets a line here in the same commit.
+set -e
+
+go vet ./...
+go test ./... -count=1

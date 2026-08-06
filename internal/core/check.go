@@ -74,10 +74,9 @@ func assembleCheckLocked(owner *corepath.Owner, change, policyDigest string) (Ch
 	}
 	raw, err := readCheckState(statePath)
 	if err != nil {
-		return CheckSnapshot{}, failure.New(
-			"check_state", owner.Root(), statePath, err.Error(),
-			"choose an existing change with valid state",
-		)
+		// readCheckState already refuses with the stable code and one legal
+		// action; restating it here would be a second validation boundary.
+		return CheckSnapshot{}, err
 	}
 	current, err := state.Decode(raw, change)
 	if err != nil {
@@ -102,22 +101,39 @@ func assembleCheckLocked(owner *corepath.Owner, change, policyDigest string) (Ch
 	}, nil
 }
 
+// readCheckState is the one reader of a change's canonical state file, so it is
+// also the one place that refuses an unreadable one. Every operation that loads
+// state — check, status, next, and the transition paths — reaches this
+// function, and a raw filesystem error escaping here reaches a caller as an
+// untyped failure whose recovery action is the command that just failed.
 func readCheckState(path string) ([]byte, error) {
 	file, err := os.Open(path)
 	if err != nil {
-		return nil, err
+		return nil, unreadableState(path, err.Error())
 	}
 	defer file.Close()
 	opened, openedErr := file.Stat()
 	pathInfo, pathErr := os.Lstat(path)
 	if openedErr != nil || pathErr != nil {
-		return nil, fmt.Errorf("inspect state file: %v", firstCheckError(openedErr, pathErr))
+		return nil, unreadableState(path,
+			fmt.Sprintf("inspect state file: %v", firstCheckError(openedErr, pathErr)))
 	}
 	if !opened.Mode().IsRegular() || !pathInfo.Mode().IsRegular() ||
 		pathInfo.Mode()&os.ModeSymlink != 0 || !os.SameFile(opened, pathInfo) {
-		return nil, fmt.Errorf("state must be a regular non-symlink file")
+		return nil, unreadableState(path, "state must be a regular non-symlink file")
 	}
-	return io.ReadAll(file)
+	raw, err := io.ReadAll(file)
+	if err != nil {
+		return nil, unreadableState(path, err.Error())
+	}
+	return raw, nil
+}
+
+func unreadableState(path, reason string) error {
+	return failure.New(
+		"check_state", "", path, reason,
+		"choose an existing change with valid state",
+	)
 }
 
 func firstCheckError(errors ...error) error {

@@ -52,7 +52,11 @@ func TestReleaseJourneys(t *testing.T) {
 		t.Fatalf("release journeys are qualified on linux, darwin, and windows only; this run is %s", runtime.GOOS)
 	}
 	t.Logf("release journeys platform: %s/%s", runtime.GOOS, runtime.GOARCH)
+	runReleaseJourneys(t)
+}
 
+func runReleaseJourneys(t *testing.T) {
+	t.Helper()
 	t.Run("01 fresh project and one-task change", func(t *testing.T) { releaseFreshProject(t) })
 	t.Run("02 brownfield capability delta", releaseBrownfieldJourney)
 	t.Run("03 two wave-0 tasks and a dependent wave-1 task", releaseWaveJourney)
@@ -535,6 +539,14 @@ func releaseProfileJourney(t *testing.T) {
 	if standard["assurance"] != core.AttemptAssurance {
 		t.Fatalf("the default profile changed its assurance: %v", standard)
 	}
+
+	// Registration is not reachability: project the separate-review operation
+	// itself, not only the report kind that summarizes review state.
+	manifest := r.json("context", releaseChange, releaseTask)
+	started := r.json("start", releaseChange, releaseTask, "--revision", revisionOf(t, manifest))
+	releaseWrite(t, r.root, map[string]string{"sample.go": afterSample})
+	r.json("verify", releaseChange, releaseTask, dataString(t, started, "attempt"))
+	r.json("review", releaseChange, releaseTask, dataString(t, started, "attempt"), "--reviewer", releaseHuman)
 }
 
 // releaseResumeJourney is the cold-resume proof: nine facts, each derived from
@@ -660,7 +672,9 @@ func newRelease(t *testing.T, project, planFiles map[string]string) release {
 
 func (r release) agent(args ...string) (int, string) {
 	r.t.Helper()
+	trace := beginConformanceTrace(r.t, r.root, cmd.RouteAgent, args)
 	code, stdout, stderr := runCLI(r.t, cmd.RouteAgent, append(args, "--root", r.root)...)
+	trace.finish(code, stdout)
 	return code, stdout + stderr
 }
 
@@ -675,7 +689,9 @@ func (r release) must(args ...string) string {
 
 func (r release) jsonAny(args ...string) (int, map[string]any) {
 	r.t.Helper()
+	trace := beginConformanceTrace(r.t, r.root, cmd.RouteAgent, args)
 	code, stdout, stderr := runCLI(r.t, cmd.RouteAgent, append(append(args, "--root", r.root), "--json")...)
+	trace.finish(code, stdout)
 	var document map[string]any
 	if err := json.Unmarshal([]byte(stdout), &document); err != nil {
 		r.t.Fatalf("specd %v: %v: %s%s", args, err, stdout, stderr)
@@ -714,7 +730,9 @@ func (r release) refuses(args []string, codes ...string) map[string]any {
 
 func (r release) humanRun(args ...string) (int, string) {
 	r.t.Helper()
+	trace := beginConformanceTrace(r.t, r.root, cmd.RouteHumanTerminal, args)
 	code, stdout, stderr := runCLI(r.t, cmd.RouteHumanTerminal, append(args, "--root", r.root)...)
+	trace.finish(code, stdout)
 	return code, stdout + stderr
 }
 
@@ -735,8 +753,11 @@ func (r release) sync() map[string]any { r.t.Helper(); return r.syncChange(relea
 
 func (r release) syncChange(change string) map[string]any {
 	r.t.Helper()
+	args := []string{"sync", change, "--approver", releaseHuman, "--reason", "reviewed the reconciliation"}
+	trace := beginConformanceTrace(r.t, r.root, cmd.RouteHumanTerminal, args)
 	code, stdout, stderr := runCLI(r.t, cmd.RouteHumanTerminal, "sync", change,
 		"--approver", releaseHuman, "--reason", "reviewed the reconciliation", "--root", r.root, "--json")
+	trace.finish(code, stdout)
 	var document map[string]any
 	if err := json.Unmarshal([]byte(stdout), &document); err != nil {
 		r.t.Fatalf("sync: %v: %s%s", err, stdout, stderr)

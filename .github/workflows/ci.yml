@@ -17,10 +17,14 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
-  # Repository-wide facts. They are platform-independent, so running them on
-  # every matrix leg would assert the same thing three times.
+  # Repository-wide facts. Fuzzing stays Ubuntu-only because bounded input
+  # exploration is not multiplied into a platform claim.
   repo:
     runs-on: ubuntu-latest
+    # A job that has stopped making progress should fail fast rather than hold
+    # a runner for the six-hour default. Sized to roughly twice observed
+    # runtime.
+    timeout-minutes: 5
     permissions:
       contents: read
     steps:
@@ -30,15 +34,68 @@ jobs:
           go-version: "1.26"
           check-latest: true
 
+      # A failing `go list` prints nothing, and nothing reads as "no
+      # dependencies", so its exit status is checked before its output is.
       - name: go.mod has an empty require set
         run: |
-          test -z "$(go list -m all | tail -n +2)" \
+          modules="$(go list -m all)" \
+            || { echo "go list -m all failed; the require set could not be read"; exit 1; }
+          test -z "$(printf '%s\n' "$modules" | tail -n +2)" \
             || { echo "specd is standard library only; a dependency was added"; exit 1; }
 
       - name: gofmt
         run: |
           unformatted="$(gofmt -l .)"
           test -z "$unformatted" || { echo "$unformatted"; exit 1; }
+
+      # The release workflow's first gate, exercised on every change rather
+      # than only when a tag is pushed. `--self-check` is the script asserting
+      # its own accept/reject behavior against a synthetic repository, so this
+      # runs with no tag present and no release in flight. Finding this broken
+      # while cutting a release is finding out too late.
+      - name: release contract self-checks
+        run: |
+          sh release/tag-contract.sh --self-check
+          sh release/prepare.sh --self-check
+
+      # Compilation and panic-freedom only. Shared-runner timings are too noisy
+      # to be a useful threshold; dated observations live in release/scale.md.
+      - name: benchmarks compile and run
+        run: go test ./... -run '^$' -bench . -benchtime 1x
+
+      # Seed corpora run in every ordinary suite leg. One Ubuntu-only burst per
+      # boundary explores beyond them for bounded time; it is an observation,
+      # not proof of absence.
+      - name: fuzz burst
+        run: |
+          go test ./internal/core/path -run '^$' -fuzz '^FuzzChangePathContainment$' -fuzztime 60s
+          go test ./internal/core/record -run '^$' -fuzz '^FuzzRecordLedger$' -fuzztime 60s
+          go test ./internal/plan -run '^$' -fuzz '^FuzzParseTasks$' -fuzztime 60s
+
+  # Zero runtime dependencies is not zero advisories: specd links the Go
+  # standard library and is built by a pinned toolchain, and both receive
+  # them. govulncheck reports only advisories reachable from code specd
+  # actually calls, so a finding here is a real call path, not a manifest
+  # match. It runs via `go run` and adds nothing to go.mod, which the
+  # empty-require-set gate in the repo job continues to enforce. Its own job,
+  # so an advisory is distinguishable from a test failure at a glance.
+  #
+  # @latest is correct here and nowhere else in this repository: a scanner
+  # pinned to a SHA reports a frozen view of the advisory database, which is
+  # the one thing it must never do. Do not "fix" this to match the SHA-pinning
+  # rule that governs actions.
+  vulnerabilities:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - uses: actions/setup-go@b7ad1dad31e06c5925ef5d2fc7ad053ef454303e # v7.0.0
+        with:
+          go-version: "1.26"
+          check-latest: true
+      - run: go run golang.org/x/vuln/cmd/govulncheck@latest ./...
 
   # One leg per platform specd claims. The supported-platform claim in
   # release/release-decision.md is limited to the platforms actually run, so
@@ -49,12 +106,20 @@ jobs:
   # checkout that made gofmt and every golden fixture drift is pinned by
   # .gitattributes. ubuntu-24.04-arm covers linux/arm64, which was previously
   # unobserved and therefore unclaimed.
+  #
+  # `make ci` is the local projection of this job list. A gate added here is
+  # added there in the same commit. CI calls the underlying commands directly
+  # rather than invoking make, so a failure names the gate and the
+  # windows-latest leg needs no make.
   gates:
     strategy:
       fail-fast: false
       matrix:
         os: [ubuntu-latest, ubuntu-24.04-arm, macos-latest, windows-latest]
     runs-on: ${{ matrix.os }}
+    # See the repo job: fail fast instead of holding four runners for six
+    # hours on a hung test.
+    timeout-minutes: 20
     permissions:
       contents: read
     steps:

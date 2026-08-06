@@ -6,6 +6,12 @@ name: release
 on:
   push:
     tags: ["v*"]
+  workflow_dispatch:
+    inputs:
+      version:
+        description: Existing immutable tag version, without v
+        required: true
+        type: string
 
 permissions:
   contents: read
@@ -17,6 +23,10 @@ jobs:
   # and an attestation is finding out too late.
   contract:
     runs-on: ubuntu-latest
+    # A job that has stopped making progress should fail fast rather than hold
+    # a runner for the six-hour default. Sized to roughly twice observed
+    # runtime.
+    timeout-minutes: 5
     permissions:
       contents: read
     steps:
@@ -25,8 +35,18 @@ jobs:
           # The tag object itself has to be here, not just the commit it points
           # at, or the annotated-tag clause has nothing to read.
           fetch-depth: 0
+          ref: ${{ github.event_name == 'workflow_dispatch' && format('refs/tags/v{0}', inputs.version) || github.ref }}
+      - name: retry is an existing matching tag
+        if: github.event_name == 'workflow_dispatch'
+        env:
+          VERSION: ${{ inputs.version }}
+        run: |
+          test "${GITHUB_REF}" = "refs/tags/v${VERSION}" || {
+            echo "dispatch must be started from refs/tags/v${VERSION}"; exit 1;
+          }
+          test "$(git cat-file -t "v${VERSION}")" = tag
       - run: sh release/tag-contract.sh --self-check
-      - run: sh release/tag-contract.sh "${GITHUB_REF_NAME}"
+      - run: sh release/tag-contract.sh "${{ github.event_name == 'workflow_dispatch' && format('v{0}', inputs.version) || github.ref_name }}"
 
   # A tag can point at any commit, including one CI never saw, so the suite runs
   # again here rather than trusting the branch build. It runs on every platform
@@ -39,6 +59,7 @@ jobs:
       matrix:
         os: [ubuntu-latest, ubuntu-24.04-arm, macos-latest, windows-latest]
     runs-on: ${{ matrix.os }}
+    timeout-minutes: 20
     permissions:
       contents: read
     steps:
@@ -53,6 +74,7 @@ jobs:
   publish:
     needs: gates
     runs-on: ubuntu-latest
+    timeout-minutes: 20
     permissions:
       contents: write # create the release and upload assets
       id-token: write # OIDC token the attestation is signed against

@@ -1,0 +1,12 @@
+# Review routing. Ownership here is not the same as the surface ownership in
+# release/surface-inventory.md: that file says which journey or invariant a
+# symbol exists for; this file says who must look at a change to it.
+*                       @0xkhdr
+
+# Paths where a mistake is not caught by the suite, because these files are
+# what the suite trusts.
+/.github/               @0xkhdr
+/.githooks/             @0xkhdr
+/release/               @0xkhdr
+/AGENTS.md              @0xkhdr
+/SECURITY.md            @0xkhdr

@@ -16,7 +16,9 @@ specd is released at `v0.3.0` and remains a young `0.x` project. The base loop
 is proven end to end on linux/amd64. On linux/arm64, macOS, and Windows the
 suite and all fourteen release journeys are green and gate every release, but
 no change has been driven through the loop by hand there. The production
-profile is experimental; scale and long-lived changes are not yet proven.
+profile is experimental. Core growth paths have dated
+[scale observations](release/scale.md), including a readiness wall at 10,000
+tasks; long-lived changes are not yet proven.
 Contention between concurrent callers against one root is proven — one caller
 wins a contested transition, losers fail closed, and the shared history ledger
 replays clean — but driving the loop end to end from two callers at once is
@@ -26,6 +28,11 @@ Before production use, read the exact [release boundary](release/release-decisio
 and [security model](SECURITY.md). Host assurance is `advisory` unless the host
 provides containment: specd detects out-of-scope writes but does not sandbox the
 process that made them.
+
+These levels come from the typed maturity registry described in
+[Architecture](ARCHITECTURE.md#3-one-owner-rules), are projected by
+`report --kind status`, and are checked against this summary by release
+qualification.
 
 ## Install
 
@@ -113,12 +120,13 @@ each claim.
 
 ## Contributing
 
-Read [AGENTS.md](AGENTS.md) and the [contributor guide](docs/contributing.md)
-before changing the project. The full handoff check is:
+Read [AGENTS.md](AGENTS.md), [Architecture](ARCHITECTURE.md), and the
+[contributor guide](docs/contributing.md) before changing the project. The full
+handoff check is one command, and it is the local projection of
+`.github/workflows/ci.yml`:
 
 ```bash
-go test ./... -race -count=1
-go vet ./...
+make ci
 ```
 
 New runtime dependencies and unowned public surface fail the release gate.

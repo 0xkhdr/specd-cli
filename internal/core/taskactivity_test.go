@@ -2,6 +2,7 @@ package core
 
 import (
 	"encoding/json"
+	"math/rand"
 	"reflect"
 	"testing"
 
@@ -32,6 +33,33 @@ func TestTaskActivityExactVocabulary(t *testing.T) {
 	for _, activity := range []TaskActivity{"", "running", "complete", "future"} {
 		if activity.Valid() {
 			t.Fatalf("unknown activity %q is valid", activity)
+		}
+	}
+}
+
+func TestTaskActivityGeneratedSequencesMatchIndependentTable(t *testing.T) {
+	legal := map[TaskActivity][]TaskActivity{
+		TaskPending:    {TaskInProgress, TaskBlocked},
+		TaskInProgress: {TaskCompleted, TaskFailed},
+		TaskFailed:     {TaskInProgress, TaskBlocked},
+		TaskBlocked:    {TaskPending},
+	}
+	activities := []TaskActivity{TaskPending, TaskInProgress, TaskCompleted, TaskFailed, TaskBlocked, "future"}
+	random := rand.New(rand.NewSource(20260806))
+	for sequence := 0; sequence < 1000; sequence++ {
+		current := activities[random.Intn(len(activities))]
+		for step := 0; step < 20; step++ {
+			next := activities[random.Intn(len(activities))]
+			want := false
+			for _, allowed := range legal[current] {
+				want = want || allowed == next
+			}
+			if got := CanTransitionTaskActivity(current, next); got != want {
+				t.Fatalf("sequence %d step %d: %q to %q = %v, want %v", sequence, step, current, next, got, want)
+			}
+			if want {
+				current = next
+			}
 		}
 	}
 }
