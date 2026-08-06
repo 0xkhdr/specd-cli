@@ -137,36 +137,8 @@ mechanically re-checkable in a checkout. The journey list those gates shared a
 source with is now `requiredJourneys` in `release_test.go`, which still fails on a
 dropped, renamed, or added journey.
 
-The dogfood change traversed the whole loop in this root on 2026-07-31 and was
-archived at `.specd/archive/2026-07-31-release-journey-runner/` at lifecycle
-`archived`, revision 8, both tasks `completed`. Both human gates were passed by
-a human on a terminal and by no one else: `approve` (revision 1→2, aggregate
-`010e98c6`) and `sync` (revision 6→7). The agent-driven steps refused at each
-gate and were left refused. No approval was faked, and no `.specd` state,
-history, or evidence byte was hand-edited at any point.
-
-That traversal is not verifiable by anyone but its operator. The `.specd/` root
-holding it was removed from the tree in the 2026-08-01 publishing cleanup, and
-the repository published at `github.com/0xkhdr/specd-cli` begins at a single
-initial commit that does not contain it — so the Git history a reader can clone
-does not carry it either, and neither does any surviving working copy. What
-remains is this paragraph: an operator's account, uncorroborated by an artifact
-a third party can inspect. Weigh it as testimony. Every mechanically re-checkable
-claim in this document is elsewhere — in the gate table above, in the fourteen
-replayed journeys, and in the tests — and none of them depends on this one.
-
-That gap is what the 2026-08-01 traversal closes, and it closes it with
-artifacts rather than prose. `.specd/evidence.jsonl` holds three verification
-records (`2d6b55e3`, `3684e633`, `e6482133`), one per task of
-`docs-navigation`, each non-vacuous and passing at the HEAD it was observed at.
-`.specd/history.jsonl` carries the whole traversal in order — created,
-approved, three attempt/completion pairs, synced, archived — with the two human
-gates recorded against a human identity and every other step against the
-implementing actor. `.specd/specs/documentation/spec.md` is accepted truth
-reconciled by `sync` rather than authored by hand, and
-`.specd/archive/2026-08-01-docs-navigation/` is where the change came to rest.
-All of it is in the published Git history, so a reader re-derives it from a
-checkout instead of weighing testimony.
+Every mechanically re-checkable claim in this document comes from the gate
+table above, the fourteen replayed journeys, or the retained tests.
 
 ## Assurance boundary
 
@@ -184,11 +156,6 @@ checkout instead of weighing testimony.
   completes a task by itself, and completion never runs a verification.
 - Reports and this document project truth. They authorize nothing.
 - Supported platform claims are limited to the platform actually run.
-- The real-root traversal of 2026-07-31 is uncorroborated. It is neither in the
-  published tree nor in the published Git history, so the harness cannot
-  re-derive it and a reader cannot check it. Treat it as operator testimony, not
-  as evidence. The traversal of 2026-08-01 does not corroborate it either — it
-  is a second, independent traversal, and it is the one a reader can check.
 
 ## Known limitations
 
@@ -201,10 +168,8 @@ checkout instead of weighing testimony.
    amendments those observations were recorded in are not in the published
    repository; the three of them are restated under "Recorded frictions" below,
    which is now their only surviving record.
-2. **Three traversals are three traversals.** The base loop is proven end to end
-   by a two-task change on 2026-07-31 and three-task changes on 2026-08-01 and
-   2026-08-02, all in one root on one platform. It is not proven at scale or
-   over long-lived changes. Four growth paths are now measured on one named
+2. **The retained journeys do not prove scale or long-lived changes.** Fourteen
+   journeys replay the base loop, but four growth paths are measured on one named
    machine in [`scale.md`](scale.md): readiness reaches an observed wall at
    10,000 independent tasks and ledger replay at 100,000 records costs about
    1.49 seconds and 1.17 GB of allocations. These are observations, not
@@ -225,18 +190,7 @@ checkout instead of weighing testimony.
    artifacts sat in the tree. That is deliberate — honoring `.gitignore` would
    let an agent write anywhere by adding an ignore rule — but it means a dirty
    working tree blocks the loop for reasons no plan mentions.
-5. **The re-proof is one change, in one root, on one platform, in one day.**
-   `docs-navigation` traversed the whole loop in this root on 2026-08-01:
-   created at 11:13, approved at 16:51 by a human on a terminal, three tasks
-   each started, verified against real evidence, and completed, synced at 18:21
-   by a human, and archived at
-   `.specd/archive/2026-08-01-docs-navigation/`. Unlike the 2026-07-31
-   traversal, every step of it is in the published Git history and in
-   `.specd/history.jsonl`, so a reader can re-derive it from a checkout instead
-   of trusting its operator. What it does not establish is duration or
-   contention: it ran on linux/amd64, in one root, across a few hours, with no
-   second caller.
-6. **The release machinery has been driven through the loop once; the new
+5. **The release machinery has been driven through the loop once; the new
    release-PR path itself still has not.** `release-contract-gate` traversed the whole loop in
    this root on 2026-08-02 and changed the release workflow: three tasks, each
    started, verified against real evidence, and completed, with the plan and
@@ -246,7 +200,7 @@ checkout instead of weighing testimony.
    publication can only be retried against that existing immutable tag. What
    this does not answer is a real release through that new path: no release PR
    has yet been merged and published with it.
-7. **An attempt is bound to one commit and only `complete` releases it.**
+6. **An attempt is bound to one commit and only `complete` releases it.**
    `release-contract-gate` was planned three times before it ran. `start` binds
    an attempt to the commit HEAD was at, and the scope check counts uncommitted
    planning artifacts as paths outside that attempt's authority — both correct
@@ -259,13 +213,13 @@ checkout instead of weighing testimony.
    change and spend a second human approval. The refusal names a next action the
    tool cannot perform, which is the one thing a fail-closed refusal must not
    do.
-8. **A declared file list separated by commas is accepted at plan time.** The
+7. **A declared file list separated by commas is accepted at plan time.** The
    `files` column splits on `;`. Commas parse as a single path whose name
    contains commas, which `check` accepts, and which surfaces only when that
    task starts and its scope refuses every real file it needs. Combined with
-   limitation 7, the defect cost a full rebuild of the change. The plan gate
+   limitation 6, the defect cost a full rebuild of the change. The plan gate
    sees the declared paths and could refuse one that cannot exist.
-9. **An approved plan cannot be repaired; approval is content-bound and the
+8. **An approved plan cannot be repaired; approval is content-bound and the
    lifecycle is one-way.** Observed on 2026-08-06 while planning
    `close-adoption-set`: a task's declared verification was authored with a
    Markdown-escaped `\|` inside a `go test -run` pattern, which Go's regexp
@@ -279,11 +233,11 @@ checkout instead of weighing testimony.
    the only exits are restoring the exact approved bytes or discarding the
    change outside the harness and spending a second human approval. `status`
    meanwhile advises rerunning check and obtaining fresh approval — a next
-   action neither command will accept, which is the same defect limitation 7
-   names in the attempt path. Two of the three cases now known (7, 8, and this
+   action neither command will accept, which is the same defect limitation 6
+   names in the attempt path. Two of the three cases now known (6, 7, and this
    one) are authoring mistakes the plan gate could refuse before approval is
    spent; this one is also a missing lifecycle route.
-10. **Runtime conformance observes the journey driver, not production decision
+9. **Runtime conformance observes the journey driver, not production decision
    seams.** All fifteen executable operations are independently modeled and
    observed across the fourteen retained journeys, but behavior outside those
    executions is not traced. The 1,000 legal and 1,000 illegal generated steps
@@ -396,21 +350,15 @@ production-profile assurance is claimed.
 
 The base loop, the fourteen journeys, the subtraction audit, and every
 mechanical gate that still has an input are green, on four runners rather than
-two. The prior decision's own next steps have been taken in part: a real change
-was driven through this loop and archived here, and two platforms moved from
-unclaimed to observed.
+two. Two platforms moved from unclaimed to observed.
 
 A green board permits `release`. It does not establish maturity, and nothing
 below is withdrawn by deciding to publish.
 
 What changed since the 2026-08-01 `v0.1.1` decision is evidence, not scope. The
-tool gained no capability. It gained a checkable traversal — `docs-navigation`,
-planned, approved by a human, executed as three tasks against three
-verification records, synced, and archived, with every step in the published
-Git history rather than in an operator's account. It gained Windows and
-linux/arm64, each earned by a green run after a port that cost five distinct
-defects, and lost the claim that Windows is unsupported. The 2026-07-31
-traversal stays uncorroborated; it is simply no longer the only one.
+tool gained no capability. It gained Windows and linux/arm64, each earned by a
+green run after a port that cost five distinct defects, and lost the claim that
+Windows is unsupported.
 
 The publication path `github.com/0xkhdr/specd-cli` is unchanged, and so is the
 reason for it: the previous module path has six versions permanently cached by
@@ -422,8 +370,8 @@ of thing. It is not a claim that the loop is load-bearing; it is the root owner
 accepting that the loop is publishable at its stated boundary and that the
 boundary is written down here honestly. What a user gets is: a working base
 loop, fourteen journeys replayed on every platform a binary ships for, an
-audited surface, a suite that passes on three operating systems and two
-architectures, and one traversal they can re-derive from a checkout. What a
+audited surface, and a suite that passes on three operating systems and two
+architectures. What a
 user does not get is a supported scale limit, load measurement under concurrent
 callers, proof over a long-lived change, or proof that the loop has been driven through a real change
 anywhere but linux/amd64. Anyone relying on this beyond that boundary is
