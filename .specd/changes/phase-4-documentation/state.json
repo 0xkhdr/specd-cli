@@ -1,0 +1,48 @@
+{
+  "schemaVersion": 1,
+  "change": "phase-4-documentation",
+  "stage": "approved",
+  "condition": "active",
+  "revision": 2,
+  "approvals": [
+    {
+      "schema_version": 1,
+      "id": "approval:7af7c7817461b22e:1",
+      "change": "phase-4-documentation",
+      "gate": "planning_to_approved",
+      "lifecycle_from": "planning",
+      "lifecycle_to": "approved",
+      "approver": "0xkhdr@gmail.com",
+      "actor_class": "human",
+      "artifacts": [
+        {
+          "path": "design.md",
+          "hash": "2d75bd47b870a04e3fa8e5d5572e78fc7f8664659e353e1a57866e40c3ee2609"
+        },
+        {
+          "path": "proposal.md",
+          "hash": "217956c3f8cc466348e4df6eac084ab128214b2d48448ed4420a929be99d8740"
+        },
+        {
+          "path": "specs/release-assurance/spec.md",
+          "hash": "525ec3b4ac401130db94f50c23f63563b9a5ebb4b58da6e9ee9455aaaea36d63"
+        },
+        {
+          "path": "tasks.md",
+          "hash": "c9f314d10f33f26b7c4839687545b5b437b5957e877ebb04d08c8562744c7160"
+        }
+      ],
+      "aggregate_hash": "7af7c7817461b22e9195254f2021ca402b5d9f254d607b73ae2ff7f6a47aede7",
+      "registry_version": "core-v2",
+      "policy_digest": "ddc8b3ab149139c731d50ab1e80ae554a4d73d469ed683d99ac790b76c966040",
+      "revision_before": 1,
+      "revision_after": 2,
+      "timestamp": "2026-08-06T15:22:11.085957285Z",
+      "reason": "Reviewed and authorized the Phase 4 implementation plan",
+      "assurance": "advisory"
+    }
+  ],
+  "tasks": {},
+  "createdBy": "8574d05081f6ab46de743d96da6f144cb9f0122b562cde038bcbc2fd4ba4fe9f",
+  "lastTransition": "59c40702860584874a68586608619951b5409c6e133365ec54e5c35cc5a445a0"
+}
