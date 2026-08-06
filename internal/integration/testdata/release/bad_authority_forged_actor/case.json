@@ -1,0 +1,1 @@
+{"schema":1,"invariant":"authority","scenario":"authority_forged_actor","refusal":"approval_identity","next":"supply --approver matching trusted identity"}

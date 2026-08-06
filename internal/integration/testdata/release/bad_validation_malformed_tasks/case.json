@@ -1,0 +1,1 @@
+{"schema":1,"invariant":"validation","scenario":"validation_malformed_tasks","refusal":"tasks","next":"repair the reported findings and run specd check release-sample"}

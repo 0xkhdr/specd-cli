@@ -1,0 +1,1 @@
+{"schema":1,"invariant":"approval","scenario":"approval_self_granted","refusal":"human_approval_required","next":"hand off approval to a human terminal"}

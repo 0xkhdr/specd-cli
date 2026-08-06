@@ -1,0 +1,1 @@
+{"schema":1,"invariant":"fail-closed","scenario":"failclosed_future_schema","refusal":"state_schema_unsupported","next":"repair corrupt state outside automated mutation"}
