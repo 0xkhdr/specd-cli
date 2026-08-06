@@ -63,6 +63,10 @@ contain a process. Unless your host proves otherwise, treat every such
 guarantee as `advisory`: it is checked, not enforced. Do not report an advisory
 guarantee as an enforced one.
 
+Published maturity and assurance claims come from one registry:
+{{range .Claims}}- `{{.ID}}`: `{{.Level}}` (observed {{.Observed}}; evidence `{{.Evidence}}`)
+{{end}}
+
 ## Review is a separate pair of eyes
 
 `review` carries a verdict a separate human authored. You may record it, you may

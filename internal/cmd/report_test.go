@@ -102,6 +102,12 @@ func TestReportsCarryPolicyDigestAndBoundFacts(t *testing.T) {
 	if factValue(defaulted, "assurance") != core.AttemptAssurance {
 		t.Fatalf("assurance fact = %q", factValue(defaulted, "assurance"))
 	}
+	claims := factValue(defaulted, "maturity_claims")
+	for _, claim := range core.MaturityClaims() {
+		if !strings.Contains(claims, claim.Category+"/"+claim.Subject+"=") {
+			t.Fatalf("maturity claims omit %s/%s: %q", claim.Category, claim.Subject, claims)
+		}
+	}
 	// An absent value is the explicit word, never a blank row a reader could
 	// mistake for an omitted fact.
 	for _, fact := range defaulted.Facts {

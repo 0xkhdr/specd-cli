@@ -72,6 +72,7 @@ Mechanically asserted by `TestReleaseQualification` from repository facts:
 | generated docs parity | `docs/operations.md` byte-compared with `core.RenderOperationDocs` |
 | no broken link in the user documentation | every relative inline link in `README.md` and `docs/*.md` resolved against the filesystem |
 | generated guidance parity | `generate.Render` is deterministic and names every agent-visible executable operation |
+| maturity claims complete and consistent | every platform, profile, guarantee, and explicitly unclaimed coverage boundary has one typed, dated evidence row; primary user and security summaries agree with it |
 | all fourteen required journeys retained | required list is `requiredJourneys` in `release_test.go`, retained list parsed from the runner |
 | runtime trace conformance | every executable registry operation and all fourteen journeys emit a bounded step checked against an independent test-local transition model |
 | no unowned surface | pending-deletion table of `release/surface-inventory.md` must be empty |

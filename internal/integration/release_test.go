@@ -114,6 +114,7 @@ func TestReleaseQualification(t *testing.T) {
 		gateDocsParity(t),
 		gateDocLinks(t),
 		gateGuidanceParity(t),
+		gateMaturityClaims(t),
 		gateJourneys(t),
 		gateUnownedSurface(t),
 		gateVocabulary(t),
@@ -354,6 +355,9 @@ func gateDocLinks(t *testing.T) gate {
 	t.Helper()
 	g := gate{name: "no broken link in the user documentation"}
 	pages := []string{"README.md"}
+	if _, err := os.Stat(filepath.Join(repoDir, "ARCHITECTURE.md")); err == nil {
+		pages = append(pages, "ARCHITECTURE.md")
+	}
 	entries, err := os.ReadDir(filepath.Join(repoDir, "docs"))
 	if err != nil {
 		t.Fatalf("read docs: %v", err)
@@ -383,6 +387,105 @@ func gateDocLinks(t *testing.T) gate {
 		g.blocker = "unresolvable documentation links: " + strings.Join(broken, ", ")
 	}
 	return g
+}
+
+func gateMaturityClaims(t *testing.T) gate {
+	t.Helper()
+	docs := map[string]string{
+		"README.md":      readRepoFile(t, "README.md"),
+		"SECURITY.md":    readRepoFile(t, "SECURITY.md"),
+		"docs/README.md": readRepoFile(t, "docs/README.md"),
+	}
+	g := gate{name: "maturity claims complete and consistent"}
+	if problems := checkMaturityClaims(core.MaturityClaims(), docs); len(problems) > 0 {
+		g.blocker = strings.Join(problems, "; ")
+	}
+	return g
+}
+
+func checkMaturityClaims(claims []core.MaturityClaim, docs map[string]string) []string {
+	required := []string{
+		"platform/linux/amd64", "platform/linux/arm64", "platform/darwin/arm64", "platform/windows/amd64",
+		"profile/default", "profile/production", "guarantee/approval", "guarantee/evidence",
+		"guarantee/scope", "guarantee/atomicity", "guarantee/fail-closed", "guarantee/path-containment",
+		"guarantee/host-assurance", "coverage/concurrent-end-to-end",
+	}
+	levels := map[string]bool{"proven": true, "gated": true, "experimental": true, "unclaimed": true, "advisory": true, "enforced": true}
+	seen := map[string]string{}
+	var problems []string
+	for _, claim := range claims {
+		id := claim.Category + "/" + claim.Subject
+		level := string(claim.Maturity)
+		if level != "" && claim.Assurance != "" {
+			problems = append(problems, id+" has both maturity and assurance")
+			continue
+		}
+		if level == "" {
+			level = string(claim.Assurance)
+		}
+		if seen[id] != "" {
+			problems = append(problems, id+" is duplicated")
+		}
+		seen[id] = level
+		if !levels[level] {
+			problems = append(problems, id+" has invalid level "+level)
+		}
+		if !regexp.MustCompile(`^\d{4}-\d{2}-\d{2}$`).MatchString(claim.Observed) || strings.TrimSpace(claim.Evidence) == "" {
+			problems = append(problems, id+" has no dated evidence")
+		}
+		path := strings.Split(claim.Evidence, "#")[0]
+		if _, err := os.Stat(filepath.Join(repoDir, path)); err != nil {
+			problems = append(problems, id+" evidence does not resolve")
+		}
+	}
+	for _, id := range required {
+		if seen[id] == "" {
+			problems = append(problems, id+" is missing")
+		}
+	}
+	checks := []struct{ path, prefix, id string }{
+		{"README.md", "the base loop is ", "platform/linux/amd64"},
+		{"README.md", "the production profile is ", "profile/production"},
+		{"README.md", "host assurance is ", "guarantee/host-assurance"},
+		{"SECURITY.md", "host assurance is ", "guarantee/host-assurance"},
+		{"docs/README.md", "the base loop is released and ", "platform/linux/amd64"},
+		{"docs/README.md", "the production profile remains ", "profile/production"},
+		{"docs/README.md", "host scope assurance is ", "guarantee/host-assurance"},
+	}
+	for _, check := range checks {
+		normalized := strings.ToLower(strings.Join(strings.Fields(docs[check.path]), " "))
+		prefix := strings.ToLower(check.prefix)
+		start := strings.Index(normalized, prefix)
+		if start < 0 {
+			problems = append(problems, check.path+" omits "+check.id)
+			continue
+		}
+		word := strings.Trim(strings.Fields(normalized[start+len(prefix):])[0], "`.,;:")
+		if word != seen[check.id] {
+			problems = append(problems, check.path+" claims "+check.id+"="+word+", registry says "+seen[check.id])
+		}
+	}
+	return problems
+}
+
+func TestMaturityGateBites(t *testing.T) {
+	claims := core.MaturityClaims()
+	claims[0].Observed = ""
+	if problems := checkMaturityClaims(claims, map[string]string{}); !slices.ContainsFunc(problems, func(problem string) bool {
+		return strings.Contains(problem, "has no dated evidence")
+	}) {
+		t.Fatalf("missing evidence did not bite: %v", problems)
+	}
+	docs := map[string]string{
+		"README.md":      "The base loop is proven. The production profile is proven. Host assurance is advisory.",
+		"SECURITY.md":    "Host assurance is advisory.",
+		"docs/README.md": "The base loop is released and proven. The production profile remains experimental. Host scope assurance is advisory.",
+	}
+	if problems := checkMaturityClaims(core.MaturityClaims(), docs); !slices.ContainsFunc(problems, func(problem string) bool {
+		return strings.Contains(problem, "profile/production=proven")
+	}) {
+		t.Fatalf("contradictory documentation did not bite: %v", problems)
+	}
 }
 
 // gateDeterministicCore refuses any network, TLS, or subprocess import inside

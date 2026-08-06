@@ -36,6 +36,14 @@ agent-visible executable operation.
 Does not establish: operation prose is correct or every named operation is
 reachable through dispatch.
 
+## maturity claims complete and consistent
+
+Establishes: the typed registry has every required claim, each row has a level,
+date, and resolving evidence path, and the primary user and security summaries
+state matching levels.
+Does not establish: the cited evidence proves its claim, anchors resolve, an
+unscanned document agrees, or a dated observation remains current forever.
+
 ## all fourteen required journeys retained
 
 Establishes: runner contains fourteen journeys whose names overlap the required

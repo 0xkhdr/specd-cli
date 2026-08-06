@@ -3,7 +3,7 @@
   "change": "phase-4-documentation",
   "stage": "approved",
   "condition": "active",
-  "revision": 2,
+  "revision": 4,
   "approvals": [
     {
       "schema_version": 1,
@@ -42,7 +42,18 @@
       "assurance": "advisory"
     }
   ],
-  "tasks": {},
+  "tasks": {
+    "P4-01": "completed"
+  },
   "createdBy": "8574d05081f6ab46de743d96da6f144cb9f0122b562cde038bcbc2fd4ba4fe9f",
-  "lastTransition": "59c40702860584874a68586608619951b5409c6e133365ec54e5c35cc5a445a0"
+  "lastTransition": "667b7b73c4da19390babed6a9aa9e5cab435003f270359376760b5564c3c2b5c",
+  "extensions": {
+    "completions": {
+      "P4-01": {
+        "attempt": "b4b918d2acaa54b78e20afe534b30b14b827dfd4bb4eac0e0ce110acf52f45db",
+        "evidence": "b5594fcc3162927f9e082a86c620dd5f4ddc87b646318dffeba8695903844058",
+        "history": "667b7b73c4da19390babed6a9aa9e5cab435003f270359376760b5564c3c2b5c"
+      }
+    }
+  }
 }
