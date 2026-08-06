@@ -2,7 +2,7 @@
 
 | Pattern | Phase | Effort | Risk | Status |
 | --- | --- | --- | --- | --- |
-| [P13](../patterns.md#p13--machine-readable-registry-for-anything-currently-claimed-in-prose) | 4 | small | low | not applied |
+| [P13](../patterns.md#p13--machine-readable-registry-for-anything-currently-claimed-in-prose) | 4 | small | low | applied 2026-08-06 |
 
 ## Why
 

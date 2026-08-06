@@ -45,7 +45,7 @@ of work specd exists to run through its own loop, and driving it that way
 produces a second hand traversal, which is itself evidence the release record
 currently lacks.
 
-### Phase 4 — Documentation completeness (small–medium)
+### Phase 4 — Documentation completeness (small–medium) — applied 2026-08-06
 
 | Item | Depends on | Deliverable |
 | --- | --- | --- |

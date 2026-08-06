@@ -12,6 +12,12 @@ This file records what changed; that one records what has been proven.
 
 ### Added
 
+- Phase 4 completes the hardening adoption set: `ARCHITECTURE.md` maps code
+  layers and every design rule to its enforcing test; a typed core registry
+  projects dated maturity and assurance claims into agent guidance and status
+  reports with a release-gate bite test; contributor policy now includes the
+  merge boundary, agent-authored change responsibility, three extension
+  cookbooks, and real failure-shaped gotchas.
 - Phase 3 hardening adds an independent test-local runtime conformance model
   over all fourteen journeys and every executable operation, four executable
   growth benchmarks with dated results in `release/scale.md`, and a release-PR

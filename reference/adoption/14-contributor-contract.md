@@ -2,7 +2,7 @@
 
 | Pattern | Phase | Effort | Risk | Status |
 | --- | --- | --- | --- | --- |
-| [P11](../patterns.md#p11--documentation-is-organized-by-failure-mode), [P12](../patterns.md#p12--every-rule-names-its-enforcement-and-forbids-the-escape-hatch) | 4 | small | low | not applied |
+| [P11](../patterns.md#p11--documentation-is-organized-by-failure-mode), [P12](../patterns.md#p12--every-rule-names-its-enforcement-and-forbids-the-escape-hatch) | 4 | small | low | applied 2026-08-06 |
 
 ## Why
 

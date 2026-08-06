@@ -2,7 +2,7 @@
 
 | Pattern | Phase | Effort | Risk | Status |
 | --- | --- | --- | --- | --- |
-| [P11](../patterns.md#p11--documentation-is-organized-by-failure-mode) | 4 | medium | low | not applied |
+| [P11](../patterns.md#p11--documentation-is-organized-by-failure-mode) | 4 | medium | low | applied 2026-08-06 |
 
 ## Why
 

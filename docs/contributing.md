@@ -113,40 +113,91 @@ The registry is the source of truth; everything else projects from it.
    lifecycles, arguments, flags, exits, result type, `AgentVisible`,
    `Executable`, example. An undeclared field fails registry validation rather
    than defaulting to something wider.
-2. **Bind one handler** in the `handlers` map in `internal/cmd/dispatch.go`.
-   Exactly one per executable id.
-3. **Project the result** into the agent envelope. If the result type is not
+2. **Implement the decision** in `internal/core`. Core is the only validation
+   boundary; return `failure.Refusal` for invalid input.
+3. **Bind one handler** in the `handlers` map in `internal/cmd/dispatch.go`.
+   Exactly one per executable id, with no repeated core guard.
+4. **Project the result** into the agent envelope in `internal/cmd/output.go`.
+   Do not add a per-operation `RenderX` helper. If the result type is not
    projected, the command is registered, documented, and unreachable — this
    actually shipped once, and it is why reachability is tested rather than
    assumed.
-4. **Regenerate the docs**:
+5. **Regenerate the docs**:
 
    ```bash
    SPECD_WRITE_OPERATION_DOCS=1 go test ./internal/core -run TestOperationProjectionParity
    ```
 
    Never hand-edit `docs/operations.md`; the parity check compares bytes.
-5. **Add a surface-inventory row** in `release/surface-inventory.md` mapping it
+6. **Add a surface-inventory row** in `release/surface-inventory.md` mapping it
    to a journey or an invariant.
-6. **Cover it with a journey** if it is user-reachable, in
+7. **Add a bite test** for every refusal, asserting its stable code and one
+   legal next action.
+8. **Cover it with a journey** if it is user-reachable, in
    `internal/integration/release_journeys_test.go`.
-7. **Update the hand-written docs** only where the operation changes a workflow
-   or guarantee. The README links to the generated operation reference instead
-   of maintaining a second command table.
+9. **Update hand-written docs and run `make ci`.** Change only the guide that
+   owns the workflow or guarantee; do not create a second command table.
 
 If the operation is human-only, `AgentVisible` is false and there is no
 agent-callable form. Do not add a flag that reveals one.
 
 ## Adding a gate
 
-Planning gates live in `internal/core/gates/planning.go`, production gates in
-`production.go`, both registered in `registry.go`. A gate returns findings with
-a code, a `file:line` location, a message, and a `fix:` — the fix is not
-optional, because a finding a caller cannot act on is noise.
+1. Implement a planning gate in `internal/core/gates/planning.go`, a production
+   gate in `production.go`, or a repository-fact gate in
+   `internal/integration/release_test.go`. Register planning and production
+   gates in `registry.go`.
+2. Add its exact row to `release/release-decision.md`.
+3. Add the same heading to `release/gate-limits.md` and state what green does
+   not establish. `gateLimitsComplete` enforces the pair.
+4. Prove it bites: construct or mutate the forbidden state, confirm the gate
+   fails, revert the mutation, and retain the smallest automated bite case.
+5. Run `make ci`.
+
+A planning or production gate returns findings with a code, a `file:line`
+location, a message, and a `fix:`. The fix is required because a finding a
+caller cannot act on is noise.
 
 Changing the registry changes its version, which makes existing approvals stale
 (`registry_version_changed`). That is correct behavior, and it means gate
 changes are not free — they cost every in-flight change a re-approval.
+
+## Adding a refusal
+
+1. Create the refusal at the deciding trust boundary with
+   `internal/core/failure.New(code, root, path, reason, next)`. The code is
+   stable machine-readable surface; use an existing code when the condition and
+   recovery are identical.
+2. Give it exactly one legal next action. `failure.New` panics on an empty code,
+   reason, or action, so a dead-end refusal cannot hide in a test.
+3. Keep presentation in `internal/cmd/output.go`. Core owns the decision and
+   structured facts; it does not format terminal or JSON output.
+4. Add one bite test that constructs the forbidden state and asserts the code
+   and next action. Reuse `assertActionableRefusal` in `internal/core` where it
+   fits.
+5. If the refusal is user- or agent-visible, extend the owning journey and the
+   troubleshooting table, then run `make ci`.
+
+## Contributor gotchas
+
+1. **Operation docs look like a renderer failure after a registry edit.** The
+   cause is usually skipped regeneration. Run `make docs` and commit
+   `docs/operations.md` with the registry change.
+2. **A generated agent guide reports drift after a hand edit.** Bytes between
+   managed markers are harness-owned. Restore them through the refresh path;
+   put local notes outside the markers.
+3. **A build fails in `subtraction_test.go` after an unrelated Go edit.** A new
+   exported symbol lacks an owner. Add the exact inventory row or make the
+   symbol private.
+4. **The dead-vocabulary gate points at generated output.** The source registry
+   introduced a noun outside `AGENTS.md`'s vocabulary. Rename it at the owner,
+   then regenerate; do not patch the projection.
+5. **A hand edit under `.specd/` causes a refusal.** Restore the managed bytes
+   from a trusted commit and rerun the operation named by the refusal. Editing
+   state, history, evidence, or task markers is never a repair.
+6. **A Windows checkout changes every golden fixture.** `.gitattributes` pins
+   line endings. Re-check out through Git with those attributes; do not refresh
+   every golden from CRLF bytes.
 
 ## Working on the docs
 

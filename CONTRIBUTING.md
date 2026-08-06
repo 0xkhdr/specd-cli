@@ -13,16 +13,52 @@ The checks, the release gates, and the regeneration commands are listed once, in
 [`docs/contributing.md`](docs/contributing.md#before-you-hand-off). Run them
 there rather than from a second copy here.
 
+Search open issues and pull requests first. Link the closest result in the pull
+request template, or write `none found`. For anything beyond a small fix, open
+an issue before writing the change: maintainer review is the enforcement point,
+and early agreement avoids work the repository cannot safely accept.
+
 ## Commits and pull requests
 
 One logical change per pull request. Explain what behavior changed and how you
 verified it — a reviewer should not have to guess which command you ran.
+
+This repository retains ordinary Git history and has no commit-message or DCO
+gate. Use a short imperative subject, but do not add sign-off trailers to satisfy
+a policy that does not exist. Pull requests merge only after the required CI
+checks and maintainer review pass; those checks, not a subject-line convention,
+are the enforced contract.
 
 If a change alters what the project claims to have proven — a platform, a
 guarantee, a boundary — say so in
 [`release/release-decision.md`](release/release-decision.md) in the same pull
 request. That file is the boundary this project stands behind, and it is meant
 to be edited honestly rather than kept flattering.
+
+## What will not be merged
+
+These are refusals, not style preferences:
+
+- a runtime dependency (`go.mod`'s empty require set is a release gate);
+- exported surface without an owner (`TestSurfaceOwnership` fails);
+- a second output surface or a command guard that repeats a core refusal
+  (`TestSurfaceOwnership` and the one-owner review rule apply);
+- a bypass for evidence, approval, authority, scope, or validation (the bite
+  tests and retained journeys must remain green);
+- a weakened bite test or unrelated golden refresh used to hide a failure
+  (review compares the asserted forbidden state with the changed behavior);
+- speculative abstraction or unrelated drive-by churn (maintainer review
+  refuses scope that no approved requirement owns).
+
+Large refactors and new behavior need prior issue agreement because their
+review boundary cannot be reconstructed safely after the code arrives.
+
+## Agent-authored contributions
+
+Agent-authored contributions are welcome and need no tool disclosure. You are
+the human gate for your pull request: read the final change, understand its
+claims, and own its effects. Maintainer review may close an evidently unreviewed
+submission and point back here; the harness makes work reviewable, not approved.
 
 ## Versioning and releases
 
