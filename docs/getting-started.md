@@ -9,12 +9,10 @@ fields do not affect the next action.
 You need Go 1.26 or newer, the `specd` binary from
 [Install](../README.md#install), and a Git repository with at least one commit.
 
-The repository's working tree must be **clean**, including files your
-`.gitignore` excludes. `start` refuses a dirty tree, and scope enforcement
-counts ignored files deliberately: honoring `.gitignore` would let an agent
-write anywhere by adding an ignore rule. A stray build artifact or editor
-directory will block the loop for a reason no plan mentions. Run `git status
---ignored` and clear it before you begin.
+The repository's working tree must be **clean**: `start` refuses tracked changes
+and untracked files, because scope enforcement would otherwise attribute them to
+your attempt. Files your `.gitignore` excludes are exempt at both `start` and
+`verify`, so dependency and build directories can stay where they are.
 
 For the model behind any of this, read [concepts.md](concepts.md). For flags and
 exit codes, read [operations.md](operations.md).
@@ -408,10 +406,9 @@ Common mistakes from this walkthrough:
 2. **`--approver` with a name instead of the git email.** Omit the flag.
 3. **Trying to approve from a non-terminal.** Both human gates need a real tty.
    If your agent is stuck, it is supposed to be — hand off.
-4. **A dirty working tree.** This one did not bite this walkthrough but bit
-   specd's own first real run: scope counts git-ignored files deliberately, so
-   stray build output blocks `verify` for reasons your plan never mentions.
-   Commit or clean before `start`.
+4. **A dirty working tree.** `start` refuses tracked changes and untracked
+   files that are not yours to attribute. Commit or clean before `start`.
+   Git-ignored paths are exempt at both `start` and `verify`.
 
 Next: read [The execution loop](the-loop.md) for task-level detail, or
 [Troubleshooting](troubleshooting.md) when a refusal differs from this example.

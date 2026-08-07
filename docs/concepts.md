@@ -138,10 +138,11 @@ declaration — provenance, not proof.
 observed, and it refuses if the change moved underneath you.
 
 While the attempt is open, the diff against that baseline must stay inside the
-task's declared `files`. Anything outside is refused. Git-ignored files count,
-deliberately — honoring `.gitignore` would let an agent write anywhere by adding
-an ignore rule. The practical consequence: a dirty working tree blocks the loop
-for reasons the plan never mentions.
+task's declared `files`. Anything outside is refused. Git-ignored files do not
+count: dependency, build, and runtime paths predate the attempt or are written
+by the verification commands themselves, so they are never attempt output. An
+agent that adds an ignore rule to widen its reach still fails scope, because the
+`.gitignore` write is itself a change outside the declared files.
 
 `complete` is the transition. Inside a guarded transaction it re-checks HEAD,
 finds evidence applicable to *this* task contract and command at *this* HEAD,

@@ -10,6 +10,20 @@ This file records what changed; that one records what has been proven.
 
 ## [Unreleased]
 
+## [0.6.0] — 2026-08-07
+
+### Fixed
+
+- Scope enforcement counted every Git-ignored file as output of the current
+  attempt. `git ls-files --others --ignored` is not baseline-relative, so
+  `vendor/`, `node_modules/`, `.env`, and framework runtime directories that
+  existed before `start` were reported as `scope_outside`, and so were the
+  runtime files the verification commands wrote themselves. `start` never
+  refused those paths, so a project could open an attempt it could never
+  verify. Scope is now the baseline diff plus ordinary untracked files.
+  Widening reach by adding an ignore rule is still refused, because the
+  `.gitignore` write is itself a change outside the declared files.
+
 ## [0.5.0] — 2026-08-07
 
 ### Added

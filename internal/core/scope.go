@@ -284,20 +284,12 @@ func deriveScopeChanges(root, baseline string) ([]gitScopeChange, error) {
 		}
 		changes = append(changes, gitScopeChange{Kind: "A", Path: normalized})
 	}
-	ignored, err := gitRaw(root, "ls-files", "--others", "--ignored", "--exclude-standard", "-z")
-	if err != nil {
-		return nil, scopeFailure("scope_git", root, err.Error(), "repair Git state and regenerate task context")
-	}
-	for _, rawPath := range bytes.Split(ignored, []byte{0}) {
-		if len(rawPath) == 0 {
-			continue
-		}
-		normalized, err := normalizeScopePath(rawPath)
-		if err != nil {
-			return nil, err
-		}
-		changes = append(changes, gitScopeChange{Kind: "A", Path: normalized})
-	}
+	// Git-ignored files are not enumerated. `git ls-files --others --ignored` is
+	// not baseline-relative, so it attributes every pre-existing dependency,
+	// runtime, and build path (vendor/, node_modules/, storage/) to the current
+	// attempt, and `start` never refused them. An agent that widens its reach by
+	// adding an ignore rule still fails scope: the .gitignore write is itself a
+	// tracked or untracked change outside the declared files.
 	slices.SortStableFunc(changes, func(a, b gitScopeChange) int {
 		return cmp.Or(cmp.Compare(a.Path, b.Path), cmp.Compare(a.PreviousPath, b.PreviousPath))
 	})

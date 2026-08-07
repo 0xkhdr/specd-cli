@@ -156,35 +156,66 @@ func TestScopeMalformedGitNameStatusFailsClosed(t *testing.T) {
 	}
 }
 
-func TestScopeIncludesIgnoredUntrackedPaths(t *testing.T) {
-	t.Run("declared", func(t *testing.T) {
+func TestScopeExcludesIgnoredPaths(t *testing.T) {
+	// Ignored paths are dependency, runtime, and build output. They predate the
+	// attempt or are written by the verification commands themselves, so they are
+	// never attempt output. Untracked and tracked changes still are.
+	t.Run("ignored before start", func(t *testing.T) {
 		root := attemptRoot(t)
-		appendAttemptFile(t, filepath.Join(root, ".gitignore"), []byte("internal/sample.go\n"))
+		appendAttemptFile(t, filepath.Join(root, ".gitignore"), []byte("vendor/\n"))
 		runAttemptGit(t, root, "add", ".gitignore")
-		runAttemptGit(t, root, "commit", "-m", "ignore declared output", "--no-gpg-sign")
+		runAttemptGit(t, root, "commit", "-m", "ignore vendor", "--no-gpg-sign")
+		mustWriteScopeFile(t, filepath.Join(root, "vendor", "dep.go"), "package dep\n")
+		attempt, err := StartAttempt(root, "safe-change", attemptRequest(2))
+		if err != nil {
+			t.Fatal(err)
+		}
+		result, err := CheckScope(root, "safe-change", "T1", attempt.ID)
+		if err != nil || len(result.ChangedPaths) != 0 {
+			t.Fatalf("pre-existing ignored path = %#v, %v", result, err)
+		}
+	})
+	t.Run("ignored during attempt", func(t *testing.T) {
+		root := attemptRoot(t)
+		appendAttemptFile(t, filepath.Join(root, ".gitignore"), []byte("storage/\n"))
+		runAttemptGit(t, root, "add", ".gitignore")
+		runAttemptGit(t, root, "commit", "-m", "ignore storage", "--no-gpg-sign")
 		attempt, err := StartAttempt(root, "safe-change", attemptRequest(2))
 		if err != nil {
 			t.Fatal(err)
 		}
 		mustWriteScopeFile(t, filepath.Join(root, "internal", "sample.go"), "package internal\n")
+		mustWriteScopeFile(t, filepath.Join(root, "storage", "session"), "runtime\n")
 		result, err := CheckScope(root, "safe-change", "T1", attempt.ID)
 		if err != nil || !reflect.DeepEqual(result.ChangedPaths, []string{"internal/sample.go"}) {
-			t.Fatalf("ignored declared path = %#v, %v", result, err)
+			t.Fatalf("runtime ignored path = %#v, %v", result, err)
 		}
 	})
-	t.Run("undeclared", func(t *testing.T) {
+	t.Run("untracked undeclared", func(t *testing.T) {
 		root := attemptRoot(t)
-		appendAttemptFile(t, filepath.Join(root, ".gitignore"), []byte("ignored.txt\n"))
-		runAttemptGit(t, root, "add", ".gitignore")
-		runAttemptGit(t, root, "commit", "-m", "ignore sibling", "--no-gpg-sign")
 		attempt, err := StartAttempt(root, "safe-change", attemptRequest(2))
 		if err != nil {
 			t.Fatal(err)
 		}
-		mustWriteScopeFile(t, filepath.Join(root, "ignored.txt"), "ignored\n")
+		mustWriteScopeFile(t, filepath.Join(root, "stray.txt"), "stray\n")
 		if _, err := CheckScope(root, "safe-change", "T1", attempt.ID); !failure.IsCode(err, "scope_outside") ||
-			!strings.Contains(err.Error(), "ignored.txt") {
-			t.Fatalf("ignored undeclared error = %v", err)
+			!strings.Contains(err.Error(), "stray.txt") {
+			t.Fatalf("untracked undeclared error = %v", err)
+		}
+	})
+	t.Run("tracked undeclared", func(t *testing.T) {
+		root := attemptRoot(t)
+		mustWriteScopeFile(t, filepath.Join(root, "tracked.txt"), "before\n")
+		runAttemptGit(t, root, "add", "tracked.txt")
+		runAttemptGit(t, root, "commit", "-m", "add tracked sibling", "--no-gpg-sign")
+		attempt, err := StartAttempt(root, "safe-change", attemptRequest(2))
+		if err != nil {
+			t.Fatal(err)
+		}
+		mustWriteScopeFile(t, filepath.Join(root, "tracked.txt"), "after\n")
+		if _, err := CheckScope(root, "safe-change", "T1", attempt.ID); !failure.IsCode(err, "scope_outside") ||
+			!strings.Contains(err.Error(), "tracked.txt") {
+			t.Fatalf("tracked undeclared error = %v", err)
 		}
 	})
 }
