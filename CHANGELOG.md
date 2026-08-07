@@ -10,6 +10,8 @@ This file records what changed; that one records what has been proven.
 
 ## [Unreleased]
 
+## [0.6.0] — 2026-08-07
+
 ### Fixed
 
 - Scope enforcement counted every Git-ignored file as output of the current
