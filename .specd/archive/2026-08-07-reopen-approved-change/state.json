@@ -1,9 +1,9 @@
 {
   "schemaVersion": 1,
   "change": "reopen-approved-change",
-  "stage": "approved",
+  "stage": "archived",
   "condition": "active",
-  "revision": 20,
+  "revision": 22,
   "approvals": [
     {
       "schema_version": 1,
@@ -120,7 +120,7 @@
     "R3": "completed"
   },
   "createdBy": "63b82c5e100472b0924677f6d834a50fbd88f9e53736084bfa948e4ec2b207e9",
-  "lastTransition": "0955383485b25f9c415702bfbc547b0e9677c9e29811e784e366a46108399e45",
+  "lastTransition": "140ac45eb4b838952be831460784a3d8c80658711f308ede0a09ac3b55187a02",
   "extensions": {
     "completions": {
       "R1": {
