@@ -1,4 +1,0 @@
-# Harness locks are runtime only; every other managed file is tracked truth.
-.root.lock
-.records.lock
-changes/*.lock
