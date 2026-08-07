@@ -10,6 +10,8 @@ This file records what changed; that one records what has been proven.
 
 ## [Unreleased]
 
+## [0.5.0] — 2026-08-07
+
 ### Added
 
 - `specd reopen CHANGE --revision REVISION --reason REASON` revokes execution
