@@ -127,8 +127,8 @@ refusal at `verify`.
 
 While an attempt is open, your diff against the baseline must stay inside the
 declared files. `verify` derives changes with `git diff --name-status` against
-the baseline, plus untracked files, plus **ignored** files
-(`internal/core/scope.go`).
+the baseline, plus ordinary untracked files. Git-ignored files are **not**
+counted (`internal/core/scope.go`).
 
 Anything outside is `scope_outside`:
 
@@ -139,9 +139,13 @@ next: blocked owner=author; revise the plan and obtain fresh human approval
 
 Three practical consequences:
 
-1. **Git-ignored files count.** Deliberately: honoring `.gitignore` would let an
-   agent write anywhere by adding an ignore rule. Stray build output blocks the
-   loop for reasons your plan never mentions. Clean the tree before `start`.
+1. **Git-ignored files do not count.** `git ls-files --others --ignored` is not
+   baseline-relative, so enumerating it attributed every pre-existing
+   `vendor/`, `node_modules/`, or `storage/` path to the current attempt — and
+   `start` never refused those paths either. Adding an ignore rule is still not
+   an escape: the `.gitignore` write is itself a change outside declared files.
+   The residual blind spot is a directory ignored *before* `start`; the honest
+   boundary below covers why that is detection's limit, not a new hole.
 2. **Deletions and renames are not `A` or `M`**, so they are refused as
    offending paths even inside declared files. A task that deletes a file is a
    plan-level decision.

@@ -35,10 +35,11 @@ it).
 
 Two of these deserve a sentence more.
 
-**`scope_outside`** counts git-ignored files deliberately — otherwise an agent
-could write anywhere by adding an ignore rule. Stray build output blocks the
-loop. Also note that deletions and renames are refused even inside declared
-files: only additions and modifications are in scope.
+**`scope_outside`** counts tracked changes against the baseline plus ordinary
+untracked files. Git-ignored files do not count, so `vendor/`, `node_modules/`,
+and runtime output never block the loop. Also note that deletions and renames
+are refused even inside declared files: only additions and modifications are in
+scope.
 
 **`stale_revision`** is not a lock error. It means the change genuinely moved,
 and acting on your stale view would have been wrong. The refusal tells you the
